@@ -1,5 +1,5 @@
-CFLAGS += -Wall -pedantic -std=c99 
-LDFLAGS += -lm
+CFLAGS += -Wall -pedantic -std=c99
+LDFLAGS += -lm -lpthread
 SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 BIN = yee
