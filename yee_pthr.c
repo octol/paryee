@@ -16,10 +16,15 @@
 #include <math.h>
 #include <assert.h>
 #include <string.h>
+#include <pthread.h>
 #include <time.h>
 
 #ifndef NX
 #define NX 1024
+#endif
+
+#ifndef NODES
+#define NODES 2
 #endif
 
 /* 
@@ -27,6 +32,7 @@
  */
 typedef struct FieldVariable FieldVariable;
 typedef struct Field Field;
+typedef struct FieldUpdateParam FieldUpdateParam;
 
 struct FieldVariable {
     double* value;
@@ -40,6 +46,15 @@ struct Field {
     FieldVariable u;
     double dt;
     double Nt;
+};
+
+struct FieldUpdateParam {
+    FieldVariable* dst;
+    int dst1;
+    int dst2;
+    FieldVariable* src;
+    int src1;
+    double dt;
 };
 
 void alloc_field (FieldVariable* f, unsigned long N)
@@ -128,6 +143,33 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 
+/* 
+ * Leapfrog time update adapted to use return value and argument suitable
+ * for pthreads.
+ */
+void* pthread_update_field (void* arg)
+{
+    FieldUpdateParam* p = (FieldUpdateParam*) arg;
+    update_field (p->dst, p->dst1, p->dst2, p->src, p->src1, p->dt);
+    return NULL;
+}
+
+/* 
+ * Collect parameters
+ */
+FieldUpdateParam collect_param (FieldVariable* dst, int dst1, int dst2, 
+                                FieldVariable* src, int src1, double dt)
+{
+    FieldUpdateParam param;
+    param.dst = dst;
+    param.dst1 = dst1;
+    param.dst2 = dst2;
+    param.src = src;
+    param.src1 = src1;
+    param.dt = dt;
+    return param;
+}
+
 /*
  * Round up integer division
  */
@@ -153,19 +195,47 @@ int main()
     field_func (&f.p, gauss);
     field_func (&f.u, zero);
 
+    /* Partition data */
+    int cells_per_node = NX/NODES;
+    assert(cells_per_node*NODES == NX);
+    int start, end;
+    pthread_t thr[NODES];
+    FieldUpdateParam param[NODES];
+
     /* Timestep */
     f.dt = cfl*f.p.dx/c; /* CFL condition is: c*dt/dx = cfl <= 1 */
     f.Nt = T/f.dt;
     clock_t tic, toc;
 
+    printf ("Running with %i threads\n",NODES);
+
     tic = clock();
     for (int n=0; n<f.Nt; ++n) {
 
         /* update the pressure (p) */
-        update_field (&f.p, 0, NX, &f.u, 0, f.dt);
+        for (int i=0; i<NODES; ++i) {
+            start = i*cells_per_node;
+            end = (i+1)*cells_per_node;
+            param[i] = collect_param (&f.p, start, end, &f.u, start, f.dt);
+            pthread_create (&thr[i], NULL, pthread_update_field, &param[i]);
+            /*update_field (&f.p, start, end, &f.u, start, f.dt);*/
+        }
+        for (int i=0; i<NODES; ++i)
+            pthread_join (thr[i], NULL);
 
         /* update the velocity (u) */
-        update_field (&f.u, 1, NX-1, &f.p, 0, f.dt);
+        for (int i=0; i<NODES; ++i) {
+            start = 1 + i*cells_per_node;
+            end = 1 + (i+1)*cells_per_node;
+            if (i==NODES-1) /* last node gets one less */
+                --end;
+            param[i] = collect_param (&f.u, start, end, &f.p, start-1,f.dt);
+            pthread_create (&thr[i], NULL, pthread_update_field, &param[i]);
+            /*update_field (&f.u, start, end, &f.p, start-1, f.dt);*/
+        }
+        for (int i=0; i<NODES; ++i)
+            pthread_join (thr[i], NULL);
+        assert( (NODES-1 + 1)*cells_per_node == NX );
     }
     toc = clock();
     printf ("Elapsed: %f seconds\n", (double)(toc-tic)/CLOCKS_PER_SEC);

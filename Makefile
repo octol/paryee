@@ -1,8 +1,10 @@
 CFLAGS += -Wall -pedantic -std=c99
 LDFLAGS += -lm -lpthread
-SRC = $(wildcard *.c)
-OBJ = $(SRC:.c=.o)
-BIN = yee
+yee_SRC = yee.c
+yee_OBJ = $(yee_SRC:.c=.o)
+yee_pthr_SRC = yee_pthr.c
+yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
+BIN = yee yee_pthr
 DATA = output_p.tsv output_u.tsv
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(DATA:.tsv=.png)
@@ -13,7 +15,10 @@ all: $(BIN)
 
 plot: $(PNG)
 
-yee: $(OBJ)
+yee: $(yee_OBJ)
+	$(CC) $< $(LDFLAGS) -o $@ 
+
+yee_pthr: $(yee_pthr_OBJ)
 	$(CC) $< $(LDFLAGS) -o $@ 
 
 %.o:%.c
@@ -30,4 +35,4 @@ $(PNG): $(GNUPLOT) $(DATA)
 	gnuplot $(GNUPLOT)
 
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT)
+	$(RM) $(BIN) $(yee_OBJ) $(yee_pthr_OBJ) $(DATA) $(PNG) $(GNUPLOT)
