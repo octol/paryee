@@ -60,9 +60,11 @@ void free_field (FieldVariable f)
  */
 void set_grid (FieldVariable* f, double start, double end)
 {
+    unsigned int i;
+
     /* NOTE: f->N is the number of grid points, not intervals */
     f->dx = (end-start)/(f->N - 1);
-    for (unsigned int i=0; i<f->N; ++i) 
+    for (i=0; i<f->N; ++i) 
         f->x[i] = start + i*f->dx;
 }
 
@@ -73,7 +75,8 @@ void set_grid (FieldVariable* f, double start, double end)
 void vec_func (double* dst, double* arg, double (*func) (double), 
                unsigned long i1, unsigned long i2)
 {
-    for (unsigned long i=i1; i<i2; ++i)
+    unsigned long i;
+    for (i=i1; i<i2; ++i)
         dst[i] = func (arg[i]);
 }
 
@@ -94,18 +97,18 @@ double zero (double x) { return 0.0; }
 int write_to_disk (FieldVariable f, char* str)
 {
     /* append file suffix */
-    int n = strlen(str) + 4;
-    char fstr[n];
+    char fstr[256];
+    FILE* fp;
+    unsigned int i;
     strcpy(fstr,str);
     strcat(fstr,".tsv");
 
-    FILE* fp;
     fp = fopen(fstr,"w");
     if (fp == NULL) {
         perror ("Error: can not write to disk");
         return EXIT_FAILURE;
     } 
-    for (unsigned int i=0; i<f.N; ++i)
+    for (i=0; i<f.N; ++i)
         fprintf (fp, "%e\t%e\n", f.x[i], f.value[i]);
     fclose (fp);
     return EXIT_SUCCESS;
@@ -123,7 +126,8 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
      * NOTE: the exp(-pow(sin(dt),)) factor is to make more operations per
      * memory access. This is to test the parallell performance. 
      */
-    for (int i=dst1; i<dst2; ++i, ++src1)
+    int i;
+    for (i=dst1; i<dst2; ++i, ++src1)
         dst->value[i] += dt*pow(exp(-pow(sin(dt),2)),3.2)*
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
@@ -143,6 +147,8 @@ int main()
 {
     /* Paramters */
     double length=1, cfl=1, T=0.2, c=1;
+    clock_t tic, toc;
+    int n;
 
     /* Initialize */
     Field f;
@@ -156,10 +162,9 @@ int main()
     /* Timestep */
     f.dt = cfl*f.p.dx/c; /* CFL condition is: c*dt/dx = cfl <= 1 */
     f.Nt = T/f.dt;
-    clock_t tic, toc;
 
     tic = clock();
-    for (int n=0; n<f.Nt; ++n) {
+    for (n=0; n<f.Nt; ++n) {
 
         /* update the pressure (p) */
         update_field (&f.p, 0, NX, &f.u, 0, f.dt);

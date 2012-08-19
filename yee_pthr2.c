@@ -20,17 +20,12 @@
 #include <time.h>
 #include <getopt.h>
 
-/* NOTE: Barriers are defined in the optional part of the POSIX standard,
- * hence one cannot compile with -ansi / -std=cXX (gcc) */
-pthread_barrier_t barrier;
-
 /* 
  * Data structures
  */
 typedef struct FieldVariable FieldVariable;
 typedef struct Field Field;
 typedef struct FieldUpdateParam FieldUpdateParam;
-typedef struct FieldParam FieldParam;
 
 struct FieldVariable {
     double* value;
@@ -55,12 +50,6 @@ struct FieldUpdateParam {
     double dt;
 };
 
-struct FieldParam {
-    FieldUpdateParam p; /* to update p */
-    FieldUpdateParam u; /* to update u */
-    int Nt;
-};
-
 void alloc_field (FieldVariable* f, unsigned long N)
 {
     f->N = N;
@@ -83,8 +72,9 @@ void free_field (FieldVariable f)
  */
 void set_grid (FieldVariable* f, double start, double end)
 {
-    /* NOTE: f->N is the number of grid points, not intervals */
     unsigned int i;
+
+    /* NOTE: f->N is the number of grid points, not intervals */
     f->dx = (end-start)/(f->N - 1);
     for (i=0; i<f->N; ++i) 
         f->x[i] = start + i*f->dx;
@@ -119,7 +109,6 @@ double zero (double x) { return 0.0; }
 int write_to_disk (FieldVariable f, char* str)
 {
     /* append file suffix */
-    /*int n = strlen(str) + 4;*/
     char fstr[256];
     FILE* fp;
     unsigned int i;
@@ -147,7 +136,7 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
 {
     /* 
      * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make more
-     * operations per memory access. This is to test the parallel
+     * operations per memory access. This is to test the parallell
      * performance. 
      */
     int i;
@@ -157,6 +146,17 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
             pow(exp(-pow(sin(dt),4)),1.2)*
             pow(exp(-pow(sin(dt),2)),4.2)*
             (src->value[src1+1] - src->value[src1])/src->dx;
+}
+
+/* 
+ * Leapfrog time update adapted to use return value and argument suitable
+ * for pthreads.
+ */
+void* pthread_update_field (void* arg)
+{
+    FieldUpdateParam* p = (FieldUpdateParam*) arg;
+    update_field (p->dst, p->dst1, p->dst2, p->src, p->src1, p->dt);
+    pthread_exit(NULL);
 }
 
 /* 
@@ -183,42 +183,25 @@ int round_up_divide (int x, int y)
     return (x-1)/y + 1;
 }
 
-void* thread_main (void* arg)
-{
-    FieldParam* param = (FieldParam*) arg;
-    FieldUpdateParam* p = &param->p;
-    FieldUpdateParam* u = &param->u;
-    int n;
-    for (n=0; n<param->Nt; ++n) {
-        /* update the pressure (p) */
-        update_field (p->dst, p->dst1, p->dst2, p->src, p->src1, p->dt);
-        pthread_barrier_wait (&barrier);
-        /* update the velocity (u) */
-        update_field (u->dst, u->dst1, u->dst2, u->src, u->src1, u->dt);
-        pthread_barrier_wait (&barrier);
-    }
-    /*pthread_exit(NULL);*/
-    return NULL;
-}
-
 /* 
  * Main program 
  */
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     double length, cfl, T, c;
     int NX, NODES, opt;
     int cells_per_node;
-    int i, start, end;
+    int n, i, start, end;
     clock_t tic, toc;
     Field f;
     pthread_t* thr;
     pthread_attr_t attr;
-    FieldParam* param;
+    FieldUpdateParam* param_p;
+    FieldUpdateParam* param_u;
 
-    /* Parse parameters from commandline */
-    NX = 1024; 
-    NODES = 2;
+    /* Parse parameters */
+    NX=1024; 
+    NODES=2;
     while ((opt = getopt(argc, argv, "t:n:")) != -1) {
         switch (opt) {
         case 't':
@@ -235,7 +218,7 @@ int main (int argc, char* argv[])
     }
     printf("Running with: N=%d, threads=%d\n", NX, NODES);
 
-    /* Simulation paramters */
+    /* Numerical paramters */
     length = 1;
     cfl = 1; 
     T = 0.3; 
@@ -256,39 +239,44 @@ int main (int argc, char* argv[])
     /* Thread - partition data */
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_JOINABLE);
-    pthread_barrier_init (&barrier, NULL, NODES);
-    thr = malloc (sizeof(pthread_t)*(NODES-1));
-    param = malloc (sizeof(FieldParam)*NODES);
-    if (!thr || !param) {
+    thr = malloc (sizeof(pthread_t)*NODES);
+    param_p = malloc (sizeof(FieldUpdateParam)*NODES);
+    param_u = malloc (sizeof(FieldUpdateParam)*NODES);
+    if (!thr || !param_p || !param_u) {
         fprintf(stderr,"Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
     cells_per_node = NX/NODES;
     assert(cells_per_node*NODES == NX);
 
-    /* Assemble structs to be used as argument to the threads */
     for (i=0; i<NODES; ++i) {
         start = i*cells_per_node;
         end = (i+1)*cells_per_node;
-        param[i].p = collect_param (&f.p, start, end, &f.u, start, f.dt);
+        param_p[i] = collect_param (&f.p, start, end, &f.u, start, f.dt);
 
         start = 1 + i*cells_per_node;
         end = 1 + (i+1)*cells_per_node;
         if (i==NODES-1) /* last node gets one less */
             --end;
-        param[i].u = collect_param (&f.u, start, end, &f.p, start-1,f.dt);
-
-        param[i].Nt = f.Nt;
+        param_u[i] = collect_param (&f.u, start, end, &f.p, start-1,f.dt);
     }
 
-    /* Spawn NODES-1 threads + use current thread. These then timestep */
+    /* Timestep */
     tic = clock();
-    for (i=0; i<NODES-1; ++i)
-        pthread_create (&thr[i], &attr, thread_main, &param[i]);
-    thread_main (&param[NODES-1]);
-    for (i=0; i<NODES-1; ++i)
-        pthread_join (thr[i], NULL);
-    toc = clock ();
+    for (n=0; n<f.Nt; ++n) {
+        /* update the pressure (p) */
+        for (i=0; i<NODES; ++i) 
+            pthread_create (&thr[i], &attr, pthread_update_field, &param_p[i]);
+        for (i=0; i<NODES; ++i)
+            pthread_join (thr[i], NULL);
+
+        /* update the velocity (u) */
+        for (i=0; i<NODES; ++i)
+            pthread_create (&thr[i], &attr, pthread_update_field, &param_u[i]);
+        for (i=0; i<NODES; ++i)
+            pthread_join (thr[i], NULL);
+    }
+    toc = clock();
     printf ("Elapsed: %f seconds\n", (double)(toc-tic)/CLOCKS_PER_SEC);
 
     /* write data to disk and free data */
@@ -297,7 +285,5 @@ int main (int argc, char* argv[])
     free_field(f.p);
     free_field(f.u);
 
-    pthread_attr_destroy (&attr);
-    pthread_barrier_destroy (&barrier);
     return EXIT_SUCCESS;
 }
