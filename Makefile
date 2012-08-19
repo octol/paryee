@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS += -Wall -pedantic -O3 -march=native -mfpmath=sse -ffast-math
+CFLAGS += -Wall -pedantic -O3 
+#CFLAGS += -march=native -mfpmath=sse -ffast-math
 #CFLAGS += -g
 LDFLAGS += -lm -lpthread
 yee_SRC = yee.c yee_common.c
