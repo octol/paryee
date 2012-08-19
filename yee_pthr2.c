@@ -142,9 +142,9 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
     int i;
     for (i=dst1; i<dst2; ++i, ++src1)
         dst->value[i] += dt*
-            pow(exp(-pow(sin(dt),2)),3.2)*
-            pow(exp(-pow(sin(dt),4)),1.2)*
-            pow(exp(-pow(sin(dt),2)),4.2)*
+            /*pow(exp(-pow(sin(dt),2)),3.2)**/
+            /*pow(exp(-pow(sin(dt),4)),1.2)**/
+            /*pow(exp(-pow(sin(dt),2)),4.2)**/
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
     int NX, NODES, opt;
     int cells_per_node;
     int n, i, start, end;
-    clock_t tic, toc;
+    /*clock_t tic, toc;*/
     Field f;
     pthread_t* thr;
     pthread_attr_t attr;
@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
     }
 
     /* Timestep */
-    tic = clock();
+    /*tic = clock();*/
     for (n=0; n<f.Nt; ++n) {
         /* update the pressure (p) */
         for (i=0; i<NODES; ++i) 
@@ -276,8 +276,8 @@ int main(int argc, char* argv[])
         for (i=0; i<NODES; ++i)
             pthread_join (thr[i], NULL);
     }
-    toc = clock();
-    printf ("Elapsed: %f seconds\n", (double)(toc-tic)/CLOCKS_PER_SEC);
+    /*toc = clock();*/
+    /*printf ("Elapsed: %f seconds\n", (double)(toc-tic)/CLOCKS_PER_SEC);*/
 
     /* write data to disk and free data */
     write_to_disk(f.p, "output_p"); 

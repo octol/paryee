@@ -1,5 +1,6 @@
+CC = gcc
 CFLAGS += -Wall -pedantic 
-CFLAGS += -g
+#CFLAGS += -g
 LDFLAGS += -lm -lpthread
 yee_SRC = yee.c
 yee_OBJ = $(yee_SRC:.c=.o)
@@ -41,4 +42,4 @@ $(PNG): $(GNUPLOT) $(DATA)
 	gnuplot $(GNUPLOT)
 
 clean:
-	$(RM) $(BIN) $(yee_OBJ) $(yee_pthr_OBJ) $(DATA) $(PNG) $(GNUPLOT)
+	$(RM) $(BIN) $(yee_OBJ) $(yee_pthr_OBJ) $(yee_pthr2_OBJ) $(DATA) $(PNG) $(GNUPLOT)
