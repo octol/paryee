@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS += -Wall -pedantic 
 #CFLAGS += -g
-LDFLAGS += -lm -lpthread
+LDFLAGS += -lm -lpthread -lrt
 yee_SRC = yee.c
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_SRC = yee_pthr.c

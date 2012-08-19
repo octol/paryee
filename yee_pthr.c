@@ -19,6 +19,8 @@
 #include <pthread.h>
 #include <time.h>
 #include <getopt.h>
+#include <sys/time.h>
+#include <time.h>
 
 /* NOTE: Barriers are defined in the optional part of the POSIX standard,
  * hence one cannot compile with -ansi / -std=cXX (gcc) */
@@ -183,6 +185,13 @@ int round_up_divide (int x, int y)
     return (x-1)/y + 1;
 }
 
+inline double gettime (void) 
+{
+    struct timeval t;
+    gettimeofday (&t, NULL);
+    return (1.0e-6*t.tv_usec + t.tv_sec);
+}
+
 void* thread_main (void* arg)
 {
     FieldParam* param = (FieldParam*) arg;
@@ -210,7 +219,7 @@ int main (int argc, char* argv[])
     int NX, NODES, opt;
     int cells_per_node;
     int i, start, end;
-    /*clock_t tic, toc;*/
+    double tic, toc;
     Field f;
     pthread_t* thr;
     pthread_attr_t attr;
@@ -221,16 +230,17 @@ int main (int argc, char* argv[])
     NODES = 2;
     while ((opt = getopt(argc, argv, "t:n:")) != -1) {
         switch (opt) {
-        case 't':
-            NODES = atoi (optarg);
-            break;
-        case 'n':
-            NX = atoi(optarg);
-            break;
-        default: /* '?' */
-            fprintf(stderr, "Usage: %s [-t threads] [-n intervals] name\n",
-                    argv[0]);
-            exit(EXIT_FAILURE);
+            case 't':
+                NODES = atoi (optarg);
+                break;
+            case 'n':
+                NX = atoi(optarg);
+                break;
+            default: /* '?' */
+                fprintf(stderr, 
+                        "Usage: %s [-t threads] [-n intervals] name\n",
+                        argv[0]);
+                exit(EXIT_FAILURE);
         }
     }
     printf("Running with: N=%d, threads=%d\n", NX, NODES);
@@ -282,14 +292,14 @@ int main (int argc, char* argv[])
     }
 
     /* Spawn NODES-1 threads + use current thread. These then timestep */
-    /*tic = clock();*/
+    tic = gettime ();
     for (i=0; i<NODES-1; ++i)
         pthread_create (&thr[i], &attr, thread_main, &param[i]);
     thread_main (&param[NODES-1]);
     for (i=0; i<NODES-1; ++i)
         pthread_join (thr[i], NULL);
-    /*toc = clock ();*/
-    /*printf ("Elapsed: %f seconds\n", (double)(toc-tic)/CLOCKS_PER_SEC);*/
+    toc = gettime ();
+    printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
     write_to_disk(f.p, "output_p"); 
