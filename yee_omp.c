@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <omp.h>
+#include <unistd.h>
 
 #include "yee_common.h"
 
@@ -40,13 +41,21 @@ int main (int argc, char* argv[])
     printf("Running with: N=%ld, threads=%ld\n", nx, nodes);
 
     /* Initialize */
-    /* TODO: split into two */
+#pragma omp parallel sections 
+{
+#pragma omp section 
+{
     alloc_field(&f.p, nx);
-    alloc_field(&f.u, nx+1);
     set_grid (&f.p, 0.5*length/nx, length-0.5*length/nx);
-    set_grid (&f.u, 0, length);
     field_func (&f.p, gauss); /* initial data */
+}
+#pragma omp section 
+{
+    alloc_field(&f.u, nx+1);
+    set_grid (&f.u, 0, length);
     field_func (&f.u, zero);  /* initial data */
+}
+}
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl*f.p.dx/c; /* CFL condition is: c*dt/dx = cfl <= 1 */
@@ -86,8 +95,13 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
+#pragma omp parallel sections 
+{
+#pragma omp section
     write_to_disk(f.p, "output_p"); 
+#pragma omp section
     write_to_disk(f.u, "output_u"); 
+}
     free (part);
     free_field (f.p);
     free_field (f.u);
