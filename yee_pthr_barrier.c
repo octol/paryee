@@ -135,8 +135,10 @@ int main (int argc, char* argv[])
     /* write data to disk and free data */
     write_to_disk(f.p, "output_p"); 
     write_to_disk(f.u, "output_u"); 
-    free_field(f.p);
-    free_field(f.u);
+    free (param);
+    free (thr);
+    free_field (f.p);
+    free_field (f.u);
 
     pthread_attr_destroy (&attr);
     pthread_barrier_destroy (&barrier);

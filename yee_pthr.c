@@ -110,10 +110,13 @@ int main(int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, "output_p"); 
-    write_to_disk(f.u, "output_u"); 
-    free_field(f.p);
-    free_field(f.u);
+    write_to_disk (f.p, "output_p"); 
+    write_to_disk (f.u, "output_u"); 
+    free (thr);
+    free (param_p);
+    free (param_u);
+    free_field (f.p);
+    free_field (f.u);
 
     pthread_attr_destroy (&attr);
     return EXIT_SUCCESS;
