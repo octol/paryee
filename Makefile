@@ -1,19 +1,24 @@
-CC = gcc
+CC = gcc 
 CFLAGS += -Wall -pedantic -O3
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 CFLAGS += -g
+MPICC = mpicc 
+MPICFLAGS += -Wall -pedantic -O3 
+MPICFLAGS += -std=c99
 LDFLAGS += -lm
 yee_SRC = yee.c yee_common.c
 yee_pthr_SRC = yee_pthr.c yee_common.c
 yee_pthr_barrier_SRC = yee_pthr_barrier.c yee_common.c
 yee_omp_SRC = yee_omp.c yee_common.c
+yee_mpi_SRC = yee_mpi.c
 yee_ref_SRC = yee_ref.c
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
 yee_pthr_barrier_OBJ = $(yee_pthr_barrier_SRC:.c=.o)
 yee_omp_OBJ = $(yee_omp_SRC:.c=.o)
+yee_mpi_OBJ = $(yee_mpi_SRC:.c=.o)
 yee_ref_OBJ = $(yee_ref_SRC:.c=.o)
-BIN = yee yee_pthr yee_pthr_barrier yee_omp yee_ref
+BIN = yee yee_pthr yee_pthr_barrier yee_omp yee_ref yee_mpi
 DATA = output_p.tsv output_u.tsv
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(DATA:.tsv=.png)
@@ -39,8 +44,14 @@ yee_omp: $(yee_omp_OBJ)
 yee_ref: $(yee_ref_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
 
+yee_mpi: $(yee_mpi_OBJ)
+	$(MPICC) $^ -o $@
+
 yee_omp.o: yee_omp.c
 	$(CC) $(CFLAGS) -c $< -fopenmp
+
+yee_mpi.o: yee_mpi.c
+	$(MPICC) $(MPICFLAGS) -c $<
 
 %.o:%.c
 	$(CC) $(CFLAGS) -c $<
