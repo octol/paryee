@@ -74,7 +74,7 @@ void field_func (FieldVariable* f, double (*func) (double));
  * Update the field points dst for the indices dst1,...,dst2, using the
  * field points src using indices src1,...,src1 + (dst2-dst1)
  */
-inline void update_field (FieldVariable* dst, int dst1, int dst2, 
+void update_field (FieldVariable* dst, int dst1, int dst2, 
                    FieldVariable* src, int src1, double dt);
 
 /*

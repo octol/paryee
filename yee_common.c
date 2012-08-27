@@ -81,20 +81,22 @@ void parse_cmdline (unsigned long* nx, unsigned long* nodes,
     }
 }
 
-inline void update_field (FieldVariable* dst, int dst1, int dst2, 
+void update_field (FieldVariable* dst, int dst1, int dst2, 
                    FieldVariable* src, int src1, double dt)
 {
-    /* 
-     * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make more
-     * operations per memory access. This is to test the parallel
-     * performance. 
-     */
     int i;
     for (i=dst1; i<dst2; ++i, ++src1)
         dst->value[i] += dt*
-            /*pow(exp(-pow(sin(dt),2)),3.2)**/
-            /*pow(exp(-pow(sin(dt),4)),1.2)**/
-            /*pow(exp(-pow(sin(dt),2)),4.2)**/
+#ifdef EXTRA_WORK
+            /* 
+             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
+             * more operations per memory access. This is to test the
+             * parallel performance. 
+             */
+            pow(exp(-pow(sin(dt),2)),3.2)*
+            pow(exp(-pow(sin(dt),4)),1.2)*
+            pow(exp(-pow(sin(dt),2)),4.2)*
+#endif
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 

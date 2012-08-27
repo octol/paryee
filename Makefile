@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS += -Wall -pedantic -O3 
+CFLAGS += -Wall -pedantic -O3
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 CFLAGS += -g
 LDFLAGS += -lm
