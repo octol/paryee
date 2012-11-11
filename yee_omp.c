@@ -64,7 +64,7 @@ int main (int argc, char* argv[])
     /* Setup parallellization */
     cells_per_node = nx/nodes;
     assert(cells_per_node*nodes == nx);
-    part = malloc (sizeof(FieldPartition)*cells_per_node);
+    part = malloc (sizeof(FieldPartition)*nodes);
     if (!part) {
         fprintf(stderr,"Memory allocation failed\n");
         exit(EXIT_FAILURE);

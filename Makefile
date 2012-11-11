@@ -10,7 +10,7 @@ yee_SRC = yee.c yee_common.c
 yee_pthr_SRC = yee_pthr.c yee_common.c
 yee_pthr_barrier_SRC = yee_pthr_barrier.c yee_common.c
 yee_omp_SRC = yee_omp.c yee_common.c
-yee_mpi_SRC = yee_mpi.c
+yee_mpi_SRC = yee_mpi.c yee_common.c
 yee_ref_SRC = yee_ref.c
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
