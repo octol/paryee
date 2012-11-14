@@ -53,7 +53,7 @@ int main (int argc, char* argv[])
         update_field (&f.p, 0, nx, &f.u, 0, f.dt);
 
         /* update the velocity (u) */
-        update_field (&f.u, 1, nx-1, &f.p, 0, f.dt);
+        update_field (&f.u, 1, nx, &f.p, 0, f.dt);
     }
     toc = gettime();
     printf ("Elapsed: %f seconds\n", toc-tic);
