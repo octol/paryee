@@ -56,8 +56,8 @@ yee_mpi.o: yee_mpi.c
 %.o:%.c
 	$(CC) $(CFLAGS) -c $<
 
-$(DATA): yee_omp
-	./yee_omp
+$(DATA): $(BIN)
+	mpirun -n 3 yee_mpi -n 8		
 
 $(GNUPLOT): gnuplot.plt
 	sed 's/file/output_p/' $< > output_p.plt
