@@ -77,11 +77,22 @@ void field_func (FieldVariable* f, double (*func) (double));
 void update_field (FieldVariable* dst, int dst1, int dst2, 
                    FieldVariable* src, int src1, double dt);
 
+void update_field2 (FieldVariable* dst, int dst1, int dst2, 
+                    FieldVariable* src, int src1, double dt);
+
 /*
  * Divide the grid for the different threads.
  */
 FieldPartition partition_grid (int current_node, int nodes,
                                int cells_per_node);
+
+/*
+ * Divide the grid for the different threads.
+ * This is the second version, suited for the MPI implementation. Here we
+ * divide the grid according to cells.
+ */
+FieldPartition partition_grid_into_cells (int current_node, int nodes,
+                                          int cells_per_node);
 
 /* 
  * Collect parameters

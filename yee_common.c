@@ -100,6 +100,25 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 
+void update_field2 (FieldVariable* dst, int dst1, int dst2, 
+                    FieldVariable* src, int src1, double dt)
+{
+    int i;
+    for (i=dst1; i<dst2; ++i, ++src1)
+        dst->value[i] += dt*
+#ifdef EXTRA_WORK
+            /* 
+             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
+             * more operations per memory access. This is to test the
+             * parallel performance. 
+             */
+            pow(exp(-pow(sin(dt),2)),3.2)*
+            pow(exp(-pow(sin(dt),4)),1.2)*
+            pow(exp(-pow(sin(dt),2)),4.2)*
+#endif
+            (src->value[src1+1] - src->value[src1])/src->dx;
+}
+
 FieldPartition partition_grid(int current_node,int nodes,int cells_per_node)
 {
     FieldPartition part;
@@ -110,6 +129,32 @@ FieldPartition partition_grid(int current_node,int nodes,int cells_per_node)
     part.end_u = 1 + (current_node+1)*cells_per_node;
     if (current_node==nodes-1) /* last node gets one less */
         --part.end_u;
+
+    return part;
+}
+
+FieldPartition partition_grid_into_cells(int current_node,int nodes,
+                                         int cells_per_node)
+{
+    FieldPartition part;
+
+    part.start_p = current_node*cells_per_node;
+    part.end_p = (current_node+1)*cells_per_node - 1;
+    part.start_u = current_node*cells_per_node;
+    part.end_u = (current_node+1)*cells_per_node - 1;
+
+    /*int i = current_node;                                   */
+    /*int bp = part.start_p;                                  */
+    /*int ep = part.end_p;                                    */
+    /*int bu = part.start_u;                                  */
+    /*int eu = part.end_u;                                    */
+    /*printf ("Partition %i: cells_per_node=%d  bp=%d  ep=%d",*/
+    /*        i,cells_per_node,bp,ep);                        */
+    /*printf ("  bu=%d  eu=%d\n",bu,eu);                      */
+
+    /* First node skips the first u, as it sits on the boundary */
+    if (current_node==0) 
+        ++part.start_u;
 
     return part;
 }

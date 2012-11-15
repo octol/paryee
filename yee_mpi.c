@@ -27,6 +27,8 @@
 #define NONE 0          /* no neighbour */
 #define BEGIN 1         /* message tag */
 #define COLLECT 2       /* message tag */
+#define LTAG 3
+#define RTAG 4
 
 int main(int argc, char* argv[])
 {
@@ -79,6 +81,8 @@ int main(int argc, char* argv[])
          * workers */
         cells_per_worker = nx/numworkers;
         assert (cells_per_worker*numworkers == nx);
+        /*printf ("nx=%i  numworkers=%i  cells_per_worker=%i\n",*/
+        /*        nx,numworkers,cells_per_worker);              */
         part = malloc (sizeof(FieldPartition)*numworkers);
         if (!part) {
             fprintf (stderr,"Memory allocation failed\n");
@@ -90,7 +94,8 @@ int main(int argc, char* argv[])
 
             /* partition_grid() requires the nodes to be enumerated starting
              * from 0: 0,...,total_nodes */ 
-            part[i-1] = partition_grid (i-1,numworkers, cells_per_worker);
+            part[i-1] = partition_grid_into_cells (i-1, numworkers, 
+                                                   cells_per_worker);
             /* Make field data more compact, so we can more easily use as 
              * array indices. For convenience only. */
             bp = part[i-1].start_p; /* begin index */
@@ -129,11 +134,21 @@ int main(int argc, char* argv[])
 
         /* Wait for returning data from the workers */
         for (i=1; i<=numworkers; ++i) {
-            MPI_Recv (&f.p.value[part->start_p],part->end_p-part->start_p+1,
-                      MPI_DOUBLE, i, COLLECT, MPI_COMM_WORLD, &status);
-            MPI_Recv (&f.u.value[part->start_u],part->end_u-part->start_u+1,
-                      MPI_DOUBLE, i, COLLECT, MPI_COMM_WORLD, &status);
-            printf ("Collected from task %d\n",i);
+            /* Make field data more compact, so we can more easily use as 
+             * array indices. For convenience only. */
+            int bp,bu,ep,eu,sp,su;  /* array indices and sizes */
+            bp = part[i-1].start_p; /* begin index */
+            bu = part[i-1].start_u; 
+            ep = part[i-1].end_p;   /* end index */
+            eu = part[i-1].end_u; 
+            sp = ep - bp + 1;       /* size */
+            su = eu - bu + 1;  
+
+            MPI_Recv (&f.p.value[bp],sp, MPI_DOUBLE, i, COLLECT, 
+                      MPI_COMM_WORLD, &status);
+            MPI_Recv (&f.u.value[bu],su, MPI_DOUBLE, i, COLLECT, 
+                      MPI_COMM_WORLD, &status);
+            printf ("Results collected from task %d\n",i);
         }
 
         write_to_disk(f.p, "output_p"); 
@@ -149,21 +164,13 @@ int main(int argc, char* argv[])
         int bp,bu,ep,eu,sp,su;  /* array indices and sizes */
         i = taskid;
 
-        /* Initialize */
-        /* TODO: Note that we are allocating the entire domain each host. 
-         * This is only temporary and needs to be changed. */
-        alloc_field(&f.p, nx);
-        alloc_field(&f.u, nx+1);
-        field_func (&f.p, zero);  /* set everything to zero */
-        field_func (&f.u, zero);  /* set everything to zero */
-
         part = malloc (sizeof(FieldPartition));
         if (!part) {
             fprintf(stderr,"Memory allocation failed\n");
             exit(EXIT_FAILURE);
         }
 
-        /* Receive data from master */
+        /* Receive grid and node parameters from master */
         
         /* Data on neighbours */
         MPI_Recv (&left, 1, MPI_INT, MASTER,BEGIN,MPI_COMM_WORLD,&status);
@@ -178,16 +185,45 @@ int main(int argc, char* argv[])
         sp = ep - bp + 1;   
         su = eu - bu + 1;  
 
+        /* The expanded domain to store the additional data that we receive
+         * from the neighbours */
+        int sp_expanded = sp + 1;   /* p receives data from the left */
+        int su_expanded = su + 1;   /* u receives data from the right */
+        if (left == NONE) {
+            /* p[-1] is not needed since we dont update u[0] */
+            --sp_expanded;  
+            /* add the additional bc point since p depends on it */
+            ++su_expanded;  
+        }
+
+        /* Compute local indices. These specify the local indices of the
+         * points we update in the expanded local array. */
+        int lbp = 1;    /* since p is padded by one point to the left */
+        int lbu = 0;    /* since u is not padded on the left */
+        if (left == NONE) {
+            lbp = 0;
+            lbu = 1;
+        }
+        int lep = ep - bp + lbp;
+        int leu = eu - bu + lbu;
+
+        /* Now that we have the grid info we can setup the data structures
+         * containing the field. */
+        alloc_field (&f.p, sp_expanded);
+        alloc_field (&f.u, su_expanded);
+        field_func (&f.p, zero);  /* set everything to zero */
+        field_func (&f.u, zero);  /* set everything to zero */
+
         /* Field data */
-        MPI_Recv (&f.p.value[bp], sp, MPI_DOUBLE, MASTER, BEGIN, 
+        MPI_Recv (&f.p.value[lbp], sp_expanded, MPI_DOUBLE, MASTER, BEGIN, 
                   MPI_COMM_WORLD, &status);
-        MPI_Recv (&f.u.value[bu], su, MPI_DOUBLE, MASTER, BEGIN, 
+        MPI_Recv (&f.u.value[lbu], su_expanded, MPI_DOUBLE, MASTER, BEGIN, 
                   MPI_COMM_WORLD, &status);
         /* Grid data */
-        MPI_Recv (&f.p.x[bp], sp, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD,
-                  &status);
-        MPI_Recv (&f.u.x[bu], su, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD,
-                  &status);
+        MPI_Recv (&f.p.x[lbp], sp_expanded, MPI_DOUBLE, MASTER, BEGIN, 
+                  MPI_COMM_WORLD, &status);
+        MPI_Recv (&f.u.x[lbu], su_expanded, MPI_DOUBLE, MASTER, BEGIN,
+                  MPI_COMM_WORLD, &status);
         MPI_Recv (&f.p.dx,1,MPI_DOUBLE,MASTER,BEGIN,MPI_COMM_WORLD,&status);
         MPI_Recv (&f.u.dx,1,MPI_DOUBLE,MASTER,BEGIN,MPI_COMM_WORLD,&status);
         printf ("Task=%d received:  left=%d  right=%d",taskid,left,right);
@@ -197,31 +233,31 @@ int main(int argc, char* argv[])
         /* Depends on the numerical variables initialized above */
         f.dt = cfl*f.p.dx/c; /* CFL condition is: c*dt/dx = cfl <= 1 */
         f.Nt = T/f.dt;
-        /*printf ("Nt=%e\n",f.Nt);*/
-        /*printf ("T=%e\n",T);*/
-        /*printf ("dt=%e\n",f.dt);*/
-        /*printf ("cfl=%e\n",cfl);*/
-        /*printf ("dx=%e\n",f.p.dx);*/
-        /*printf ("c=%e\n",c);*/
-
-        /*assert(bp==0);*/
-        /*assert(bu==1);*/
-        /*assert(ep==nx);*/
-        /*assert(eu=nx-1);*/
 
         for (n=0; n<f.Nt; ++n) {
             /*printf ("taking a timestep\n");*/
             /* Take one timestep */
             /*update_field (&f.p, 0, nx, &f.u, 0, f.dt);*/
             /*update_field (&f.u, 1, nx-1, &f.p, 0, f.dt);*/
-            update_field (&f.p, bp, ep, &f.u, 0, f.dt);
-            update_field (&f.u, bu, eu, &f.p, 0, f.dt);
+            /*update_field (&f.p, bp, ep, &f.u, 0, f.dt);*/
+            /*update_field (&f.u, bu, eu, &f.p, 0, f.dt);*/
 
             /* Communicate */
+            /* send u to the left */
+            /* receive u from the right */
+TODO: get this right
             if (left != NONE) {
+                MPI_Send (&f.u.value[lbu], sp, MPI_DOUBLE, left, LTAG, 
+                          MPI_COMM_WORLD);
             }
             if (right != NONE) {
+                MPI_Recv (&f.u.value[leu+1], sp, MPI_DOUBLE, left, LTAG, 
+                          MPI_COMM_WORLD);
             }
+            update_field (&f.p, lbp, lep+1, &f.u, 0, f.dt);
+
+            /* Communicate */
+            update_field (&f.u, lbu, leu+1, &f.p, 0, f.dt);
         }
 
         /* Send back data to master */
