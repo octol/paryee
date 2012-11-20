@@ -45,7 +45,7 @@ void vec_func (double* dst, double* arg, double (*func) (double),
         dst[i] = func (arg[i]);
 }
 
-void field_func (FieldVariable* f, double (*func) (double))
+void apply_func (FieldVariable* f, double (*func) (double))
 {
     vec_func (f->value, f->x, func, 0, f->size);
 }
@@ -100,11 +100,30 @@ void update_field (FieldVariable* dst, int dst1, int dst2,
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 
-void update_field2 (FieldVariable* dst, int dst1, int dst2, 
+void update_field2 (FieldVariable* dst, int idst, int size, 
+                    FieldVariable* src, int isrc, double dt)
+{
+    int i;
+    for (i=idst; i<idst+size; ++i, ++isrc)
+        dst->value[i] += dt*
+#ifdef EXTRA_WORK
+            /* 
+             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
+             * more operations per memory access. This is to test the
+             * parallel performance. 
+             */
+            pow(exp(-pow(sin(dt),2)),3.2)*
+            pow(exp(-pow(sin(dt),4)),1.2)*
+            pow(exp(-pow(sin(dt),2)),4.2)*
+#endif
+            (src->value[isrc+1] - src->value[isrc])/src->dx;
+}
+
+void update_field3 (FieldVariable* dst, int dst1, int dst2, 
                     FieldVariable* src, int src1, double dt)
 {
     int i;
-    for (i=dst1; i<dst2; ++i, ++src1)
+    for (i=dst1; i<=dst2; ++i, ++src1)
         dst->value[i] += dt*
 #ifdef EXTRA_WORK
             /* 
@@ -133,30 +152,34 @@ FieldPartition partition_grid(int current_node,int nodes,int cells_per_node)
     return part;
 }
 
-FieldPartition partition_grid_into_cells(int current_node,int nodes,
-                                         int cells_per_node)
+Partition partition_grid2 (int current_node,int nodes, int cells_per_node)
 {
-    FieldPartition part;
+    Partition partition;
 
-    part.start_p = current_node*cells_per_node;
-    part.end_p = (current_node+1)*cells_per_node - 1;
-    part.start_u = current_node*cells_per_node;
-    part.end_u = (current_node+1)*cells_per_node - 1;
-
-    /*int i = current_node;                                   */
-    /*int bp = part.start_p;                                  */
-    /*int ep = part.end_p;                                    */
-    /*int bu = part.start_u;                                  */
-    /*int eu = part.end_u;                                    */
-    /*printf ("Partition %i: cells_per_node=%d  bp=%d  ep=%d",*/
-    /*        i,cells_per_node,bp,ep);                        */
-    /*printf ("  bu=%d  eu=%d\n",bu,eu);                      */
+    partition.p[0] = current_node*cells_per_node;
+    partition.p[1] = (current_node+1)*cells_per_node - 1;
+    partition.u[0] = current_node*cells_per_node;
+    partition.u[1] = (current_node+1)*cells_per_node - 1;
 
     /* First node skips the first u, as it sits on the boundary */
     if (current_node==0) 
-        ++part.start_u;
+        ++partition.u[0];
 
-    return part;
+    return partition;
+}
+
+void expand_indices (Partition partition, 
+                     int* begin_p, int* end_p, int* size_p, 
+                     int* begin_u, int* end_u, int* size_u)
+{
+    *begin_p = partition.p[0]; /* begin index */
+    *begin_u = partition.u[0]; 
+    *end_p = partition.p[1]; /* end index */
+    *end_u = partition.u[1]; 
+
+    /* sizes */
+    *size_p = *end_p - *begin_p + 1;
+    *size_u = *end_u - *begin_u + 1;  
 }
 
 int write_to_disk (FieldVariable f, char* str)

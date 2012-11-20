@@ -4,14 +4,12 @@
 #ifndef YEE_COMMON_H
 #define YEE_COMMON_H
 
+#define field_func apply_func
+
 /***************************************************************************
  * Data structures
  **************************************************************************/
 typedef struct FieldVariable FieldVariable;
-typedef struct Field Field;
-typedef struct UpdateParam UpdateParam;
-typedef struct FieldPartition FieldPartition;
-
 struct FieldVariable {
     double* value;
     double* x;
@@ -19,6 +17,7 @@ struct FieldVariable {
     unsigned long size;    /* number of points */
 };
 
+typedef struct Field Field;
 struct Field {
     FieldVariable p;
     FieldVariable u;
@@ -26,6 +25,7 @@ struct Field {
     double Nt;
 };
 
+typedef struct UpdateParam UpdateParam;
 struct UpdateParam {
     FieldVariable* dst;
     int dst1;
@@ -35,11 +35,23 @@ struct UpdateParam {
     double dt;
 };
 
+typedef struct FieldPartition FieldPartition;
 struct FieldPartition {
     int start_p;
     int end_p;
-    int start_u;    /* should be start_p+1 */
-    int end_u;      /* should be start_u+1, except for last node */
+    int start_u;   
+    int end_u;    
+};
+
+typedef struct Partition Partition;
+struct Partition {
+    /* The grid points that is selected to be updated */
+    /*FieldPartition inner;*/
+    /* The inner grid points plus the extra grid points needed to update the
+     * inner grid points */
+    /*FieldPartition outer;*/
+    int p[2];   /* start and end indices of internal domain */
+    int u[2];
 };
 
 /***************************************************************************
@@ -77,22 +89,36 @@ void field_func (FieldVariable* f, double (*func) (double));
 void update_field (FieldVariable* dst, int dst1, int dst2, 
                    FieldVariable* src, int src1, double dt);
 
-void update_field2 (FieldVariable* dst, int dst1, int dst2, 
+/*
+ * Leapfrog time update
+ * Update the size number of field points starting at the index idst, using
+ * the field points starting at isrc.
+ */
+void update_field2 (FieldVariable* dst, int idst, int size, 
+                    FieldVariable* src, int isrc, double dt);
+
+void update_field3 (FieldVariable* dst, int dst1, int dst2, 
                     FieldVariable* src, int src1, double dt);
 
 /*
  * Divide the grid for the different threads.
  */
-FieldPartition partition_grid (int current_node, int nodes,
-                               int cells_per_node);
+FieldPartition 
+partition_grid (int current_node, int nodes, int cells_per_node);
 
 /*
  * Divide the grid for the different threads.
  * This is the second version, suited for the MPI implementation. Here we
  * divide the grid according to cells.
  */
-FieldPartition partition_grid_into_cells (int current_node, int nodes,
-                                          int cells_per_node);
+Partition partition_grid2 (int current_node, int nodes, int cells_per_node);
+
+/* 
+ * Expand the partition struct into indices 
+ */
+void expand_indices (Partition partition, 
+                     int* begin_p, int* end_p, int* size_p, 
+                     int* begin_u, int* end_u, int* size_u);
 
 /* 
  * Collect parameters

@@ -1,9 +1,9 @@
 CC = gcc 
-CFLAGS += -Wall -pedantic -O3
+CFLAGS += -Wall -pedantic
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 CFLAGS += -g
 MPICC = mpicc 
-MPICFLAGS += -Wall -pedantic -O3 
+MPICFLAGS += -Wall -pedantic -O3
 MPICFLAGS += -std=c99
 LDFLAGS += -lm
 yee_SRC = yee.c yee_common.c
@@ -23,9 +23,11 @@ DATA = output_p.tsv output_u.tsv
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(DATA:.tsv=.png)
 
-.PHONY: clean
+.PHONY: clean data
 
 all: $(BIN)
+
+data: $(DATA)
 
 plot: $(PNG)
 
@@ -57,7 +59,7 @@ yee_mpi.o: yee_mpi.c
 	$(CC) $(CFLAGS) -c $<
 
 $(DATA): $(BIN)
-	mpirun -n 5 yee_mpi -n 8		
+	mpirun -n 9 yee_mpi -n 128
 
 $(GNUPLOT): gnuplot.plt
 	sed 's/file/output_p/' $< > output_p.plt
@@ -67,4 +69,4 @@ $(PNG): $(GNUPLOT) $(DATA)
 	gnuplot $(GNUPLOT)
 
 clean:
-	$(RM) $(BIN) $(yee_OBJ) $(yee_pthr_OBJ) $(yee_pthr_barrier_OBJ) $(yee_omp_OBJ) $(yee_ref_OBJ) $(DATA) $(PNG) $(GNUPLOT)
+	$(RM) $(BIN) $(yee_OBJ) $(yee_pthr_OBJ) $(yee_pthr_barrier_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ) $(yee_ref_OBJ) $(DATA) $(PNG) $(GNUPLOT)
