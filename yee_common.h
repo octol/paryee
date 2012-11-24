@@ -4,6 +4,11 @@
 #ifndef YEE_COMMON_H
 #define YEE_COMMON_H
 
+#define MASTER 0            /* id of master process */
+#define MINWORKER 1 
+#define MAXWORKER 8
+#define NONE 0              /* no neighbour */
+
 #define field_func apply_func
 
 /***************************************************************************
@@ -102,6 +107,7 @@ void update_field3 (FieldVariable* dst, int dst1, int dst2,
 
 /*
  * Divide the grid for the different threads.
+ * Note: only the inner nodes are returned.
  */
 FieldPartition 
 partition_grid (int current_node, int nodes, int cells_per_node);
@@ -110,6 +116,7 @@ partition_grid (int current_node, int nodes, int cells_per_node);
  * Divide the grid for the different threads.
  * This is the second version, suited for the MPI implementation. Here we
  * divide the grid according to cells.
+ * Note: only the inner nodes are returned.
  */
 Partition partition_grid2 (int current_node, int nodes, int cells_per_node);
 
@@ -119,6 +126,20 @@ Partition partition_grid2 (int current_node, int nodes, int cells_per_node);
 void expand_indices (Partition partition, 
                      int* begin_p, int* end_p, int* size_p, 
                      int* begin_u, int* end_u, int* size_u);
+
+/*
+ * Checks that the grid is according to the specs.
+ */
+void verify_grid_integrity (Partition partition, int tid, unsigned long nx, 
+                            int numworkers, int left);
+
+/*
+ * Compute the local start/end indices and local array sizes from the
+ * partition sizes as well as if the we are on the left boundary.
+ */
+void set_local_index (int size_p, int size_u, int left, 
+                int* local_begin_p, int* local_end_p, int* local_size_p, 
+                int* local_begin_u, int* local_end_u, int* local_size_u);
 
 /* 
  * Collect parameters

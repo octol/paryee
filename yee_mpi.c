@@ -7,12 +7,85 @@
  * This formulation is sometimes used in acoustics, where then p is the
  * pressure and u is the velocity field in the direction of the x-axis.
  * 
- * We use a staggared grid with u defined on the endpoints, and thus on full
- * integer indices. N denotes the number of interval lengths, i.e., we have
- * N+1 number of nodes for u
+ * The x-axis is discretized on a staggered grid, with u defined on the
+ * endpoints, and thus on full integer indices. N denotes the number of
+ * interval lengths (cells), i.e., we have N+1 number of nodes for u and N
+ * number of nodes for p.
  *
- * The outer (x=0, x=L) boundary is set to u=0. This means we start the
- * enumeration in the second u point when we partition the domain. 
+ * Each cell is composed by a (u,p) pair, ordered such that u is placed at
+ * x=index*dx, and p is placed at x=(index+1/2)*dx.
+ *
+ * The outer (x=0, x=L) boundary is set to u=0. Thus we only update the 
+ * inner points. 
+ *
+ * The time axis is also staggered, with u defined at t=0 and p at t=-dt/2 
+ * as initial conditions. 
+ *
+ * When partitioning this grid into M nodes, we divide according to
+ * node size = N/M, with the last node having an extra (outer) u node placed
+ * at x=L. Thus we require that N/M is an integer. 
+ *
+ * Example: N=8 cells and M=4 nodes. N/M=2.
+ * --------
+ *
+ *  grid:   u   u   u   u   u   u   u   u   u    t=0
+ *            p   p   p   p   p   p   p   p      t=-dt/2
+ *
+ *  index:  0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 
+ *
+ *  split grid:     u   u      u   u      u   u      u   u   u    
+ *                    p   p      p   p      p   p      p   p     
+ *
+ *  global index:   0 0 1 1    2 2 3 3    4 4 5 5    6 6 7 7 8 
+ *  local  index:   0 0 1 1    0 0 1 1    0 0 1 1    0 0 1 1 2 
+ *  u size:            2          2          2           3
+ *  p size:            2          2          2           2
+ *  
+ * For these then the outer points are not updated, hence inner points (the
+ * ones that we update in each time step) are
+ *
+ *  inner grid:        u        u   u        u   u        u   u        
+ *                   p   p        p   p        p   p        p   p     
+ *
+ *  global index:    0 1 1      2 2 3 3      4 4 5 5      6 6 7 7   
+ *  local  index:    0 1 1      0 0 1 1      0 0 1 1      0 0 1 1   
+ *  u size:            1           2            2            2
+ *  p size:            2           2            2            2
+ *
+ *  communication:    p[1]-> <-u[0] p[1]-> <-u[0] p[1]-> <-u[0]
+ *
+ * General:
+ * --------
+ *
+ * Total grid:  u[0,...,N],    p[0,...,N-1]
+ * Inner grid:  u[1,...,N-1],  p[0,...,N-1]
+ *
+ *  global index
+ *  
+ *  u[0,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M]
+ *  p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
+ *
+ *  local index
+ *
+ *  u[0,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M]
+ *  p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
+ *
+ * Reducing to the inner grid points gives:
+ * 
+ *  global index
+ *  
+ *  u[1,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M-1]
+ *  p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
+ *
+ *  local index
+ *
+ *  u[1,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M-1]
+ *  p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
+ *
+ * The communication is
+ *  
+ *  p[N/M-1]->  <-u[0] p[N/M-1]->  <-u[0]
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,10 +94,6 @@
 
 #include "yee_common.h"
 
-#define MASTER 0            /* id of master process */
-#define MINWORKER 1 
-#define MAXWORKER 8
-#define NONE 0              /* no neighbour */
 #define BEGIN 1             /* message tag */
 #define COLLECT 2           /* message tag */
 #define UTAG 3              /* communication tag */
@@ -45,6 +114,8 @@ int main(int argc, char* argv[])
     int cells_per_worker = 0;
     unsigned int left = 0; 
     unsigned int right = 0;
+
+    double tic, toc;
 
     /* Parse parameters from commandline */
     parse_cmdline (&nx, NULL, argc, argv);
@@ -91,7 +162,7 @@ int main(int argc, char* argv[])
          * workers */
         cells_per_worker = nx/numworkers;
         if (cells_per_worker*numworkers != nx) {
-            fprintf (stderr,"Only 2^n workers supported\n");
+            fprintf (stderr,"Only 2^n+1, n=1,2,..., threads supported\n");
             exit (EXIT_FAILURE);
         }
         part = malloc (sizeof(Partition)*numworkers);
@@ -103,30 +174,40 @@ int main(int argc, char* argv[])
         /* remember that tid=0 is the master */
         for (int tid=1; tid<=numworkers; ++tid) {
             /* partition_grid() requires the nodes to be enumerated starting
-             * from 0: 0,...,total_nodes */ 
+             * from 0: 0,...,total_nodes.
+             * Note that partitition_grid2 returns the inner nodes only */ 
             part[tid-1]=partition_grid2(tid-1,numworkers,cells_per_worker);
             /* compute neighbours */
             left = (tid==1) ? NONE : tid-1;
             right = (tid==numworkers) ? NONE : tid+1;
 
+            /* Check that everything is ok before we send out */
+            verify_grid_integrity (part[tid-1], tid, nx, numworkers, left);
+
+            /* Make field data more compact, so we can more easily use as 
+             * array indices. For convenience only.
+             * Note, these are the inner nodes. */
+            int bp, ep, sp, bu, eu, su;
+            expand_indices (part[tid-1], &bp, &ep, &sp, &bu, &eu, &su);
+
+            /* timing */
+            tic = gettime ();
+
             /* Send out neighbour information */
             MPI_Send (&left, 1, MPI_INT, tid, BEGIN, MCW);
             MPI_Send (&right,1, MPI_INT, tid, BEGIN, MCW);
 
-            /* Make field data more compact, so we can more easily use as 
-             * array indices. For convenience only. */
-            int bp, ep, sp, bu, eu, su;
-            expand_indices (part[tid-1], &bp, &ep, &sp, &bu, &eu, &su);
-
             /* Send out partition information */
             MPI_Send (&bp, 1, MPI_INT, tid, BEGIN, MCW);
             MPI_Send (&ep, 1, MPI_INT, tid, BEGIN, MCW);
+            MPI_Send (&sp, 1, MPI_INT, tid, BEGIN, MCW);
             MPI_Send (&bu, 1, MPI_INT, tid, BEGIN, MCW);
             MPI_Send (&eu, 1, MPI_INT, tid, BEGIN, MCW);
+            MPI_Send (&su, 1, MPI_INT, tid, BEGIN, MCW);
 
             /* Send out field data */
-            MPI_Send(&f.p.value[bp],sp,MPI_DOUBLE,tid,BEGIN,MCW);
-            MPI_Send(&f.u.value[bu],su,MPI_DOUBLE,tid,BEGIN,MCW);
+            MPI_Send(&f.p.value[bp], sp, MPI_DOUBLE, tid, BEGIN, MCW);
+            MPI_Send(&f.u.value[bu], su, MPI_DOUBLE, tid, BEGIN, MCW);
 
             /* Send out grid data */
             MPI_Send (&f.p.x[bp], sp, MPI_DOUBLE, tid,BEGIN,MCW);
@@ -135,7 +216,7 @@ int main(int argc, char* argv[])
             MPI_Send (&f.u.dx, 1, MPI_DOUBLE, tid, BEGIN, MCW);
 
 #ifdef DEBUG
-            printf ("Sent to task %d: left=%d, right=%d\n",i,left,right);
+            printf ("Sent to task %d: left=%d, right=%d\n", tid,left,right);
 #endif
         }
 
@@ -148,13 +229,17 @@ int main(int argc, char* argv[])
 
             MPI_Recv (&f.p.value[bp],sp,MPI_DOUBLE,tid,COLLECT,MCW,&status);
             MPI_Recv (&f.u.value[bu],su,MPI_DOUBLE,tid,COLLECT,MCW,&status);
+
 #ifdef DEBUG
             printf ("Results collected from task %d\n",i);
 #endif
         }
 
-        write_to_disk(f.p, "output_p"); 
-        write_to_disk(f.u, "output_u"); 
+        toc = gettime ();
+        printf ("Elapsed: %f seconds\n", toc-tic);
+
+        write_to_disk(f.p, "yee_mpi_p"); 
+        write_to_disk(f.u, "yee_mpi_u"); 
 
         free (part);
         free_field(f.p);
@@ -166,7 +251,6 @@ int main(int argc, char* argv[])
         /********************* Worker code *********************/ 
         int bp,bu,ep,eu,sp,su;  /* array indices and sizes */
         int lbp,lbu,lep,leu,lsp,lsu;  /* local array indices and sizes */
-        /*int i = taskid;*/
 
         part = malloc (sizeof(Partition));
         if (!part) {
@@ -177,32 +261,20 @@ int main(int argc, char* argv[])
         /* Receive grid and node parameters from master */
         
         /* Data on neighbours */
-        MPI_Recv (&left, 1, MPI_INT, MASTER,BEGIN,MCW,&status);
-        MPI_Recv (&right,1, MPI_INT, MASTER,BEGIN,MCW,&status);
+        MPI_Recv (&left, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
+        MPI_Recv (&right,1, MPI_INT, MASTER, BEGIN, MCW, &status);
         /* Partition data */
         MPI_Recv (&bp, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
         MPI_Recv (&ep, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
+        MPI_Recv (&sp, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
         MPI_Recv (&bu, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
         MPI_Recv (&eu, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-
-        /* From indices we compute the sizes */
-        sp = ep - bp + 1;   
-        su = eu - bu + 1;  
+        MPI_Recv (&su, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
 
         /* Given the partition data we compute the corresponding local array
          * indices in the array that is expanded to also contain the
          * neighbouring points needed to update. */
-        lbp = 1;    /* since p is padded by one point to the left */
-        lbu = 0;    /* since u is not padded on the left */
-        if (left == NONE) {
-            lbp = 0;
-            lbu = 1;
-        }
-        lep = lbp + sp - 1;
-        leu = lbu + su - 1;
-        /* sizes */
-        lsp = lep + 1;
-        lsu = leu + 2; 
+        set_local_index (sp, su, left, &lbp, &lep, &lsp, &lbu, &leu, &lsu);
 
 #ifdef DEBUG
         printf ("taskid=%i", taskid);  
@@ -251,7 +323,6 @@ int main(int argc, char* argv[])
             /*update_field (&f.p, lbp, lep+1, &f.u, 0, f.dt);*/
             update_field2 (&f.p, lbp, sp, &f.u, 0, f.dt);
             /*update_field3 (&f.p, lbp, lep, &f.u, 0, f.dt);*/
-            /*printf ("lbp=%i  lep=%i  lbp+sp=%i\n",lbp,lep,lbp+sp);*/
 
             /* Communicate */
             /* receive p from the left */
@@ -265,7 +336,6 @@ int main(int argc, char* argv[])
             /*update_field (&f.u, lbu, leu+1, &f.p, 0, f.dt);*/
             update_field2 (&f.u, lbu, su, &f.p, 0, f.dt);
             /*update_field3 (&f.u, lbu, leu, &f.p, 0, f.dt);*/
-            /*printf ("lbu=%i  leu=%i  lbu+su=%i\n",lbu,leu,lbu+su);*/
         }
 
         /* Send back data to master */

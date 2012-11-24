@@ -98,9 +98,9 @@ int main (int argc, char* argv[])
 #pragma omp parallel sections 
 {
 #pragma omp section
-    write_to_disk(f.p, "output_p"); 
+    write_to_disk(f.p, "yee_omp_p"); 
 #pragma omp section
-    write_to_disk(f.u, "output_u"); 
+    write_to_disk(f.u, "yee_omp_u"); 
 }
     free (part);
     free_field (f.p);

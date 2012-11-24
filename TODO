@@ -1,0 +1,14 @@
+TODO
+====
+
+ * Document the grid
+    - Grid layout
+    - The significance of all variables (esp. indices)
+ * Unit tests
+ * Validation
+    - Convergence tests
+    - Compare to single thread results
+ * Performance tests as a function of no. of threads.
+ * Autoconf
+ * Github
+

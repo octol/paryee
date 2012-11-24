@@ -59,8 +59,8 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, "output_p"); 
-    write_to_disk(f.u, "output_u"); 
+    write_to_disk(f.p, "yee_p"); 
+    write_to_disk(f.u, "yee_u"); 
     free_field(f.p);
     free_field(f.u);
 

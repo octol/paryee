@@ -106,8 +106,8 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(p, p_x, nx, "output_p"); 
-    write_to_disk(u, u_x, nx+1, "output_u"); 
+    write_to_disk(p, p_x, nx, "yee_ref_p"); 
+    write_to_disk(u, u_x, nx+1, "yee_ref_u"); 
     free(p);
     free(u);
     free(p_x);

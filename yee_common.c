@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <getopt.h>
+#include <assert.h>
 
 void alloc_field (FieldVariable* f, unsigned long size)
 {
@@ -180,6 +181,65 @@ void expand_indices (Partition partition,
     /* sizes */
     *size_p = *end_p - *begin_p + 1;
     *size_u = *end_u - *begin_u + 1;  
+}
+
+void verify_grid_integrity (Partition partition, int tid, unsigned long nx, 
+                            int numworkers, int left)
+{
+    int bp, ep, sp, bu, eu, su;
+    expand_indices (partition, &bp, &ep, &sp, &bu, &eu, &su);
+
+    /* Sanity checks */
+    assert (bp == (tid-1)*nx/numworkers);
+    assert (ep == (tid)*nx/numworkers-1);
+    assert (sp == nx/numworkers);
+    if (left == NONE) {
+        assert (bu == 1);
+        assert (su == nx/numworkers-1);
+    } else {
+        assert (bu == (tid-1)*nx/numworkers);
+        assert (su == nx/numworkers);
+    }
+    assert (eu == (tid)*nx/numworkers-1);
+    
+    /* Specific sanity checks */
+    if (nx==8 && numworkers==4) {
+        switch (tid) {
+        case 1:
+            assert (bp==0 && ep==1 && sp==2);
+            assert (bu==1 && eu==1 && su==1);
+            break; 
+        case 2:
+            assert (bp==2 && ep==3 && sp==2);
+            assert (bu==2 && eu==3 && su==2);
+            break; 
+        case 3:
+            assert (bp==4 && ep==5 && sp==2);
+            assert (bu==4 && eu==5 && su==2);
+            break;
+        case 4:
+            assert (bp==6 && ep==7 && sp==2);
+            assert (bu==6 && eu==7 && su==2);
+            break;
+        }
+    }
+}
+
+void set_local_index (int size_p, int size_u, int left, 
+                int* local_begin_p, int* local_end_p, int* local_size_p, 
+                int* local_begin_u, int* local_end_u, int* local_size_u)
+{
+        *local_begin_p = 1; /* since p is padded by one point to the left */
+        *local_begin_u = 0; /* since u is not padded on the left */
+        if (left == NONE) {
+            *local_begin_p = 0;
+            *local_begin_u = 1;
+        }
+        *local_end_p = *local_begin_p + size_p - 1;
+        *local_end_u = *local_begin_u + size_u - 1;
+
+        *local_size_p = *local_end_p + 1;
+        *local_size_u = *local_end_u + 2; 
 }
 
 int write_to_disk (FieldVariable f, char* str)
