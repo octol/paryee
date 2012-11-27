@@ -8,7 +8,5 @@ plot \
     "tests_scaling.tsv" using 1:3 title "Ref" with linespoints, \
     "tests_scaling.tsv" using 1:2 title "Single thread" with linespoints, \
     "tests_scaling.tsv" using 1:4 title "OpenMP" with linespoints, \
-    "tests_scaling.tsv" using 1:6 title "Pthread" with linespoints, \
-    "tests_scaling.tsv" using 1:7 title "MPI" with linespoints
-
-    #"tests_scaling.tsv" using 1:5 title "Pthread (naive)" with linespoints, \
+    "tests_scaling.tsv" using 1:5 title "Pthread" with linespoints, \
+    "tests_scaling.tsv" using 1:6 title "MPI" with linespoints

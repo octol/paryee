@@ -1,0 +1,94 @@
+README
+======
+
+Basic implementation of 1D wave equation on system form
+
+     p_t = a u_x
+     u_t = b p_x
+
+This formulation is sometimes used in acoustics, where then p is the
+pressure and u is the velocity field in the direction of the x-axis.
+
+GRID AND SIMULATION INFORMATION
+===============================
+
+The x-axis is discretized on a staggered grid, with u defined on the
+endpoints, and thus on full integer indices. N denotes the number of
+interval lengths (cells), i.e., we have N+1 number of nodes for u and N
+number of nodes for p.
+
+Each cell is composed by a (u,p) pair, ordered such that u is placed at
+x=index*dx, and p is placed at x=(index+1/2)*dx.
+
+The outer (x=0, x=L) boundary is set to u=0. Thus we only update the 
+inner points. 
+
+The time axis is also staggered, with u defined at t=0 and p at t=-dt/2 
+as initial conditions. 
+
+When partitioning this grid into M nodes, we divide according to
+node size = N/M, with the last node having an extra (outer) u node placed
+at x=L. Thus we require that N/M is an integer. 
+
+Example: N=8 cells and M=4 nodes. N/M=2.
+--------
+
+ grid:   u   u   u   u   u   u   u   u   u    t=0
+           p   p   p   p   p   p   p   p      t=-dt/2
+
+ index:  0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 
+
+ split grid:     u   u      u   u      u   u      u   u   u    
+                   p   p      p   p      p   p      p   p     
+
+ global index:   0 0 1 1    2 2 3 3    4 4 5 5    6 6 7 7 8 
+ local  index:   0 0 1 1    0 0 1 1    0 0 1 1    0 0 1 1 2 
+ u size:            2          2          2           3
+ p size:            2          2          2           2
+ 
+For these then the outer points are not updated, hence inner points (the
+ones that we update in each time step) are
+
+ inner grid:        u        u   u        u   u        u   u        
+                  p   p        p   p        p   p        p   p     
+
+ global index:    0 1 1      2 2 3 3      4 4 5 5      6 6 7 7   
+ local  index:    0 1 1      0 0 1 1      0 0 1 1      0 0 1 1   
+ u size:            1           2            2            2
+ p size:            2           2            2            2
+
+ communication:    p[1]-> <-u[0] p[1]-> <-u[0] p[1]-> <-u[0]
+
+General:
+--------
+
+Total grid:  u[0,...,N],    p[0,...,N-1]
+Inner grid:  u[1,...,N-1],  p[0,...,N-1]
+
+ global index
+ 
+ u[0,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M]
+ p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
+
+ local index
+
+ u[0,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M]
+ p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
+
+Reducing to the inner grid points gives:
+
+ global index
+ 
+ u[1,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M-1]
+ p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
+
+ local index
+
+ u[1,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M-1]
+ p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
+
+The communication is
+ 
+ p[N/M-1]->  <-u[0] p[N/M-1]->  <-u[0]
+
+

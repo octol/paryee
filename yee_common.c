@@ -10,7 +10,7 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field (FieldVariable* f, unsigned long size)
+void alloc_field (struct FieldVariable* f, unsigned long size)
 {
     f->size = size;
     f->value = (double*) malloc (sizeof(double)*size);
@@ -22,13 +22,13 @@ void alloc_field (FieldVariable* f, unsigned long size)
     }
 }
 
-void free_field (FieldVariable f)
+void free_field (struct FieldVariable f)
 {
     free(f.value);
     free(f.x);
 }
 
-void set_grid (FieldVariable* f, double start, double end)
+void set_grid (struct FieldVariable* f, double start, double end)
 {
     unsigned int i;
 
@@ -46,15 +46,16 @@ void vec_func (double* dst, double* arg, double (*func) (double),
         dst[i] = func (arg[i]);
 }
 
-void apply_func (FieldVariable* f, double (*func) (double))
+void apply_func (struct FieldVariable* f, double (*func) (double))
 {
     vec_func (f->value, f->x, func, 0, f->size);
 }
 
-UpdateParam collect_param (FieldVariable* dst, int dst1, int dst2, 
-                           FieldVariable* src, int src1, double dt)
+struct UpdateParam collect_param (
+                            struct FieldVariable* dst, int dst1, int dst2, 
+                            struct FieldVariable* src, int src1, double dt)
 {
-    UpdateParam param;
+    struct UpdateParam param;
     param.dst = dst; param.dst1 = dst1; param.dst2 = dst2; 
     param.src = src; param.src1 = src1; 
     param.dt = dt;
@@ -82,27 +83,8 @@ void parse_cmdline (unsigned long* nx, unsigned long* nodes,
     }
 }
 
-void update_field (FieldVariable* dst, int dst1, int dst2, 
-                   FieldVariable* src, int src1, double dt)
-{
-    int i;
-    for (i=dst1; i<dst2; ++i, ++src1)
-        dst->value[i] += dt*
-#ifdef EXTRA_WORK
-            /* 
-             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
-             * more operations per memory access. This is to test the
-             * parallel performance. 
-             */
-            pow(exp(-pow(sin(dt),2)),3.2)*
-            pow(exp(-pow(sin(dt),4)),1.2)*
-            pow(exp(-pow(sin(dt),2)),4.2)*
-#endif
-            (src->value[src1+1] - src->value[src1])/src->dx;
-}
-
-void update_field2 (FieldVariable* dst, int idst, int size, 
-                    FieldVariable* src, int isrc, double dt)
+void update_field_s (struct FieldVariable* dst, int idst, int size, 
+                     struct FieldVariable* src, int isrc, double dt)
 {
     int i;
     for (i=idst; i<idst+size; ++i, ++isrc)
@@ -120,8 +102,8 @@ void update_field2 (FieldVariable* dst, int idst, int size,
             (src->value[isrc+1] - src->value[isrc])/src->dx;
 }
 
-void update_field3 (FieldVariable* dst, int dst1, int dst2, 
-                    FieldVariable* src, int src1, double dt)
+void update_field_i (struct FieldVariable* dst, int dst1, int dst2, 
+                     struct FieldVariable* src, int src1, double dt)
 {
     int i;
     for (i=dst1; i<=dst2; ++i, ++src1)
@@ -139,23 +121,10 @@ void update_field3 (FieldVariable* dst, int dst1, int dst2,
             (src->value[src1+1] - src->value[src1])/src->dx;
 }
 
-FieldPartition partition_grid(int current_node,int nodes,int cells_per_node)
+struct Partition partition_grid (int current_node,int nodes, 
+                                 int cells_per_node)
 {
-    FieldPartition part;
-
-    part.start_p = current_node*cells_per_node;
-    part.end_p = (current_node+1)*cells_per_node;
-    part.start_u = 1 + current_node*cells_per_node;
-    part.end_u = 1 + (current_node+1)*cells_per_node;
-    if (current_node==nodes-1) /* last node gets one less */
-        --part.end_u;
-
-    return part;
-}
-
-Partition partition_grid2 (int current_node,int nodes, int cells_per_node)
-{
-    Partition partition;
+    struct Partition partition;
 
     partition.p[0] = current_node*cells_per_node;
     partition.p[1] = (current_node+1)*cells_per_node - 1;
@@ -169,7 +138,7 @@ Partition partition_grid2 (int current_node,int nodes, int cells_per_node)
     return partition;
 }
 
-void expand_indices (Partition partition, 
+void expand_indices (struct Partition partition, 
                      int* begin_p, int* end_p, int* size_p, 
                      int* begin_u, int* end_u, int* size_u)
 {
@@ -183,8 +152,8 @@ void expand_indices (Partition partition,
     *size_u = *end_u - *begin_u + 1;  
 }
 
-void verify_grid_integrity (Partition partition, int tid, unsigned long nx, 
-                            int numworkers, int left)
+void verify_grid_integrity (struct Partition partition, int tid, 
+                            unsigned long nx, int numworkers, int left)
 {
     int bp, ep, sp, bu, eu, su;
     expand_indices (partition, &bp, &ep, &sp, &bu, &eu, &su);
@@ -242,7 +211,7 @@ void set_local_index (int size_p, int size_u, int left,
         *local_size_u = *local_end_u + 2; 
 }
 
-int write_to_disk (FieldVariable f, char* str)
+int write_to_disk (struct FieldVariable f, char* str)
 {
     /* append file suffix */
     char fstr[256];

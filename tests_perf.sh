@@ -21,8 +21,7 @@ do
     S2=$(./yee_ref -n $N                      | grep 'Elapsed' | awk '{print $2}')
     S3=$(./yee_omp -n $N -t $NODES            | grep 'Elapsed' | awk '{print $2}')
     S4=$(./yee_pthr -n $N -t $NODES           | grep 'Elapsed' | awk '{print $2}')
-    S5=$(./yee_pthr_barrier -n $N -t $NODES   | grep 'Elapsed' | awk '{print $2}')
-    S6=$(mpirun -n $MPI_NODES ./yee_mpi -n $N | grep 'Elapsed' | awk '{print $2}')
-    echo $N $S1 $S2 $S3 $S4 $S5 $S6 >> $OUTFILE
+    S5=$(mpirun -n $MPI_NODES ./yee_mpi -n $N | grep 'Elapsed' | awk '{print $2}')
+    echo $N $S1 $S2 $S3 $S4 $S5 >> $OUTFILE
 done
 

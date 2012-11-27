@@ -1,92 +1,3 @@
-/* 
- * Basic implementation of 1D wave equation on system form
- *
- *      p_t = a u_x
- *      u_t = b p_x
- *
- * This formulation is sometimes used in acoustics, where then p is the
- * pressure and u is the velocity field in the direction of the x-axis.
- * 
- * The x-axis is discretized on a staggered grid, with u defined on the
- * endpoints, and thus on full integer indices. N denotes the number of
- * interval lengths (cells), i.e., we have N+1 number of nodes for u and N
- * number of nodes for p.
- *
- * Each cell is composed by a (u,p) pair, ordered such that u is placed at
- * x=index*dx, and p is placed at x=(index+1/2)*dx.
- *
- * The outer (x=0, x=L) boundary is set to u=0. Thus we only update the 
- * inner points. 
- *
- * The time axis is also staggered, with u defined at t=0 and p at t=-dt/2 
- * as initial conditions. 
- *
- * When partitioning this grid into M nodes, we divide according to
- * node size = N/M, with the last node having an extra (outer) u node placed
- * at x=L. Thus we require that N/M is an integer. 
- *
- * Example: N=8 cells and M=4 nodes. N/M=2.
- * --------
- *
- *  grid:   u   u   u   u   u   u   u   u   u    t=0
- *            p   p   p   p   p   p   p   p      t=-dt/2
- *
- *  index:  0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 
- *
- *  split grid:     u   u      u   u      u   u      u   u   u    
- *                    p   p      p   p      p   p      p   p     
- *
- *  global index:   0 0 1 1    2 2 3 3    4 4 5 5    6 6 7 7 8 
- *  local  index:   0 0 1 1    0 0 1 1    0 0 1 1    0 0 1 1 2 
- *  u size:            2          2          2           3
- *  p size:            2          2          2           2
- *  
- * For these then the outer points are not updated, hence inner points (the
- * ones that we update in each time step) are
- *
- *  inner grid:        u        u   u        u   u        u   u        
- *                   p   p        p   p        p   p        p   p     
- *
- *  global index:    0 1 1      2 2 3 3      4 4 5 5      6 6 7 7   
- *  local  index:    0 1 1      0 0 1 1      0 0 1 1      0 0 1 1   
- *  u size:            1           2            2            2
- *  p size:            2           2            2            2
- *
- *  communication:    p[1]-> <-u[0] p[1]-> <-u[0] p[1]-> <-u[0]
- *
- * General:
- * --------
- *
- * Total grid:  u[0,...,N],    p[0,...,N-1]
- * Inner grid:  u[1,...,N-1],  p[0,...,N-1]
- *
- *  global index
- *  
- *  u[0,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M]
- *  p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
- *
- *  local index
- *
- *  u[0,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M]
- *  p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
- *
- * Reducing to the inner grid points gives:
- * 
- *  global index
- *  
- *  u[1,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M-1]
- *  p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
- *
- *  local index
- *
- *  u[1,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M-1]
- *  p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
- *
- * The communication is
- *  
- *  p[N/M-1]->  <-u[0] p[N/M-1]->  <-u[0]
- *
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -134,8 +45,8 @@ int main(int argc, char* argv[])
     int numworkers = numtasks - 1;
 
     /* Field variables - data structures for the simulation */
-    Field f;            /* Contains field data (pressure and velocity) */
-    Partition* part;    /* Array of domain partitions */
+    struct Field f;        /* Contains field data (pressure and velocity) */
+    struct Partition* part;/* Array of domain partitions */
 
     if (taskid == MASTER) {
         /********************* Master code *********************/ 
@@ -165,7 +76,7 @@ int main(int argc, char* argv[])
             fprintf (stderr,"Only 2^n+1, n=1,2,..., threads supported\n");
             exit (EXIT_FAILURE);
         }
-        part = malloc (sizeof(Partition)*numworkers);
+        part = malloc (sizeof(struct Partition)*numworkers);
         if (!part) {
             fprintf (stderr,"Memory allocation failed\n");
             exit (EXIT_FAILURE);
@@ -176,7 +87,7 @@ int main(int argc, char* argv[])
             /* partition_grid() requires the nodes to be enumerated starting
              * from 0: 0,...,total_nodes.
              * Note that partitition_grid2 returns the inner nodes only */ 
-            part[tid-1]=partition_grid2(tid-1,numworkers,cells_per_worker);
+            part[tid-1] = partition_grid(tid-1,numworkers,cells_per_worker);
             /* compute neighbours */
             left = (tid==1) ? NONE : tid-1;
             right = (tid==numworkers) ? NONE : tid+1;
@@ -252,7 +163,7 @@ int main(int argc, char* argv[])
         int bp,bu,ep,eu,sp,su;  /* array indices and sizes */
         int lbp,lbu,lep,leu,lsp,lsu;  /* local array indices and sizes */
 
-        part = malloc (sizeof(Partition));
+        part = malloc (sizeof(struct Partition));
         if (!part) {
             fprintf(stderr,"Memory allocation failed\n");
             exit(EXIT_FAILURE);
@@ -288,8 +199,8 @@ int main(int argc, char* argv[])
          * containing the field. */
         alloc_field (&f.p, lsp);
         alloc_field (&f.u, lsu);
-        field_func (&f.p, zero);  /* set everything to zero */
-        field_func (&f.u, zero);  /* set everything to zero */
+        apply_func (&f.p, zero);  /* set everything to zero */
+        apply_func (&f.u, zero);  /* set everything to zero */
 
         /* Field data */
         /* NOTE: we only recieve sp/su number of values, not lsp/lsu. */
@@ -321,7 +232,7 @@ int main(int argc, char* argv[])
                 MPI_Recv (&f.u.value[leu+1],1,MPI_DOUBLE,right,UTAG,MCW,&status);
             }
             /*update_field (&f.p, lbp, lep+1, &f.u, 0, f.dt);*/
-            update_field2 (&f.p, lbp, sp, &f.u, 0, f.dt);
+            update_field_s (&f.p, lbp, sp, &f.u, 0, f.dt);
             /*update_field3 (&f.p, lbp, lep, &f.u, 0, f.dt);*/
 
             /* Communicate */
@@ -334,7 +245,7 @@ int main(int argc, char* argv[])
                 MPI_Send (&f.p.value[lep], 1, MPI_DOUBLE, right, PTAG, MCW);
             }
             /*update_field (&f.u, lbu, leu+1, &f.p, 0, f.dt);*/
-            update_field2 (&f.u, lbu, su, &f.p, 0, f.dt);
+            update_field_s (&f.u, lbu, su, &f.p, 0, f.dt);
             /*update_field3 (&f.u, lbu, leu, &f.p, 0, f.dt);*/
         }
 

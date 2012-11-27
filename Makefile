@@ -1,6 +1,6 @@
 # Simulation parameters
-N = 128
-threads = 8
+N = 1024
+threads = 4
 
 # Build parameters
 CC = gcc 
@@ -15,34 +15,30 @@ LDFLAGS += -lm
 # File dependencies
 yee_SRC = yee.c yee_common.c
 yee_pthr_SRC = yee_pthr.c yee_common.c
-yee_pthr_barrier_SRC = yee_pthr_barrier.c yee_common.c
 yee_omp_SRC = yee_omp.c yee_common.c
 yee_mpi_SRC = yee_mpi.c yee_common.c
 yee_ref_SRC = yee_ref.c
 
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
-yee_pthr_barrier_OBJ = $(yee_pthr_barrier_SRC:.c=.o)
 yee_omp_OBJ = $(yee_omp_SRC:.c=.o)
 yee_mpi_OBJ = $(yee_mpi_SRC:.c=.o)
 yee_ref_OBJ = $(yee_ref_SRC:.c=.o)
-OBJ = $(yee_OBJ) $(yee_pthr_OBJ) $(yee_pthr_barrier_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ) $(yee_ref_OBJ)
+OBJ = $(yee_OBJ) $(yee_pthr_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ) $(yee_ref_OBJ)
 
 yee_BIN = yee
 yee_pthr_BIN = yee_pthr
-yee_pthr_barrier_BIN = yee_pthr_barrier
 yee_omp_BIN = yee_omp
 yee_ref_BIN = yee_ref
 yee_mpi_BIN = yee_mpi
-BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_pthr_barrier_BIN) $(yee_omp_BIN) $(yee_mpi_BIN) $(yee_ref_BIN)
+BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_omp_BIN) $(yee_mpi_BIN) $(yee_ref_BIN)
 
 yee_DATA = $(yee_BIN:=_p.tsv) $(yee_BIN:=_u.tsv)
 yee_pthr_DATA = $(yee_pthr_BIN:=_p.tsv) $(yee_pthr_BIN:=_u.tsv)
-yee_pthr_barrier_DATA = $(yee_pthr_barrier_BIN:=_p.tsv) $(yee_pthr_barrier_BIN:=_u.tsv)
 yee_omp_DATA = $(yee_omp_BIN:=_p.tsv) $(yee_omp_BIN:=_u.tsv)
 yee_mpi_DATA = $(yee_mpi_BIN:=_p.tsv) $(yee_mpi_BIN:=_u.tsv)
 yee_ref_DATA = $(yee_ref_BIN:=_p.tsv) $(yee_ref_BIN:=_u.tsv)
-DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_pthr_barrier_DATA) $(yee_omp_DATA) $(yee_mpi_DATA) $(yee_ref_DATA)
+DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_omp_DATA) $(yee_mpi_DATA) $(yee_ref_DATA)
 
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(GNUPLOT:.plt=.png)
@@ -66,9 +62,6 @@ $(yee_BIN): $(yee_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
 
 $(yee_pthr_BIN): $(yee_pthr_OBJ)
-	$(CC) $^ $(LDFLAGS) -lpthread -o $@ 
-
-$(yee_pthr_barrier_BIN): $(yee_pthr_barrier_OBJ)
 	$(CC) $^ $(LDFLAGS) -lpthread -o $@ 
 
 $(yee_omp_BIN): $(yee_omp_OBJ)
@@ -97,9 +90,6 @@ $(yee_ref_DATA): $(yee_ref_BIN)
 
 $(yee_pthr_DATA): $(yee_pthr_BIN)
 	./yee_pthr -n $N -t $(threads)
-
-$(yee_pthr_barrier_DATA): $(yee_pthr_barrier_BIN)
-	./yee_pthr_barrier -n $N -t $(threads)
 
 $(yee_omp_DATA): $(yee_omp_BIN)
 	./yee_omp -n $N -t $(threads)

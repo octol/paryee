@@ -1,18 +1,3 @@
-/* 
- * Basic implementation of 1D wave equation on system form
- *
- *      p_t = a u_x
- *      u_t = b p_x
- *
- * This formulation is sometimes used in acoustics, where then p is the
- * pressure and u is the velocity field in the direction of the x-axis.
- * 
- * We use a staggared grid with u defined on the endpoints, and thus on full
- * integer indices. N denotes the number of interval lengths, i.e., we have
- * N+1 number of nodes for u
- *
- * The outer (x=0, x=L) boundary is set to u=0. 
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -32,8 +17,8 @@ int main (int argc, char* argv[])
     unsigned int n, i, cells_per_node;
     int tid;
     double tic, toc;
-    Field f;
-    FieldPartition* part;
+    struct Field f;
+    struct Partition* part;
 
     /* Parse parameters from commandline */
     parse_cmdline (&nx, &nodes, argc, argv);
@@ -47,13 +32,13 @@ int main (int argc, char* argv[])
 {
     alloc_field(&f.p, nx);
     set_grid (&f.p, 0.5*length/nx, length-0.5*length/nx);
-    field_func (&f.p, gauss); /* initial data */
+    apply_func (&f.p, gauss); /* initial data */
 }
 #pragma omp section 
 {
     alloc_field(&f.u, nx+1);
     set_grid (&f.u, 0, length);
-    field_func (&f.u, zero);  /* initial data */
+    apply_func (&f.u, zero);  /* initial data */
 }
 }
 
@@ -64,7 +49,7 @@ int main (int argc, char* argv[])
     /* Setup parallellization */
     cells_per_node = nx/nodes;
     assert(cells_per_node*nodes == nx);
-    part = malloc (sizeof(FieldPartition)*nodes);
+    part = malloc (sizeof(struct Partition)*nodes);
     if (!part) {
         fprintf(stderr,"Memory allocation failed\n");
         exit(EXIT_FAILURE);
@@ -80,13 +65,17 @@ int main (int argc, char* argv[])
     for (n=0; n<f.Nt; ++n) {
 
         /* update the pressure (p) */
-        update_field (&f.p, part[tid].start_p, part[tid].end_p,
-                      &f.u, part[tid].start_u-1, f.dt);
+        /*update_field3 (&f.p, part[tid].start_p, part[tid].end_p,*/
+                       /*&f.u, part[tid].start_u-1, f.dt);*/
+        update_field_i (&f.p, part[tid].p[0], part[tid].p[1],
+                        &f.u, part[tid].u[0]-1, f.dt);
 #pragma omp barrier
 
         /* update the velocity (u) */
-        update_field (&f.u, part[tid].start_u, part[tid].end_u,
-                      &f.p, part[tid].start_p, f.dt);
+        /*update_field (&f.u, part[tid].start_u, part[tid].end_u,*/
+                      /*&f.p, part[tid].start_p, f.dt);*/
+        update_field_i (&f.u, part[tid].u[0], part[tid].u[1],
+                        &f.p, part[tid].p[0], f.dt);
 #pragma omp barrier
     }
 }

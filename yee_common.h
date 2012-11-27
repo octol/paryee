@@ -9,12 +9,9 @@
 #define MAXWORKER 8
 #define NONE 0              /* no neighbour */
 
-#define field_func apply_func
-
 /***************************************************************************
  * Data structures
  **************************************************************************/
-typedef struct FieldVariable FieldVariable;
 struct FieldVariable {
     double* value;
     double* x;
@@ -22,39 +19,23 @@ struct FieldVariable {
     unsigned long size;    /* number of points */
 };
 
-typedef struct Field Field;
 struct Field {
-    FieldVariable p;
-    FieldVariable u;
+    struct FieldVariable p;
+    struct FieldVariable u;
     double dt;
     double Nt;
 };
 
-typedef struct UpdateParam UpdateParam;
 struct UpdateParam {
-    FieldVariable* dst;
+    struct FieldVariable* dst;
     int dst1;
     int dst2;
-    FieldVariable* src;
+    struct FieldVariable* src;
     int src1;
     double dt;
 };
 
-typedef struct FieldPartition FieldPartition;
-struct FieldPartition {
-    int start_p;
-    int end_p;
-    int start_u;   
-    int end_u;    
-};
-
-typedef struct Partition Partition;
 struct Partition {
-    /* The grid points that is selected to be updated */
-    /*FieldPartition inner;*/
-    /* The inner grid points plus the extra grid points needed to update the
-     * inner grid points */
-    /*FieldPartition outer;*/
     int p[2];   /* start and end indices of internal domain */
     int u[2];
 };
@@ -66,13 +47,13 @@ struct Partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field (FieldVariable*, unsigned long size);
-void free_field (FieldVariable);
+void alloc_field (struct FieldVariable*, unsigned long size);
+void free_field (struct FieldVariable);
 
 /* 
  * Generate grid from start to end with N number of points  
  */
-void set_grid (FieldVariable*, double start, double end);
+void set_grid (struct FieldVariable*, double start, double end);
 
 /*
  * Vectorization of function.
@@ -84,54 +65,46 @@ void vec_func (double* dst, double* arg, double (*func) (double),
 /*
  * Vectorization of function applied to FieldVariable.
  */
-void field_func (FieldVariable* f, double (*func) (double));
+void apply_func (struct FieldVariable* f, double (*func) (double));
 
-/*
- * Leapfrog time update
- * Update the field points dst for the indices dst1,...,dst2, using the
- * field points src using indices src1,...,src1 + (dst2-dst1)
- */
-void update_field (FieldVariable* dst, int dst1, int dst2, 
-                   FieldVariable* src, int src1, double dt);
-
-/*
- * Leapfrog time update
+/* 
+ * Leapfrog time update.
  * Update the size number of field points starting at the index idst, using
- * the field points starting at isrc.
+ * the field points starting at isrc. Note: _s in the name indicates the
+ * input (size).
  */
-void update_field2 (FieldVariable* dst, int idst, int size, 
-                    FieldVariable* src, int isrc, double dt);
+void update_field_s (struct FieldVariable* dst, int idst, int size, 
+                     struct FieldVariable* src, int isrc, double dt);
 
-void update_field3 (FieldVariable* dst, int dst1, int dst2, 
-                    FieldVariable* src, int src1, double dt);
+/* 
+ * Leapfrog time update.
+ * Update the field points starting at the index dst1 and ending at dst2,
+ * using the field points starting at src1. Note: _i in the name indicates
+ * the input (index).
+ */
+void update_field_i (struct FieldVariable* dst, int dst1, int dst2, 
+                     struct FieldVariable* src, int src1, double dt);
 
 /*
  * Divide the grid for the different threads.
+ * We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-FieldPartition 
-partition_grid (int current_node, int nodes, int cells_per_node);
-
-/*
- * Divide the grid for the different threads.
- * This is the second version, suited for the MPI implementation. Here we
- * divide the grid according to cells.
- * Note: only the inner nodes are returned.
- */
-Partition partition_grid2 (int current_node, int nodes, int cells_per_node);
+struct Partition partition_grid (int current_node, int nodes, 
+                                 int cells_per_node);
 
 /* 
  * Expand the partition struct into indices 
  */
-void expand_indices (Partition partition, 
+void expand_indices (struct Partition partition, 
                      int* begin_p, int* end_p, int* size_p, 
                      int* begin_u, int* end_u, int* size_u);
 
 /*
  * Checks that the grid is according to the specs.
  */
-void verify_grid_integrity (Partition partition, int tid, unsigned long nx, 
-                            int numworkers, int left);
+void verify_grid_integrity (struct Partition partition, int tid, 
+                            unsigned long nx, int numworkers, int left);
 
 /*
  * Compute the local start/end indices and local array sizes from the
@@ -144,8 +117,9 @@ void set_local_index (int size_p, int size_u, int left,
 /* 
  * Collect parameters
  */
-UpdateParam collect_param (FieldVariable* dst, int dst1, int dst2, 
-                           FieldVariable* src, int src1, double dt);
+struct UpdateParam collect_param (
+                struct FieldVariable* dst, int dst1, int dst2, 
+                struct FieldVariable* src, int src1, double dt);
 
 /*
  * Parse commandline argument and set the number of grid points as well as
@@ -157,7 +131,7 @@ void parse_cmdline (unsigned long* nx, unsigned long* nodes,
 /*
  * Write field to dist
  */
-int write_to_disk (FieldVariable f, char* str);
+int write_to_disk (struct FieldVariable f, char* str);
 
 /* 
  * Some grid functions 
