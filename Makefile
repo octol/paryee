@@ -47,13 +47,20 @@ DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_pthr_barrier_DATA) $(yee_omp_DATA) $(y
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(GNUPLOT:.plt=.png)
 
+tests_SH = tests_scaling.sh tests_perf.sh
+tests_DATA = $(tests_SH:.sh=.tsv)
+tests_PNG = $(tests_DATA:.tsv=.png)
+
 .PHONY: clean
+.PRECIOUS: $(tests_DATA)
 
 all: $(BIN) 
 
 data: $(DATA)
 
 plot: $(PNG)
+
+tests: $(tests_PNG)
 
 $(yee_BIN): $(yee_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
@@ -106,5 +113,8 @@ $(GNUPLOT): template.gnuplot
 %.png: %.plt %.tsv
 	gnuplot $<
 
+%.tsv: %.sh $(BIN)
+	./$<
+
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT)
+	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG)
