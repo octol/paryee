@@ -9,14 +9,20 @@
  */
 int main (int argc, char* argv[])
 {
-    /* Paramters */
-    double length=1, cfl=1, T=0.3, c=1;
-    unsigned long nx=2048, n;
+    /* Parameters */
+    double length = 1; 
+    double cfl = 1; 
+    double T = 0.3;
+    double c = 1;
+    unsigned long nx = 2048;
+    unsigned long n;
     double tic, toc;
     struct Field f;
+    char outfile_p[STR_SIZE] = "yee_p.tsv";
+    char outfile_u[STR_SIZE] = "yee_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline (&nx, NULL, argc, argv);
+    parse_cmdline (&nx, NULL, outfile_p, outfile_u, argc, argv);
     printf("Running with: N=%ld\n", nx);
 
     /* Initialize */
@@ -44,8 +50,8 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, "yee_p"); 
-    write_to_disk(f.u, "yee_u"); 
+    write_to_disk(f.p, outfile_p); 
+    write_to_disk(f.u, outfile_u); 
     free_field(f.p);
     free_field(f.u);
 

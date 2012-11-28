@@ -1,5 +1,6 @@
 /*
- * Minimal reference implementation to compare overhead.
+ * Minimal reference implementation to compare overhead. This implementation
+ * is completely independent, and does not depend on yee_common.c.
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,7 +9,10 @@
 #include <math.h>
 #include <getopt.h>
 
-void parse_cmdline (unsigned long* nx, int argc, char* argv[])
+#define STR_SIZE 256
+
+void parse_cmdline (unsigned long* nx, char* outfile_p, char* outfile_u, 
+                    int argc, char* argv[])
 {
     int opt;
     while ((opt = getopt(argc, argv, "n:")) != -1) {
@@ -16,10 +20,18 @@ void parse_cmdline (unsigned long* nx, int argc, char* argv[])
             case 'n':
                 *nx = atoi(optarg);
                 break;
+            case 'p':
+                strncpy (outfile_p, optarg, STR_SIZE);
+                outfile_p[STR_SIZE-1] = '\0'; /* force null termination */
+                break;
+            case 'u':
+                strncpy (outfile_u, optarg, STR_SIZE);
+                outfile_u[STR_SIZE-1] = '\0'; /* force null termination */
+                break;
             default: /* '?' */
-                fprintf(stderr, 
-                        "Usage: %s [-n intervals]\n",
-                        argv[0]);
+                fprintf(stderr, "Usage: %s ", argv[0]);
+                fprintf (stderr, "[-n intervals] ");
+                fprintf (stderr, "[-p outfile_p] [-u outfile_u]\n");
                 exit(EXIT_FAILURE);
         }
     }
@@ -32,7 +44,9 @@ int write_to_disk (double* f, double* f_x, unsigned long size, char* str)
     FILE* fp;
     unsigned int i;
     strcpy(fstr,str);
-    strcat(fstr,".tsv");
+    /*strcat(fstr,".tsv");*/
+
+    printf ("Writing to: %s\n",fstr);
 
     fp = fopen(fstr,"w");
     if (fp == NULL) {
@@ -62,9 +76,11 @@ int main (int argc, char* argv[])
     double* u;
     double* p_x;
     double* u_x;
+    char outfile_p[STR_SIZE] = "yee_ref_p.tsv";
+    char outfile_u[STR_SIZE] = "yee_ref_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline (&nx, argc, argv);
+    parse_cmdline (&nx, outfile_p, outfile_u, argc, argv);
     printf("Running with: N=%lu\n", nx);
 
     p = malloc (sizeof(double)*nx);
@@ -106,8 +122,8 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(p, p_x, nx, "yee_ref_p"); 
-    write_to_disk(u, u_x, nx+1, "yee_ref_u"); 
+    write_to_disk(p, p_x, nx, outfile_p); 
+    write_to_disk(u, u_x, nx+1, outfile_u); 
     free(p);
     free(u);
     free(p_x);

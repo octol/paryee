@@ -8,6 +8,7 @@
 #define MINWORKER 1 
 #define MAXWORKER 8
 #define NONE 0              /* no neighbour */
+#define STR_SIZE 256
 
 /***************************************************************************
  * Data structures
@@ -122,10 +123,11 @@ struct UpdateParam collect_param (
                 struct FieldVariable* src, int src1, double dt);
 
 /*
- * Parse commandline argument and set the number of grid points as well as
- * the number of threads.
+ * Parse commandline argument and set the number of grid points, * the
+ * number of threads as well as the output filenames.
  */
 void parse_cmdline (unsigned long* nx, unsigned long* nodes, 
+                    char* outfile_p, char* outfile_u, 
                     int argc, char* argv[]);
 
 /*

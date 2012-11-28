@@ -53,9 +53,11 @@ int main (int argc, char* argv[])
     pthread_t* thr;
     pthread_attr_t attr;
     struct ThreadParam* param;
+    char outfile_p[STR_SIZE] = "yee_pthr_p.tsv";
+    char outfile_u[STR_SIZE] = "yee_pthr_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline (&nx, &nodes, argc, argv);
+    parse_cmdline (&nx, &nodes, outfile_p, outfile_u, argc, argv);
     printf("Running with: N=%ld, threads=%ld\n", nx, nodes);
 
     /* Initialize */
@@ -115,8 +117,8 @@ int main (int argc, char* argv[])
     printf ("Elapsed: %f seconds\n", toc-tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, "yee_pthr_p"); 
-    write_to_disk(f.u, "yee_pthr_u"); 
+    write_to_disk(f.p, outfile_p); 
+    write_to_disk(f.u, outfile_u); 
     free (param);
     free (thr);
     free_field (f.p);

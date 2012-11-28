@@ -18,6 +18,8 @@ int main(int argc, char* argv[])
     double cfl = 1;
     double T = 0.3;
     double c = 1;
+    char outfile_p[STR_SIZE] = "yee_mpi_p.tsv";
+    char outfile_u[STR_SIZE] = "yee_mpi_u.tsv";
 
     /* Numerical paramters */
     unsigned long nx = 2048;
@@ -29,7 +31,7 @@ int main(int argc, char* argv[])
     double tic, toc;
 
     /* Parse parameters from commandline */
-    parse_cmdline (&nx, NULL, argc, argv);
+    parse_cmdline (&nx, NULL, outfile_p, outfile_u, argc, argv);
 
     /* Setup MPI and initialize variables */
     MPI_Status status;
@@ -149,8 +151,8 @@ int main(int argc, char* argv[])
         toc = gettime ();
         printf ("Elapsed: %f seconds\n", toc-tic);
 
-        write_to_disk(f.p, "yee_mpi_p"); 
-        write_to_disk(f.u, "yee_mpi_u"); 
+        write_to_disk(f.p, outfile_p); 
+        write_to_disk(f.u, outfile_u); 
 
         free (part);
         free_field(f.p);

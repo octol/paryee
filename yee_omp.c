@@ -19,9 +19,11 @@ int main (int argc, char* argv[])
     double tic, toc;
     struct Field f;
     struct Partition* part;
+    char outfile_p[STR_SIZE] = "yee_omp_p.tsv";
+    char outfile_u[STR_SIZE] = "yee_omp_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline (&nx, &nodes, argc, argv);
+    parse_cmdline (&nx, &nodes, outfile_p, outfile_u, argc, argv);
     omp_set_num_threads (nodes);
     printf("Running with: N=%ld, threads=%ld\n", nx, nodes);
 
@@ -87,9 +89,9 @@ int main (int argc, char* argv[])
 #pragma omp parallel sections 
 {
 #pragma omp section
-    write_to_disk(f.p, "yee_omp_p"); 
+    write_to_disk(f.p, outfile_p); 
 #pragma omp section
-    write_to_disk(f.u, "yee_omp_u"); 
+    write_to_disk(f.u, outfile_u); 
 }
     free (part);
     free_field (f.p);

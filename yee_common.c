@@ -63,22 +63,33 @@ struct UpdateParam collect_param (
 }
 
 void parse_cmdline (unsigned long* nx, unsigned long* nodes, 
+                    char* outfile_p, char* outfile_u, 
                     int argc, char* argv[])
 {
     int opt;
-    while ((opt = getopt(argc, argv, "t:n:")) != -1) {
+    while ((opt = getopt(argc, argv, "t:n:p:u:")) != -1) {
         switch (opt) {
             case 't':
                 *nodes = atoi (optarg);
                 break;
             case 'n':
-                *nx = atoi(optarg);
+                *nx = atoi (optarg);
+                break;
+            case 'p':
+                strncpy (outfile_p, optarg, STR_SIZE);
+                outfile_p[STR_SIZE-1] = '\0'; /* force null termination */
+                break;
+            case 'u':
+                strncpy (outfile_u, optarg, STR_SIZE);
+                outfile_u[STR_SIZE-1] = '\0'; /* force null termination */
                 break;
             default: /* '?' */
-                fprintf(stderr, 
-                        "Usage: %s [-t threads] [-n intervals]\n",
-                        argv[0]);
-                exit(EXIT_FAILURE);
+                fprintf (stderr, "Usage: %s ", argv[0]);
+                if (nodes != NULL)
+                    fprintf (stderr, "[-t threads] ");
+                fprintf (stderr, "[-n intervals] ");
+                fprintf (stderr, "[-p outfile_p] [-u outfile_u]\n");
+                exit (EXIT_FAILURE);
         }
     }
 }
@@ -218,7 +229,9 @@ int write_to_disk (struct FieldVariable f, char* str)
     FILE* fp;
     unsigned int i;
     strcpy(fstr,str);
-    strcat(fstr,".tsv");
+    /*strcat(fstr,".tsv");*/
+
+    printf ("Writing to: %s\n",fstr);
 
     fp = fopen(fstr,"w");
     if (fp == NULL) {

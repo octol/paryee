@@ -9,6 +9,8 @@ Basic implementation of 1D wave equation on system form
 This formulation is sometimes used in acoustics, where then p is the
 pressure and u is the velocity field in the direction of the x-axis.
 
+Both shared memory and distributed memory implementations are included.
+
 GRID AND SIMULATION INFORMATION
 ===============================
 
