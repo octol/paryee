@@ -4,10 +4,10 @@ threads = 4
 
 # Build parameters
 CC = gcc 
-CFLAGS += -Wall -pedantic -O3
+CFLAGS += -Wall -pedantic -O3 -Ofast -Wextra
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 MPICC = mpicc 
-MPICFLAGS += -Wall -pedantic -O3 -std=c99
+MPICFLAGS += -Wall -pedantic -O3 -std=c99 -Ofast -Wextra
 LDFLAGS += -lm
 
 HOSTNAME = $(shell hostname)
@@ -60,7 +60,7 @@ plot: $(PNG)
 tests: $(tests_PNG)
 
 savetests: $(tests_PNG)
-	[ ! -f $(SAVEDIR) ] && mkdir $(SAVEDIR) && echo "Create $(SAVEDIR)" || echo "Saving to $(SAVEDIR)"
+	[ ! -e $(SAVEDIR) ] && mkdir $(SAVEDIR) && echo "Create $(SAVEDIR)" || echo "Saving to $(SAVEDIR)"
 	[ -d $(SAVEDIR) ] && cp $(tests_PNG) $(tests_DATA) $(SAVEDIR)
 
 verify: $(BIN)

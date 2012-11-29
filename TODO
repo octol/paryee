@@ -4,7 +4,7 @@ TODO
  * Unit tests
  * Validation
     - Convergence tests
-    - Compare to single thread results
+ * Rename struct names to all lowercase
  * Autoconf
  * Github
  * Add copyright notice
