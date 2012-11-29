@@ -45,7 +45,7 @@ void* thread_main (void* arg)
 int main (int argc, char* argv[])
 {
     double length=1, cfl=1, T=0.3, c=1;
-    unsigned long nx=2048, nodes=2;
+    unsigned long nx=2048, nodes=4;
     int i, cells_per_node;
     double tic, toc;
     struct Field f;

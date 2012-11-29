@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Run performance tests to compare the different implementations
 
-NODES=2
-NN="1024 2048 4096 8192"
-NNN=1024
+NODES=4
+NN="1024 2048 4096 8192 16384"
 #NN="1024 2048 4096 8192 16384 32768"
 #NN="8192 16384 32768 65536"
 OUTFILE=tests_perf.tsv
@@ -11,7 +10,7 @@ OUTFILE=tests_perf.tsv
 MPI_NODES=$((NODES + 1))
 
 # Sanity checks
-[ -f $OUTFILE ] && echo "$OUTFILE file already exists!" && exit 1;
+[ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
 
 echo "Performance tests:"
 for N in $NN

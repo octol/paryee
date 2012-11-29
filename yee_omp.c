@@ -13,7 +13,7 @@ int main (int argc, char* argv[])
 {
     /* Paramters */
     double length=1, cfl=1, T=0.3, c=1;
-    unsigned long nx=2048, nodes=2;
+    unsigned long nx=2048, nodes=4;
     unsigned int n, i, cells_per_node;
     int tid;
     double tic, toc;

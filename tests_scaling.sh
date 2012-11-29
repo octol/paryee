@@ -2,11 +2,12 @@
 # Run scaling tests to compare the different implementations
 
 NODES="1 2 4 8"
-N=1024
+#N=1024
+N=8192
 OUTFILE=tests_scaling.tsv
 
 # Sanity checks
-[ -f $OUTFILE ] && echo "$OUTFILE file already exists!" && exit 1;
+[ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
 
 echo "Scaling tests:"
 for M in $NODES

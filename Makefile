@@ -4,13 +4,14 @@ threads = 4
 
 # Build parameters
 CC = gcc 
-CFLAGS += -Wall -pedantic
+CFLAGS += -Wall -pedantic -O3
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
-CFLAGS += -g
 MPICC = mpicc 
-MPICFLAGS += -Wall -pedantic -O3
-MPICFLAGS += -std=c99
+MPICFLAGS += -Wall -pedantic -O3 -std=c99
 LDFLAGS += -lm
+
+HOSTNAME = $(shell hostname)
+SAVEDIR = tests_$(HOSTNAME)
 
 # File dependencies
 yee_SRC = yee.c yee_common.c
@@ -57,6 +58,13 @@ data: $(DATA)
 plot: $(PNG)
 
 tests: $(tests_PNG)
+
+savetests: $(tests_PNG)
+	[ ! -f $(SAVEDIR) ] && mkdir $(SAVEDIR) && echo "Create $(SAVEDIR)" || echo "Saving to $(SAVEDIR)"
+	[ -d $(SAVEDIR) ] && cp $(tests_PNG) $(tests_DATA) $(SAVEDIR)
+
+verify: $(BIN)
+	./tests_integrity.sh
 
 $(yee_BIN): $(yee_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 

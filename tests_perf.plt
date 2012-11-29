@@ -1,7 +1,7 @@
 set terminal png truecolor font "Helvetica"
 set out "tests_perf.png"
 set key bottom right
-set logscale xy
+#set logscale xy
 set xlabel "Cells"
 set ylabel "Time [s]"
 plot \

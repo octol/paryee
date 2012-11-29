@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
             exit (EXIT_FAILURE);
         }
 
-        printf ("Starting yee_mpi with %i workers\n",numworkers);
-        printf ("Running with: N=%ld\n", nx);
+        /*printf ("Starting yee_mpi with %i workers\n",numworkers);*/
+        printf ("Running with: N=%ld, workers=%i\n", nx, numworkers);
 
         /* Initialize */
         alloc_field (&f.p, nx);

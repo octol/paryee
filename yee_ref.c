@@ -15,7 +15,7 @@ void parse_cmdline (unsigned long* nx, char* outfile_p, char* outfile_u,
                     int argc, char* argv[])
 {
     int opt;
-    while ((opt = getopt(argc, argv, "n:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:p:u:")) != -1) {
         switch (opt) {
             case 'n':
                 *nx = atoi(optarg);

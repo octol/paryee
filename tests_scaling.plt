@@ -1,7 +1,7 @@
 set terminal png truecolor font "Helvetica"
 set out "tests_scaling.png"
 set key bottom right
-set logscale xy
+#set logscale xy
 set xlabel "Nodes"
 set ylabel "Time [s]"
 plot \
