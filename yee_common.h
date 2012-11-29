@@ -37,7 +37,7 @@ struct UpdateParam {
 };
 
 struct Partition {
-    int p[2];                   /* start and end indices of internal domain */
+    int p[2];                   /* start end indices of internal domain */
     int u[2];
 };
 
@@ -91,8 +91,7 @@ void update_field_i(struct FieldVariable *dst, int dst1, int dst2,
  * We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct Partition partition_grid(int current_node, int nodes,
-                                int cells_per_node);
+struct Partition partition_grid(int current_node, int cells_per_node);
 
 /* 
  * Expand the partition struct into indices 

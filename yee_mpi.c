@@ -47,8 +47,10 @@ int main(int argc, char *argv[])
     int numworkers = numtasks - 1;
 
     /* Field variables - data structures for the simulation */
-    struct Field f;             /* Contains field data (pressure and velocity) */
-    struct Partition *part;     /* Array of domain partitions */
+    /* Contains field data (pressure and velocity) */
+    struct Field f;
+    /* Array of domain partitions */
+    struct Partition *part;
 
     if (taskid == MASTER) {
         /********************* Master code *********************/
@@ -167,8 +169,10 @@ int main(int argc, char *argv[])
 
     } else {
         /********************* Worker code *********************/
-        int bp, bu, ep, eu, sp, su;     /* array indices and sizes */
-        int lbp, lbu, lep, leu, lsp, lsu;       /* local array indices and sizes */
+        /* array indices and sizes */
+        int bp, bu, ep, eu, sp, su;
+        /* local array indices and sizes */
+        int lbp, lbu, lep, leu, lsp, lsu;
 
         part = malloc(sizeof(struct Partition));
         if (!part) {
@@ -228,7 +232,8 @@ int main(int argc, char *argv[])
 #endif
 
         /* Depends on the numerical variables initialized above */
-        f.dt = cfl * f.p.dx / c;        /* CFL condition is: c*dt/dx = cfl <= 1 */
+        /* CFL condition is: c*dt/dx = cfl <= 1 */
+        f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
 
         for (unsigned long n = 0; n < f.Nt; ++n) {

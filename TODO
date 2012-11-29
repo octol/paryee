@@ -8,4 +8,8 @@ TODO
  * Autoconf
  * Github
  * Add copyright notice
+ * Speed up by removing update function in inner loop
+    - perhaps try inline?
+ * Optimize MPI (yee_mpi2)
+ * Switch to let MPI master do work?
 

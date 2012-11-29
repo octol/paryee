@@ -135,8 +135,7 @@ void update_field_i(struct FieldVariable *dst, int dst1, int dst2,
             (src->value[src1 + 1] - src->value[src1]) / src->dx;
 }
 
-struct Partition partition_grid(int current_node, int nodes,
-                                int cells_per_node)
+struct Partition partition_grid(int current_node, int cells_per_node)
 {
     struct Partition partition;
 
@@ -173,8 +172,8 @@ void verify_grid_integrity(struct Partition partition, int tid,
     expand_indices(partition, &bp, &ep, &sp, &bu, &eu, &su);
 
     /* Sanity checks */
-    assert(bp == (tid - 1) * nx / numworkers);
-    assert(ep == (tid) * nx / numworkers - 1);
+    assert((int) bp == (tid - 1) * (int) nx / (int) numworkers);
+    assert((int) ep == (tid) * nx / numworkers - 1);
     assert(sp == nx / numworkers);
     if (left == NONE) {
         assert(bu == 1);
@@ -208,13 +207,15 @@ void verify_grid_integrity(struct Partition partition, int tid,
     }
 }
 
-void set_local_index(int size_p, int size_u, int left,
-                     int *local_begin_p, int *local_end_p,
-                     int *local_size_p, int *local_begin_u,
-                     int *local_end_u, int *local_size_u)
+void set_local_index(int size_p, int size_u, int left, int *local_begin_p,
+                     int *local_end_p, int *local_size_p,
+                     int *local_begin_u, int *local_end_u,
+                     int *local_size_u)
 {
-    *local_begin_p = 1;         /* since p is padded by one point to the left */
-    *local_begin_u = 0;         /* since u is not padded on the left */
+    /* since p is padded by one point to the left */
+    *local_begin_p = 1;
+    /* since u is not padded on the left */
+    *local_begin_u = 0;
     if (left == NONE) {
         *local_begin_p = 0;
         *local_begin_u = 1;
