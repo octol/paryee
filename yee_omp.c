@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     for (i = 0; i < nodes; ++i)
-        part[i] = partition_grid(i, nodes, cells_per_node);
+        part[i] = partition_grid(i, cells_per_node);
 
     tic = gettime();
 

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         /* Compute partition, neighbours and then send out data to the
          * workers */
         cells_per_worker = nx / numworkers;
-        if (cells_per_worker * numworkers != nx) {
+        if (cells_per_worker * numworkers != (int)nx) {
             fprintf(stderr, "Only 2^n+1, n=1,2,..., threads supported\n");
             exit(EXIT_FAILURE);
         }
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
              * from 0: 0,...,total_nodes.
              * Note that partitition_grid2 returns the inner nodes only */
             part[tid - 1] =
-                partition_grid(tid - 1, numworkers, cells_per_worker);
+                partition_grid(tid - 1, cells_per_worker);
             /* compute neighbours */
             left = (tid == 1) ? NONE : tid - 1;
             right = (tid == numworkers) ? NONE : tid + 1;

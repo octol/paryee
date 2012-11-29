@@ -2,6 +2,7 @@ TODO
 ====
 
  * Unit tests
+    - cunit ?
  * Validation
     - Convergence tests
  * Rename struct names to all lowercase
@@ -12,4 +13,6 @@ TODO
     - perhaps try inline?
  * Optimize MPI (yee_mpi2)
  * Switch to let MPI master do work?
+ * Static code analyser 
+    - lint ?
 

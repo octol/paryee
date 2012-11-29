@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 {
     double length = 1, cfl = 1, T = 0.3, c = 1;
     unsigned long nx = 2048, nodes = 4;
-    int i, cells_per_node;
+    unsigned int i, cells_per_node;
     double tic, toc;
     struct Field f;
     struct Partition part;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     cells_per_node = nx / nodes;
     assert(cells_per_node * nodes == nx);
     for (i = 0; i < nodes; ++i) {
-        part = partition_grid(i, nodes, cells_per_node);
+        part = partition_grid(i, cells_per_node);
         param[i].p = collect_param(&f.p, part.p[0], part.p[1],
                                    &f.u, part.u[0] - 1, f.dt);
         param[i].u = collect_param(&f.u, part.u[0], part.u[1],

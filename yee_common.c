@@ -172,20 +172,20 @@ void verify_grid_integrity(struct Partition partition, int tid,
     expand_indices(partition, &bp, &ep, &sp, &bu, &eu, &su);
 
     /* Sanity checks */
-    assert((int) bp == (tid - 1) * (int) nx / (int) numworkers);
-    assert((int) ep == (tid) * nx / numworkers - 1);
-    assert(sp == nx / numworkers);
+    assert(bp == (tid - 1) * (int) nx / numworkers);
+    assert(ep == (tid) * (int) nx / numworkers - 1);
+    assert(sp == (int) nx / numworkers);
     if (left == NONE) {
         assert(bu == 1);
-        assert(su == nx / numworkers - 1);
+        assert(su == (int) nx / numworkers - 1);
     } else {
-        assert(bu == (tid - 1) * nx / numworkers);
-        assert(su == nx / numworkers);
+        assert(bu == (tid - 1) * (int)nx / numworkers);
+        assert(su == (int) nx / numworkers);
     }
-    assert(eu == (tid) * nx / numworkers - 1);
+    assert(eu == (tid) * (int) nx / numworkers - 1);
 
     /* Specific sanity checks */
-    if (nx == 8 && numworkers == 4) {
+    if ((int) nx == 8 && numworkers == 4) {
         switch (tid) {
         case 1:
             assert(bp == 0 && ep == 1 && sp == 2);
