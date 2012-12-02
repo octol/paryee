@@ -3,7 +3,8 @@
 
 NODES="1 2 4 8"
 #N=1024
-N=8192
+#N=8192
+N=65536
 OUTFILE=tests_scaling.tsv
 
 # Sanity checks

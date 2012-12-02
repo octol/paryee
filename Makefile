@@ -4,11 +4,23 @@ threads = 4
 
 # Build parameters
 CC = gcc 
-CFLAGS += -Wall -pedantic -O3 -Ofast -Wextra
+CFLAGS = -Wall -pedantic -O3 -Ofast -Wextra
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 MPICC = mpicc 
-MPICFLAGS += -Wall -pedantic -O3 -std=c99 -Ofast -Wextra
-LDFLAGS += -lm
+MPICFLAGS = -Wall -pedantic -O3 -std=c99 -Ofast -Wextra
+LDFLAGS = -lm
+OPENMP = -fopenmp
+
+# SUN compiler
+# CC = cc
+# CFLAGS = -m64 -fast
+# LDFLAGS = -m64 -lm
+# OPENMP = -xopenmp
+# MPICC = mpicc 
+# MPICFLAGS = -m64 -fast
+
+# SGI compiler
+
 
 HOSTNAME = $(shell hostname)
 SAVEDIR = tests_$(HOSTNAME)
@@ -73,7 +85,7 @@ $(yee_pthr_BIN): $(yee_pthr_OBJ)
 	$(CC) $^ $(LDFLAGS) -lpthread -o $@ 
 
 $(yee_omp_BIN): $(yee_omp_OBJ)
-	$(CC) $^ $(LDFLAGS) -fopenmp -o $@ 
+	$(CC) $^ $(LDFLAGS) $(OPENMP) -o $@ 
 
 $(yee_ref_BIN): $(yee_ref_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
@@ -82,7 +94,7 @@ yee_mpi: $(yee_mpi_OBJ)
 	$(MPICC) $^ -o $@
 
 yee_omp.o: yee_omp.c
-	$(CC) $(CFLAGS) -c $< -fopenmp
+	$(CC) $(CFLAGS) -c $< $(OPENMP)
 
 yee_mpi.o: yee_mpi.c
 	$(MPICC) $(MPICFLAGS) -c $<
