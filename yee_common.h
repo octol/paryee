@@ -1,4 +1,23 @@
 /*
+ *    Copyright (C) 2012 Jon Haggblad
+ *
+ *    This file is part of ParYee.
+ *
+ *    ParYee is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ParYee is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ParYee.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * Data structures and functions common to the various implementations.
  */
 #ifndef YEE_COMMON_H
@@ -13,32 +32,23 @@
 /***************************************************************************
  * Data structures
  **************************************************************************/
-struct FieldVariable {
+struct field_variable {
     double *value;
     double *x;
     double dx;
-    unsigned long size;         /* number of points */
+    long size;         /* number of points */
 };
 
-struct Field {
-    struct FieldVariable p;
-    struct FieldVariable u;
+struct field {
+    struct field_variable p;
+    struct field_variable u;
     double dt;
     double Nt;
 };
 
-struct UpdateParam {
-    struct FieldVariable *dst;
-    int dst1;
-    int dst2;
-    struct FieldVariable *src;
-    int src1;
-    double dt;
-};
-
-struct Partition {
-    int p[2];                   /* start end indices of internal domain */
-    int u[2];
+struct partition {
+    long p[2];         /* start end indices of internal domain */
+    long u[2];
 };
 
 /***************************************************************************
@@ -48,25 +58,25 @@ struct Partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field(struct FieldVariable *, unsigned long size);
-void free_field(struct FieldVariable);
+void alloc_field(struct field_variable *, long size);
+void free_field(struct field_variable);
 
 /* 
  * Generate grid from start to end with N number of points  
  */
-void set_grid(struct FieldVariable *, double start, double end);
+void set_grid(struct field_variable *, double start, double end);
 
 /*
  * Vectorization of function.
  * Apply the function func on the array dst with argument arg.
  */
 void vec_func(double *dst, double *arg, double (*func) (double),
-              unsigned long i1, unsigned long i2);
+              long i1, long i2);
 
 /*
- * Vectorization of function applied to FieldVariable.
+ * Vectorization of function applied to field_variable.
  */
-void apply_func(struct FieldVariable *f, double (*func) (double));
+void apply_func(struct field_variable *f, double (*func) (double));
 
 /* 
  * Leapfrog time update.
@@ -74,8 +84,9 @@ void apply_func(struct FieldVariable *f, double (*func) (double));
  * the field points starting at isrc. Note: _s in the name indicates the
  * input (size).
  */
-void update_field_s(struct FieldVariable *dst, int idst, int size,
-                    struct FieldVariable *src, int isrc, double dt);
+void update_field_s(struct field_variable *restrict dst, int idst,
+                    int size, struct field_variable *restrict src,
+                    int isrc, double dt);
 
 /* 
  * Leapfrog time update.
@@ -83,57 +94,55 @@ void update_field_s(struct FieldVariable *dst, int idst, int size,
  * using the field points starting at src1. Note: _i in the name indicates
  * the input (index).
  */
-void update_field_i(struct FieldVariable *dst, int dst1, int dst2,
-                    struct FieldVariable *src, int src1, double dt);
+void update_field_i(struct field_variable *restrict dst, int dst1,
+                    int dst2, struct field_variable *restrict src,
+                    int src1, double dt);
 
 /*
  * Divide the grid for the different threads.
  * We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct Partition partition_grid(int current_node, int cells_per_node);
+struct partition partition_grid(int current_thread, int cells_per_thread);
 
 /* 
  * Expand the partition struct into indices 
  */
-void expand_indices(struct Partition partition,
-                    int *begin_p, int *end_p, int *size_p,
-                    int *begin_u, int *end_u, int *size_u);
+void expand_indices(struct partition partition,
+                    long *begin_p, long *end_p,
+                    long *size_p, long *begin_u,
+                    long *end_u, long *size_u);
 
 /*
  * Checks that the grid is according to the specs.
  */
-void verify_grid_integrity(struct Partition partition, int tid,
-                           unsigned long nx, int numworkers, int left);
+void verify_grid_integrity(struct partition partition, int tid,
+                           long nx, int numworkers, int left);
 
 /*
  * Compute the local start/end indices and local array sizes from the
  * partition sizes as well as if the we are on the left boundary.
  */
-void set_local_index(int size_p, int size_u, int left,
-                     int *local_begin_p, int *local_end_p,
-                     int *local_size_p, int *local_begin_u,
-                     int *local_end_u, int *local_size_u);
-
-/* 
- * Collect parameters
- */
-struct UpdateParam collect_param(struct FieldVariable *dst, int dst1,
-                                 int dst2, struct FieldVariable *src,
-                                 int src1, double dt);
+void set_local_index(long size_p, long size_u,
+                     long left, long *local_begin_p,
+                     long *local_end_p,
+                     long *local_size_p,
+                     long *local_begin_u,
+                     long *local_end_u,
+                     long *local_size_u);
 
 /*
  * Parse commandline argument and set the number of grid points, * the
  * number of threads as well as the output filenames.
  */
-void parse_cmdline(unsigned long *nx, unsigned long *nodes,
+void parse_cmdline(long *nx, long *threads,
                    char *outfile_p, char *outfile_u,
                    int argc, char *argv[]);
 
 /*
  * Write field to dist
  */
-int write_to_disk(struct FieldVariable f, char *str);
+int write_to_disk(struct field_variable f, char *str);
 
 /* 
  * Some grid functions 

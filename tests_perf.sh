@@ -2,8 +2,8 @@
 # Run performance tests to compare the different implementations
 
 NODES=4
-NN="1024 2048 4096 8192 16384"
-#NN="1024 2048 4096 8192 16384 32768"
+#NN="1024 2048 4096 8192 16384"
+NN="1024 2048 4096 8192 16384 32768"
 #NN="8192 16384 32768 65536"
 OUTFILE=tests_perf.tsv
 

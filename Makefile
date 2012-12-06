@@ -4,7 +4,7 @@ threads = 4
 
 # Build parameters
 CC = gcc 
-CFLAGS = -Wall -pedantic -O3 -Ofast -Wextra
+CFLAGS = -Wall -pedantic -O3 -Ofast -Wextra -std=gnu99
 #CFLAGS += -march=native -mfpmath=sse -ffast-math
 MPICC = mpicc 
 MPICFLAGS = -Wall -pedantic -O3 -std=c99 -Ofast -Wextra

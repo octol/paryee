@@ -4,7 +4,8 @@
 NODES="1 2 4 8"
 #N=1024
 #N=8192
-N=65536
+N=32768
+#N=65536
 OUTFILE=tests_scaling.tsv
 
 # Sanity checks
@@ -14,7 +15,7 @@ echo "Scaling tests:"
 for M in $NODES
 do
     MPI_NODES=$((M + 1))
-    echo "Running for $M nodes"
+    echo "Running for $M threads"
     S1=$(./yee -n $N                          | grep 'Elapsed' | awk '{print $2}')
     S2=$(./yee_ref -n $N                      | grep 'Elapsed' | awk '{print $2}')
     S3=$(./yee_omp -n $N -t $M                | grep 'Elapsed' | awk '{print $2}')

@@ -1,3 +1,22 @@
+/*
+ *    Copyright (C) 2012 Jon Haggblad
+ *
+ *    This file is part of ParYee.
+ *
+ *    ParYee is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ParYee is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ParYee.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -9,7 +28,6 @@
 #define COLLECT 2               /* message tag */
 #define UTAG 3                  /* communication tag */
 #define PTAG 4                  /* communication tag */
-#define MCW MPI_COMM_WORLD      /* abbreviation */
 
 int main(int argc, char *argv[])
 {
@@ -22,11 +40,11 @@ int main(int argc, char *argv[])
     char outfile_u[STR_SIZE] = "yee_mpi_u.tsv";
 
     /* Numerical paramters */
-    unsigned long nx = 2048;
+    long nx = 2048;
 
-    int cells_per_worker = 0;
-    unsigned int left = 0;
-    unsigned int right = 0;
+    long cells_per_worker = 0;
+    long left = 0;
+    long right = 0;
 
     double tic, toc;
 
@@ -48,9 +66,9 @@ int main(int argc, char *argv[])
 
     /* Field variables - data structures for the simulation */
     /* Contains field data (pressure and velocity) */
-    struct Field f;
+    struct field f;
     /* Array of domain partitions */
-    struct Partition *part;
+    struct partition *part;
 
     if (taskid == MASTER) {
         /********************* Master code *********************/
@@ -76,11 +94,11 @@ int main(int argc, char *argv[])
         /* Compute partition, neighbours and then send out data to the
          * workers */
         cells_per_worker = nx / numworkers;
-        if (cells_per_worker * numworkers != (int)nx) {
+        if (cells_per_worker * numworkers != nx) {
             fprintf(stderr, "Only 2^n+1, n=1,2,..., threads supported\n");
             exit(EXIT_FAILURE);
         }
-        part = malloc(sizeof(struct Partition) * numworkers);
+        part = malloc(sizeof(struct partition) * numworkers);
         if (!part) {
             fprintf(stderr, "Memory allocation failed\n");
             exit(EXIT_FAILURE);
@@ -91,8 +109,7 @@ int main(int argc, char *argv[])
             /* partition_grid() requires the nodes to be enumerated starting
              * from 0: 0,...,total_nodes.
              * Note that partitition_grid2 returns the inner nodes only */
-            part[tid - 1] =
-                partition_grid(tid - 1, cells_per_worker);
+            part[tid - 1] = partition_grid(tid - 1, cells_per_worker);
             /* compute neighbours */
             left = (tid == 1) ? NONE : tid - 1;
             right = (tid == numworkers) ? NONE : tid + 1;
@@ -104,36 +121,40 @@ int main(int argc, char *argv[])
             /* Make field data more compact, so we can more easily use as 
              * array indices. For convenience only.
              * Note, these are the inner nodes. */
-            int bp, ep, sp, bu, eu, su;
+            long bp, ep, sp, bu, eu, su;
             expand_indices(part[tid - 1], &bp, &ep, &sp, &bu, &eu, &su);
 
             /* timing */
             tic = gettime();
 
             /* Send out neighbour information */
-            MPI_Send(&left, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&right, 1, MPI_INT, tid, BEGIN, MCW);
+            MPI_Send(&left, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&right, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
 
             /* Send out partition information */
-            MPI_Send(&bp, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&ep, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&sp, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&bu, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&eu, 1, MPI_INT, tid, BEGIN, MCW);
-            MPI_Send(&su, 1, MPI_INT, tid, BEGIN, MCW);
+            MPI_Send(&bp, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&ep, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&sp, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&bu, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&eu, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&su, 1, MPI_LONG, tid, BEGIN, MPI_COMM_WORLD);
 
             /* Send out field data */
-            MPI_Send(&f.p.value[bp], sp, MPI_DOUBLE, tid, BEGIN, MCW);
-            MPI_Send(&f.u.value[bu], su, MPI_DOUBLE, tid, BEGIN, MCW);
+            MPI_Send(&f.p.value[bp], sp, MPI_DOUBLE, tid, BEGIN,
+                     MPI_COMM_WORLD);
+            MPI_Send(&f.u.value[bu], su, MPI_DOUBLE, tid, BEGIN,
+                     MPI_COMM_WORLD);
 
             /* Send out grid data */
-            MPI_Send(&f.p.x[bp], sp, MPI_DOUBLE, tid, BEGIN, MCW);
-            MPI_Send(&f.u.x[bu], su, MPI_DOUBLE, tid, BEGIN, MCW);
-            MPI_Send(&f.p.dx, 1, MPI_DOUBLE, tid, BEGIN, MCW);
-            MPI_Send(&f.u.dx, 1, MPI_DOUBLE, tid, BEGIN, MCW);
+            MPI_Send(&f.p.x[bp], sp, MPI_DOUBLE, tid, BEGIN,
+                     MPI_COMM_WORLD);
+            MPI_Send(&f.u.x[bu], su, MPI_DOUBLE, tid, BEGIN,
+                     MPI_COMM_WORLD);
+            MPI_Send(&f.p.dx, 1, MPI_DOUBLE, tid, BEGIN, MPI_COMM_WORLD);
+            MPI_Send(&f.u.dx, 1, MPI_DOUBLE, tid, BEGIN, MPI_COMM_WORLD);
 
 #ifdef DEBUG
-            printf("Sent to task %d: left=%d, right=%d\n", tid, left,
+            printf("Sent to task %d: left=%ld, right=%ld\n", tid, left,
                    right);
 #endif
         }
@@ -142,16 +163,16 @@ int main(int argc, char *argv[])
         for (int tid = 1; tid <= numworkers; ++tid) {
             /* Make field data more compact, so we can more easily use as 
              * array indices. For convenience only. */
-            int bp, ep, sp, bu, eu, su;
+            long bp, ep, sp, bu, eu, su;
             expand_indices(part[tid - 1], &bp, &ep, &sp, &bu, &eu, &su);
 
-            MPI_Recv(&f.p.value[bp], sp, MPI_DOUBLE, tid, COLLECT, MCW,
-                     &status);
-            MPI_Recv(&f.u.value[bu], su, MPI_DOUBLE, tid, COLLECT, MCW,
-                     &status);
+            MPI_Recv(&f.p.value[bp], sp, MPI_DOUBLE, tid, COLLECT,
+                     MPI_COMM_WORLD, &status);
+            MPI_Recv(&f.u.value[bu], su, MPI_DOUBLE, tid, COLLECT,
+                     MPI_COMM_WORLD, &status);
 
 #ifdef DEBUG
-            printf("Results collected from task %d\n", i);
+            printf("Results collected from task %d\n", tid);
 #endif
         }
 
@@ -170,11 +191,11 @@ int main(int argc, char *argv[])
     } else {
         /********************* Worker code *********************/
         /* array indices and sizes */
-        int bp, bu, ep, eu, sp, su;
+        long bp, bu, ep, eu, sp, su;
         /* local array indices and sizes */
-        int lbp, lbu, lep, leu, lsp, lsu;
+        long lbp, lbu, lep, leu, lsp, lsu;
 
-        part = malloc(sizeof(struct Partition));
+        part = malloc(sizeof(struct partition));
         if (!part) {
             fprintf(stderr, "Memory allocation failed\n");
             exit(EXIT_FAILURE);
@@ -183,15 +204,17 @@ int main(int argc, char *argv[])
         /* Receive grid and node parameters from master */
 
         /* Data on neighbours */
-        MPI_Recv(&left, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&right, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
+        MPI_Recv(&left, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD,
+                 &status);
+        MPI_Recv(&right, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD,
+                 &status);
         /* Partition data */
-        MPI_Recv(&bp, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&ep, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&sp, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&bu, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&eu, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&su, 1, MPI_INT, MASTER, BEGIN, MCW, &status);
+        MPI_Recv(&bp, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
+        MPI_Recv(&ep, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
+        MPI_Recv(&sp, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
+        MPI_Recv(&bu, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
+        MPI_Recv(&eu, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
+        MPI_Recv(&su, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, &status);
 
         /* Given the partition data we compute the corresponding local array
          * indices in the array that is expanded to also contain the
@@ -199,11 +222,11 @@ int main(int argc, char *argv[])
         set_local_index(sp, su, left, &lbp, &lep, &lsp, &lbu, &leu, &lsu);
 
 #ifdef DEBUG
-        printf("taskid=%i", taskid);
-        printf("bp=%i  ep=%i  bu=%i  eu=%i  ", bp, ep, bu, eu);
-        printf("sp=%i  su=%i  ", sp, su);
-        printf("lbp=%i  lep=%i  lbu=%i  leu=%i  ", lbp, lep, lbu, leu);
-        printf("lsp=%i  lsu=%i\n", lsp, lsu);
+        printf("taskid=%i:", taskid);
+        printf("bp=%li  ep=%li  bu=%li  eu=%li  ", bp, ep, bu, eu);
+        printf("sp=%li  su=%li  ", sp, su);
+        printf("lbp=%li  lep=%li  lbu=%li  leu=%li  ", lbp, lep, lbu, leu);
+        printf("lsp=%li  lsu=%li\n", lsp, lsu);
 #endif
 
         /* Now that we have the grid info we can setup the data structures
@@ -215,20 +238,24 @@ int main(int argc, char *argv[])
 
         /* Field data */
         /* NOTE: we only recieve sp/su number of values, not lsp/lsu. */
-        MPI_Recv(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, BEGIN, MCW,
-                 &status);
-        MPI_Recv(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, BEGIN, MCW,
-                 &status);
+        MPI_Recv(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, BEGIN,
+                 MPI_COMM_WORLD, &status);
+        MPI_Recv(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, BEGIN,
+                 MPI_COMM_WORLD, &status);
         /* Grid data */
-        MPI_Recv(&f.p.x[lbp], sp, MPI_DOUBLE, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&f.u.x[lbu], su, MPI_DOUBLE, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&f.p.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MCW, &status);
-        MPI_Recv(&f.u.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MCW, &status);
+        MPI_Recv(&f.p.x[lbp], sp, MPI_DOUBLE, MASTER, BEGIN,
+                 MPI_COMM_WORLD, &status);
+        MPI_Recv(&f.u.x[lbu], su, MPI_DOUBLE, MASTER, BEGIN,
+                 MPI_COMM_WORLD, &status);
+        MPI_Recv(&f.p.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD,
+                 &status);
+        MPI_Recv(&f.u.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD,
+                 &status);
 #ifdef DEBUG
-        printf("Task=%d received:  left=%d  right=%d", taskid, left,
+        printf("Task=%d received:  left=%ld  right=%ld", taskid, left,
                right);
-        printf("  bp=%d  ep=%d", bp, ep);
-        printf("  bu=%d  eu=%d\n", bu, eu);
+        printf("  bp=%ld  ep=%ld", bp, ep);
+        printf("  bu=%ld  eu=%ld\n", bu, eu);
 #endif
 
         /* Depends on the numerical variables initialized above */
@@ -236,39 +263,50 @@ int main(int argc, char *argv[])
         f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
 
-        for (unsigned long n = 0; n < f.Nt; ++n) {
+        long i;
+        for (long n = 0; n < f.Nt; ++n) {
             /* Communicate */
             /* send u to the left */
             /* receive u from the right */
             if (left != NONE) {
-                MPI_Send(&f.u.value[lbu], 1, MPI_DOUBLE, left, UTAG, MCW);
+                MPI_Send(&f.u.value[lbu], 1, MPI_DOUBLE, left, UTAG,
+                         MPI_COMM_WORLD);
             }
             if (right != NONE) {
                 MPI_Recv(&f.u.value[leu + 1], 1, MPI_DOUBLE, right, UTAG,
-                         MCW, &status);
+                         MPI_COMM_WORLD, &status);
             }
-            /*update_field (&f.p, lbp, lep+1, &f.u, 0, f.dt); */
-            update_field_s(&f.p, lbp, sp, &f.u, 0, f.dt);
-            /*update_field3 (&f.p, lbp, lep, &f.u, 0, f.dt); */
+
+            /* update the pressure (p) */
+            /*update_field_s(&f.p, lbp, sp, &f.u, 0, f.dt);*/
+            for (i = lbp; i <= lbp + sp - 1; ++i)
+                f.p.value[i] += f.dt / f.p.dx
+                    * (f.u.value[i + 1 - lbp] - f.u.value[i - lbp]);
 
             /* Communicate */
             /* receive p from the left */
             /* send p to the right */
             if (left != NONE) {
                 MPI_Recv(&f.p.value[lbp - 1], 1, MPI_DOUBLE, left, PTAG,
-                         MCW, &status);
+                         MPI_COMM_WORLD, &status);
             }
             if (right != NONE) {
-                MPI_Send(&f.p.value[lep], 1, MPI_DOUBLE, right, PTAG, MCW);
+                MPI_Send(&f.p.value[lep], 1, MPI_DOUBLE, right, PTAG,
+                         MPI_COMM_WORLD);
             }
-            /*update_field (&f.u, lbu, leu+1, &f.p, 0, f.dt); */
-            update_field_s(&f.u, lbu, su, &f.p, 0, f.dt);
-            /*update_field3 (&f.u, lbu, leu, &f.p, 0, f.dt); */
+
+            /* update the velocity (u) */
+            /*update_field_s(&f.u, lbu, su, &f.p, 0, f.dt);*/
+            for (i = lbu; i <= lbu + su - 1; ++i)
+                f.u.value[i] += f.dt / f.p.dx
+                    * (f.p.value[i - lbu + 1] - f.p.value[i - lbu]);
         }
 
         /* Send back data to master */
-        MPI_Send(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, COLLECT, MCW);
-        MPI_Send(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, COLLECT, MCW);
+        MPI_Send(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, COLLECT,
+                 MPI_COMM_WORLD);
+        MPI_Send(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, COLLECT,
+                 MPI_COMM_WORLD);
 
         /* Remember to deallocate */
         free(part);

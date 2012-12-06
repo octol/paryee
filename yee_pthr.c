@@ -1,3 +1,21 @@
+/*
+ *    Copyright (C) 2012 Jon Haggblad
+ *
+ *    This file is part of ParYee.
+ *
+ *    ParYee is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ParYee is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ParYee.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -14,25 +32,32 @@ pthread_barrier_t barrier;
 /* 
  * Data structures
  */
-struct ThreadParam {
-    struct UpdateParam p;       /* to update p */
-    struct UpdateParam u;       /* to update u */
+struct thread_param {
     double Nt;
+    double dt;
+    struct field_variable *p;
+    struct field_variable *u;
+    struct partition part;
 };
 
 void *thread_main(void *arg)
 {
-    struct ThreadParam *param = (struct ThreadParam *) arg;
-    struct UpdateParam p = param->p;
-    struct UpdateParam u = param->u;
-    int n;
+    struct thread_param *param = (struct thread_param *) arg;
+    struct field_variable *p = param->p;;
+    struct field_variable *u = param->u;
+    long n;
+    long i;
+    double dt = param->dt;
+    double dx = p->dx;
 
     for (n = 0; n < param->Nt; ++n) {
         /* update the pressure (p) */
-        update_field_i(p.dst, p.dst1, p.dst2, p.src, p.src1, p.dt);
+        for (i = param->part.p[0]; i <= param->part.p[1]; ++i)
+            p->value[i] += dt / dx * (u->value[i + 1] - u->value[i]);
         pthread_barrier_wait(&barrier);
         /* update the velocity (u) */
-        update_field_i(u.dst, u.dst1, u.dst2, u.src, u.src1, u.dt);
+        for (i = param->part.u[0]; i <= param->part.u[1]; ++i)
+            u->value[i] += dt / dx * (p->value[i] - p->value[i - 1]);
         pthread_barrier_wait(&barrier);
     }
 
@@ -44,21 +69,26 @@ void *thread_main(void *arg)
  */
 int main(int argc, char *argv[])
 {
-    double length = 1, cfl = 1, T = 0.3, c = 1;
-    unsigned long nx = 2048, nodes = 4;
-    unsigned int i, cells_per_node;
+    /* Parameters */
+    double length = 1;
+    double cfl = 1;
+    double T = 0.3;
+    double c = 1;
+    long nx = 2048;
     double tic, toc;
-    struct Field f;
-    struct Partition part;
+    struct field f;
+    long threads = 4;
+    long cells_per_thread;
+    /*struct Partition part; */
     pthread_t *thr;
     pthread_attr_t attr;
-    struct ThreadParam *param;
+    struct thread_param *param;
     char outfile_p[STR_SIZE] = "yee_pthr_p.tsv";
     char outfile_u[STR_SIZE] = "yee_pthr_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &nodes, outfile_p, outfile_u, argc, argv);
-    printf("Running with: N=%ld, threads=%ld\n", nx, nodes);
+    parse_cmdline(&nx, &threads, outfile_p, outfile_u, argc, argv);
+    printf("Running with: N=%ld, threads=%ld\n", nx, threads);
 
     /* Initialize */
     alloc_field(&f.p, nx);
@@ -75,8 +105,8 @@ int main(int argc, char *argv[])
     /* Setup threads */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-    pthread_barrier_init(&barrier, NULL, nodes);
-    thr = malloc(sizeof(pthread_t) * (nodes - 1));
+    pthread_barrier_init(&barrier, NULL, threads);
+    thr = malloc(sizeof(pthread_t) * (threads - 1));
     if (!thr) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
@@ -84,33 +114,34 @@ int main(int argc, char *argv[])
 
     /* Partion the grid and assemble structs to be used as arguments to the
      * threads */
-    param = malloc(sizeof(struct ThreadParam) * nodes);
+    param = malloc(sizeof(struct thread_param) * threads);
     if (!param) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    cells_per_node = nx / nodes;
-    assert(cells_per_node * nodes == nx);
-    for (i = 0; i < nodes; ++i) {
-        part = partition_grid(i, cells_per_node);
-        param[i].p = collect_param(&f.p, part.p[0], part.p[1],
-                                   &f.u, part.u[0] - 1, f.dt);
-        param[i].u = collect_param(&f.u, part.u[0], part.u[1],
-                                   &f.p, part.p[0], f.dt);
+    cells_per_thread = nx / threads;
+    assert(cells_per_thread * threads == nx);
+    unsigned int i;
+    for (i = 0; i < threads; ++i) {
+        param[i].part = partition_grid(i, cells_per_thread);
         param[i].Nt = f.Nt;
+        param[i].dt = f.dt;
+        param[i].p = &f.p;
+        param[i].u = &f.u;
     }
 
-    /* timing */
+    /* timestep */
     tic = gettime();
 
-    /* Spawn additional [nodes-1] threads */
-    for (i = 0; i < nodes - 1; ++i)
+    /* Spawn additional [threads-1] threads */
+    for (i = 0; i < threads - 1; ++i)
         pthread_create(&thr[i], &attr, thread_main, &param[i]);
+
     /* Current thread */
-    thread_main(&param[nodes - 1]);
+    thread_main(&param[threads - 1]);
 
     /* Collect threads when finished */
-    for (i = 0; i < nodes - 1; ++i)
+    for (i = 0; i < threads - 1; ++i)
         pthread_join(thr[i], NULL);
 
     toc = gettime();

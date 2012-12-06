@@ -1,4 +1,23 @@
 /*
+ *    Copyright (C) 2012 Jon Haggblad
+ *
+ *    This file is part of ParYee.
+ *
+ *    ParYee is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ParYee is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ParYee.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * Data structures and functions common to the various implementations.
  */
 #include "yee_common.h"
@@ -10,11 +29,12 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field(struct FieldVariable *f, unsigned long size)
+void alloc_field(struct field_variable *f, long size)
 {
+    long block = sizeof(double) * size;
     f->size = size;
-    f->value = (double *) malloc(sizeof(double) * size);
-    f->x = (double *) malloc(sizeof(double) * size);
+    f->value = (double *) malloc(block);
+    f->x = (double *) malloc(block);
 
     if (!f->value || !f->x) {
         fprintf(stderr, "Memory allocation failed\n");
@@ -22,15 +42,15 @@ void alloc_field(struct FieldVariable *f, unsigned long size)
     }
 }
 
-void free_field(struct FieldVariable f)
+void free_field(struct field_variable f)
 {
     free(f.value);
     free(f.x);
 }
 
-void set_grid(struct FieldVariable *f, double start, double end)
+void set_grid(struct field_variable *f, double start, double end)
 {
-    unsigned int i;
+    long i;
 
     /* NOTE: f->size is the number of grid points, not intervals */
     f->dx = (end - start) / (f->size - 1);
@@ -39,33 +59,19 @@ void set_grid(struct FieldVariable *f, double start, double end)
 }
 
 void vec_func(double *dst, double *arg, double (*func) (double),
-              unsigned long i1, unsigned long i2)
+              long i1, long i2)
 {
-    unsigned long i;
+    long i;
     for (i = i1; i < i2; ++i)
         dst[i] = func(arg[i]);
 }
 
-void apply_func(struct FieldVariable *f, double (*func) (double))
+void apply_func(struct field_variable *f, double (*func) (double))
 {
     vec_func(f->value, f->x, func, 0, f->size);
 }
 
-struct UpdateParam collect_param(struct FieldVariable *dst, int dst1,
-                                 int dst2, struct FieldVariable *src,
-                                 int src1, double dt)
-{
-    struct UpdateParam param;
-    param.dst = dst;
-    param.dst1 = dst1;
-    param.dst2 = dst2;
-    param.src = src;
-    param.src1 = src1;
-    param.dt = dt;
-    return param;
-}
-
-void parse_cmdline(unsigned long *nx, unsigned long *nodes,
+void parse_cmdline(long *nx, long *threads,
                    char *outfile_p, char *outfile_u,
                    int argc, char *argv[])
 {
@@ -73,7 +79,7 @@ void parse_cmdline(unsigned long *nx, unsigned long *nodes,
     while ((opt = getopt(argc, argv, "t:n:p:u:")) != -1) {
         switch (opt) {
         case 't':
-            *nodes = atoi(optarg);
+            *threads = atoi(optarg);
             break;
         case 'n':
             *nx = atoi(optarg);
@@ -88,7 +94,7 @@ void parse_cmdline(unsigned long *nx, unsigned long *nodes,
             break;
         default:               /* '?' */
             fprintf(stderr, "Usage: %s ", argv[0]);
-            if (nodes != NULL)
+            if (threads != NULL)
                 fprintf(stderr, "[-t threads] ");
             fprintf(stderr, "[-n intervals] ");
             fprintf(stderr, "[-p outfile_p] [-u outfile_u]\n");
@@ -97,8 +103,9 @@ void parse_cmdline(unsigned long *nx, unsigned long *nodes,
     }
 }
 
-void update_field_s(struct FieldVariable *dst, int idst, int size,
-                    struct FieldVariable *src, int isrc, double dt)
+void update_field_s(struct field_variable *restrict dst, int idst,
+                    int size, struct field_variable *restrict src,
+                    int isrc, double dt)
 {
     int i;
     for (i = idst; i < idst + size; ++i, ++isrc)
@@ -116,8 +123,9 @@ void update_field_s(struct FieldVariable *dst, int idst, int size,
             (src->value[isrc + 1] - src->value[isrc]) / src->dx;
 }
 
-void update_field_i(struct FieldVariable *dst, int dst1, int dst2,
-                    struct FieldVariable *src, int src1, double dt)
+void update_field_i(struct field_variable *restrict dst, int dst1,
+                    int dst2, struct field_variable *restrict src,
+                    int src1, double dt)
 {
     int i;
     for (i = dst1; i <= dst2; ++i, ++src1)
@@ -135,25 +143,26 @@ void update_field_i(struct FieldVariable *dst, int dst1, int dst2,
             (src->value[src1 + 1] - src->value[src1]) / src->dx;
 }
 
-struct Partition partition_grid(int current_node, int cells_per_node)
+struct partition partition_grid(int current_thread, int cells_per_thread)
 {
-    struct Partition partition;
+    struct partition partition;
 
-    partition.p[0] = current_node * cells_per_node;
-    partition.p[1] = (current_node + 1) * cells_per_node - 1;
-    partition.u[0] = current_node * cells_per_node;
-    partition.u[1] = (current_node + 1) * cells_per_node - 1;
+    partition.p[0] = current_thread * cells_per_thread;
+    partition.p[1] = (current_thread + 1) * cells_per_thread - 1;
+    partition.u[0] = current_thread * cells_per_thread;
+    partition.u[1] = (current_thread + 1) * cells_per_thread - 1;
 
-    /* First node skips the first u, as it sits on the boundary */
-    if (current_node == 0)
+    /* First thread skips the first u, as it sits on the boundary */
+    if (current_thread == 0)
         ++partition.u[0];
 
     return partition;
 }
 
-void expand_indices(struct Partition partition,
-                    int *begin_p, int *end_p, int *size_p,
-                    int *begin_u, int *end_u, int *size_u)
+void expand_indices(struct partition partition,
+                    long *begin_p, long *end_p,
+                    long *size_p, long *begin_u,
+                    long *end_u, long *size_u)
 {
     *begin_p = partition.p[0];  /* begin index */
     *begin_u = partition.u[0];
@@ -165,27 +174,27 @@ void expand_indices(struct Partition partition,
     *size_u = *end_u - *begin_u + 1;
 }
 
-void verify_grid_integrity(struct Partition partition, int tid,
-                           unsigned long nx, int numworkers, int left)
+void verify_grid_integrity(struct partition partition, int tid,
+                           long nx, int numworkers, int left)
 {
-    int bp, ep, sp, bu, eu, su;
+    long bp, ep, sp, bu, eu, su;
     expand_indices(partition, &bp, &ep, &sp, &bu, &eu, &su);
 
     /* Sanity checks */
-    assert(bp == (tid - 1) * (int) nx / numworkers);
-    assert(ep == (tid) * (int) nx / numworkers - 1);
-    assert(sp == (int) nx / numworkers);
+    assert(bp == (tid - 1) * nx / numworkers);
+    assert(ep == (tid) * nx / numworkers - 1);
+    assert(sp == nx / numworkers);
     if (left == NONE) {
         assert(bu == 1);
-        assert(su == (int) nx / numworkers - 1);
+        assert(su == nx / numworkers - 1);
     } else {
-        assert(bu == (tid - 1) * (int)nx / numworkers);
-        assert(su == (int) nx / numworkers);
+        assert(bu == (tid - 1) * nx / numworkers);
+        assert(su == nx / numworkers);
     }
-    assert(eu == (tid) * (int) nx / numworkers - 1);
+    assert(eu == (tid) * nx / numworkers - 1);
 
     /* Specific sanity checks */
-    if ((int) nx == 8 && numworkers == 4) {
+    if (nx == 8 && numworkers == 4) {
         switch (tid) {
         case 1:
             assert(bp == 0 && ep == 1 && sp == 2);
@@ -207,10 +216,13 @@ void verify_grid_integrity(struct Partition partition, int tid,
     }
 }
 
-void set_local_index(int size_p, int size_u, int left, int *local_begin_p,
-                     int *local_end_p, int *local_size_p,
-                     int *local_begin_u, int *local_end_u,
-                     int *local_size_u)
+void set_local_index(long size_p, long size_u,
+                     long left, long *local_begin_p,
+                     long *local_end_p,
+                     long *local_size_p,
+                     long *local_begin_u,
+                     long *local_end_u,
+                     long *local_size_u)
 {
     /* since p is padded by one point to the left */
     *local_begin_p = 1;
@@ -227,7 +239,7 @@ void set_local_index(int size_p, int size_u, int left, int *local_begin_p,
     *local_size_u = *local_end_u + 2;
 }
 
-int write_to_disk(struct FieldVariable f, char *str)
+int write_to_disk(struct field_variable f, char *str)
 {
     /* append file suffix */
     char fstr[256];
@@ -256,7 +268,7 @@ double gauss(double x)
 
 double zero(double x)
 {
-    return 0.0;
+    return 0.0 * x;
 }
 
 int round_up_divide(int x, int y)
