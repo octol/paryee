@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
             }
 
             /* update the pressure (p) */
-            /*update_field_s(&f.p, lbp, sp, &f.u, 0, f.dt);*/
+            /*update_field_s(&f.p, lbp, sp, &f.u, 0, f.dt); */
             for (i = lbp; i <= lbp + sp - 1; ++i)
                 f.p.value[i] += f.dt / f.p.dx
                     * (f.u.value[i + 1 - lbp] - f.u.value[i - lbp]);
@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
             }
 
             /* update the velocity (u) */
-            /*update_field_s(&f.u, lbu, su, &f.p, 0, f.dt);*/
+            /*update_field_s(&f.u, lbu, su, &f.p, 0, f.dt); */
             for (i = lbu; i <= lbu + su - 1; ++i)
                 f.u.value[i] += f.dt / f.p.dx
                     * (f.p.value[i - lbu + 1] - f.p.value[i - lbu]);

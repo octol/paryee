@@ -161,8 +161,7 @@ struct partition partition_grid(int current_thread, int cells_per_thread)
 
 void expand_indices(struct partition partition,
                     long *begin_p, long *end_p,
-                    long *size_p, long *begin_u,
-                    long *end_u, long *size_u)
+                    long *size_p, long *begin_u, long *end_u, long *size_u)
 {
     *begin_p = partition.p[0];  /* begin index */
     *begin_u = partition.u[0];
@@ -221,8 +220,7 @@ void set_local_index(long size_p, long size_u,
                      long *local_end_p,
                      long *local_size_p,
                      long *local_begin_u,
-                     long *local_end_u,
-                     long *local_size_u)
+                     long *local_end_u, long *local_size_u)
 {
     /* since p is padded by one point to the left */
     *local_begin_p = 1;

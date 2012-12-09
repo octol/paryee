@@ -3,13 +3,11 @@ TODO
 
  * Unit tests
     - cunit ?
- * Validation
-    - Convergence tests
- * Autoconf
  * Github
  * Optimize MPI (yee_mpi2)
- * Switch to let MPI master do work?
+ * Switch to let MPI master do work
  * Static code analyser 
     - splint
     - clang
+ * Check with valgrind
 

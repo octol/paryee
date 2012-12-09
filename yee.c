@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "yee_common.h"
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
     double T = 0.3;
     double c = 1;
     long nx = 2048;
-    long n;            /* time step index */
+    long n;                     /* time step index */
     double tic, toc;
     struct field f;
     char outfile_p[STR_SIZE] = "yee_p.tsv";
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
 
     /* Parse parameters from commandline */
     parse_cmdline(&nx, NULL, outfile_p, outfile_u, argc, argv);
-    printf("Running with: N=%lu\n", nx);
+    printf("Running with: N=%li\n", nx);
 
     /* Initialize */
     alloc_field(&f.p, nx);
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
     apply_func(&f.u, zero);     /* initial data */
 
     /* check integrity of the generated structures */
-    assert(abs(f.p.dx - f.u.dx) < 1e-14);
+    assert(fabs(f.p.dx - f.u.dx) < 1e-14);
 
     /* Depends on the numerical variables initialized above */
     double dx = f.p.dx;

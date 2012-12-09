@@ -23,8 +23,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <omp.h>
 #include <unistd.h>
+#include <math.h>
+
+#include <omp.h>
 
 #include "yee_common.h"
 
@@ -39,7 +41,7 @@ int main(int argc, char *argv[])
     double T = 0.3;
     double c = 1;
     long nx = 2048;
-    long n;            /* time step index */
+    long n;                     /* time step index */
     double tic, toc;
     struct field f;
     long threads = 4;
@@ -71,7 +73,7 @@ int main(int argc, char *argv[])
     }
 
     /* check integrity of the generated structures */
-    assert(abs(f.p.dx - f.u.dx) < 1e-14);
+    assert(fabs(f.p.dx - f.u.dx) < 1e-14);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;    /* CFL condition is: c*dt/dx = cfl <= 1 */
@@ -104,10 +106,10 @@ int main(int argc, char *argv[])
         double dt = f.dt;
         double Nt = f.Nt;
         long tid = omp_get_thread_num();
-        long p0 = part[tid].p[0];      /* start index */
-        long p1 = part[tid].p[1];      /* end index */
-        long u0 = part[tid].u[0];      /* start index */
-        long u1 = part[tid].u[1];      /* end index */
+        long p0 = part[tid].p[0];       /* start index */
+        long p1 = part[tid].p[1];       /* end index */
+        long u0 = part[tid].u[0];       /* start index */
+        long u1 = part[tid].u[1];       /* end index */
 
         for (n = 0; n < Nt; ++n) {
 

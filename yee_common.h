@@ -36,7 +36,7 @@ struct field_variable {
     double *value;
     double *x;
     double dx;
-    long size;         /* number of points */
+    long size;                  /* number of points */
 };
 
 struct field {
@@ -47,7 +47,7 @@ struct field {
 };
 
 struct partition {
-    long p[2];         /* start end indices of internal domain */
+    long p[2];                  /* start end indices of internal domain */
     long u[2];
 };
 
@@ -128,8 +128,7 @@ void set_local_index(long size_p, long size_u,
                      long *local_end_p,
                      long *local_size_p,
                      long *local_begin_u,
-                     long *local_end_u,
-                     long *local_size_u);
+                     long *local_end_u, long *local_size_u);
 
 /*
  * Parse commandline argument and set the number of grid points, * the

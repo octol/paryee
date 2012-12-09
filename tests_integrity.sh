@@ -7,13 +7,17 @@ M_MPI=5
 
 yee_bin="yee yee_omp yee_pthr yee_mpi"
 
+printf "\n  Consistency tests:\n"
+printf "  Testing that all implementations produce the same output.\n\n"
+
 # Generate reference solution to compare against
+printf "\n --- Generating reference solution\n"
 ./yee_ref -n $N -p /tmp/yee_ref_p.tsv -u /tmp/yee_ref_u.tsv
 
 for yb in $yee_bin
 do
     # Compute solution
-    echo " --- Testing: $yb"
+    printf "\n --- Testing: $yb\n"
     outfile_u=/tmp/${yb}_u.tsv
     outfile_p=/tmp/${yb}_p.tsv
     if [ $yb == "yee" ]

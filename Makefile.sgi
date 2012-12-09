@@ -1,0 +1,8 @@
+# CC =
+# CFLAGS = 
+# MPICC = 
+# MPICFLAGS = 
+# LDFLAGS = 
+# OPENMP = 
+
+include Makefile.common
