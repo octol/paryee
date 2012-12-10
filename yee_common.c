@@ -71,36 +71,23 @@ void apply_func(struct field_variable *f, double (*func) (double))
     vec_func(f->value, f->x, func, 0, f->size);
 }
 
-void parse_cmdline(long *nx, long *threads,
-                   char *outfile_p, char *outfile_u,
-                   int argc, char *argv[])
+struct field *init_acoustic_field(struct field *f, long cells,
+                                  double start, double end)
 {
-    int opt;
-    while ((opt = getopt(argc, argv, "t:n:p:u:")) != -1) {
-        switch (opt) {
-        case 't':
-            *threads = atoi(optarg);
-            break;
-        case 'n':
-            *nx = atoi(optarg);
-            break;
-        case 'p':
-            strncpy(outfile_p, optarg, STR_SIZE);
-            outfile_p[STR_SIZE - 1] = '\0';     /* force null termination */
-            break;
-        case 'u':
-            strncpy(outfile_u, optarg, STR_SIZE);
-            outfile_u[STR_SIZE - 1] = '\0';     /* force null termination */
-            break;
-        default:               /* '?' */
-            fprintf(stderr, "Usage: %s ", argv[0]);
-            if (threads != NULL)
-                fprintf(stderr, "[-t threads] ");
-            fprintf(stderr, "[-n intervals] ");
-            fprintf(stderr, "[-p outfile_p] [-u outfile_u]\n");
-            exit(EXIT_FAILURE);
-        }
-    }
+    alloc_field(&f->p, cells);
+    alloc_field(&f->u, cells + 1);
+    set_grid(&f->u, start, end);
+    set_grid(&f->p, start + f->u.dx / 2, end - f->u.dx / 2);
+    apply_func(&f->p, zero);
+    apply_func(&f->u, zero);
+
+    return f;
+}
+
+void free_acoustic_field(struct field f)
+{
+    free_field(f.p);
+    free_field(f.p);
 }
 
 void update_field_s(struct field_variable *restrict dst, int idst,
@@ -237,6 +224,38 @@ void set_local_index(long size_p, long size_u,
     *local_size_u = *local_end_u + 2;
 }
 
+void parse_cmdline(long *nx, long *threads,
+                   char *outfile_p, char *outfile_u,
+                   int argc, char *argv[])
+{
+    int opt;
+    while ((opt = getopt(argc, argv, "t:n:p:u:")) != -1) {
+        switch (opt) {
+        case 't':
+            *threads = atoi(optarg);
+            break;
+        case 'n':
+            *nx = atoi(optarg);
+            break;
+        case 'p':
+            strncpy(outfile_p, optarg, STR_SIZE);
+            outfile_p[STR_SIZE - 1] = '\0';     /* force null termination */
+            break;
+        case 'u':
+            strncpy(outfile_u, optarg, STR_SIZE);
+            outfile_u[STR_SIZE - 1] = '\0';     /* force null termination */
+            break;
+        default:               /* '?' */
+            fprintf(stderr, "Usage: %s ", argv[0]);
+            if (threads != NULL)
+                fprintf(stderr, "[-t threads] ");
+            fprintf(stderr, "[-n intervals] ");
+            fprintf(stderr, "[-p outfile_p] [-u outfile_u]\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
 int write_to_disk(struct field_variable f, char *str)
 {
     /* append file suffix */
@@ -266,7 +285,12 @@ double gauss(double x)
 
 double zero(double x)
 {
-    return 0.0 * x;
+    return 0.0;
+}
+
+double identity(double x)
+{
+    return x;
 }
 
 int round_up_divide(int x, int y)

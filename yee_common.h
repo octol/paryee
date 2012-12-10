@@ -79,6 +79,17 @@ void vec_func(double *dst, double *arg, double (*func) (double),
 void apply_func(struct field_variable *f, double (*func) (double));
 
 /* 
+ * Allocates field and sets initial value to zero
+ */
+struct field *init_acoustic_field(struct field *, long cells,
+                                  double start, double end);
+
+/*
+ * Deallocate field
+ */
+void free_acoustic_field(struct field);
+
+/* 
  * Leapfrog time update.
  * Update the size number of field points starting at the index idst, using
  * the field points starting at isrc. Note: _s in the name indicates the
@@ -148,6 +159,7 @@ int write_to_disk(struct field_variable f, char *str);
  */
 double gauss(double);
 double zero(double);
+double identity(double);
 
 /*
  * Round up integer division
