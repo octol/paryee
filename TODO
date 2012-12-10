@@ -1,13 +1,9 @@
 TODO
 ====
 
- * Unit tests
-    - cunit ?
  * Github
  * Optimize MPI (yee_mpi2)
  * Switch to let MPI master do work
- * Static code analyser 
-    - splint
-    - clang
- * Check with valgrind
+    - Update verify_grid_integrity
+ * Functions give error codes
 

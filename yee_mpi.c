@@ -84,10 +84,11 @@ int main(int argc, char *argv[])
         printf("Running with: N=%ld, workers=%i\n", nx, numworkers);
 
         /* Initialize */
-        alloc_field(&f.p, nx);
-        alloc_field(&f.u, nx + 1);
-        set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx);
-        set_grid(&f.u, 0, length);
+        /*alloc_field(&f.p, nx);                                        */
+        /*alloc_field(&f.u, nx + 1);                                    */
+        /*set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx); */
+        /*set_grid(&f.u, 0, length);                                    */
+        f = init_acoustic_field(nx, 0, length);
         apply_func(&f.p, gauss);        /* initial data */
         apply_func(&f.u, zero); /* initial data */
 
@@ -115,8 +116,8 @@ int main(int argc, char *argv[])
             right = (tid == numworkers) ? NONE : tid + 1;
 
             /* Check that everything is ok before we send out */
-            verify_grid_integrity(part[tid - 1], tid, nx, numworkers,
-                                  left);
+            /*verify_grid_integrity(part[tid - 1], tid-1, nx, numworkers, */
+            /*                      left);                               */
 
             /* Make field data more compact, so we can more easily use as 
              * array indices. For convenience only.
@@ -179,12 +180,14 @@ int main(int argc, char *argv[])
         toc = gettime();
         printf("Elapsed: %f seconds\n", toc - tic);
 
-        write_to_disk(f.p, outfile_p);
-        write_to_disk(f.u, outfile_u);
+        /*write_to_disk(f.p, outfile_p); */
+        /*write_to_disk(f.u, outfile_u); */
+        write_field_to_disk(f, outfile_p, outfile_u);
 
         free(part);
-        free_field(f.p);
-        free_field(f.u);
+        /*free_field(f.p); */
+        /*free_field(f.u); */
+        free_acoustic_field(f);
 
         MPI_Finalize();
 
@@ -310,8 +313,9 @@ int main(int argc, char *argv[])
 
         /* Remember to deallocate */
         free(part);
-        free_field(f.p);
-        free_field(f.u);
+        /*free_field(f.p); */
+        /*free_field(f.u); */
+        free_acoustic_field(f);
 
         MPI_Finalize();
     }

@@ -26,7 +26,7 @@
 #define MASTER 0                /* id of master process */
 #define MINWORKER 1
 #define MAXWORKER 8
-#define NONE 0                  /* no neighbour */
+#define NONE -1                 /* no neighbour */
 #define STR_SIZE 256
 
 /***************************************************************************
@@ -81,8 +81,7 @@ void apply_func(struct field_variable *f, double (*func) (double));
 /* 
  * Allocates field and sets initial value to zero
  */
-struct field *init_acoustic_field(struct field *, long cells,
-                                  double start, double end);
+struct field init_acoustic_field(long cells, double start, double end);
 
 /*
  * Deallocate field
@@ -101,7 +100,7 @@ void update_field_s(struct field_variable *restrict dst, int idst,
 
 /* 
  * Leapfrog time update.
- * Update the field points starting at the index dst1 and ending at dst2,
+ * Update the field points starting at the index dst1 and ending at dst2-1,
  * using the field points starting at src1. Note: _i in the name indicates
  * the input (index).
  */
@@ -153,6 +152,7 @@ void parse_cmdline(long *nx, long *threads,
  * Write field to dist
  */
 int write_to_disk(struct field_variable f, char *str);
+int write_field_to_disk(struct field f, char *p_str, char *u_str);
 
 /* 
  * Some grid functions 

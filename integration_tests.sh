@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run integrity checks by comparing to single thread reference solution.
+# Run integration tests by comparing to single thread reference solution.
 
 N=1024
 M=4
@@ -7,30 +7,28 @@ M_MPI=5
 
 yee_bin="yee yee_omp yee_pthr yee_mpi"
 
-printf "\n  Consistency tests:\n"
+printf "\n  Integration tests:\n"
 printf "  Testing that all implementations produce the same output.\n\n"
 
 # Generate reference solution to compare against
-printf "\n --- Generating reference solution\n"
-./yee_ref -n $N -p /tmp/yee_ref_p.tsv -u /tmp/yee_ref_u.tsv
+./yee_ref -n $N -p /tmp/yee_ref_p.tsv -u /tmp/yee_ref_u.tsv 1> /dev/null
 
 for yb in $yee_bin
 do
     # Compute solution
-    printf "\n --- Testing: $yb\n"
     outfile_u=/tmp/${yb}_u.tsv
     outfile_p=/tmp/${yb}_p.tsv
     if [ $yb == "yee" ]
     then
-        ./$yb -n $N -p $outfile_p -u $outfile_u
+        ./$yb -n $N -p $outfile_p -u $outfile_u 1> /dev/null
     elif [ $yb == "yee_ref" ]
     then
-        ./$yb -n $N -p $outfile_p -u $outfile_u
+        ./$yb -n $N -p $outfile_p -u $outfile_u 1> /dev/null
     elif [ $yb == "yee_mpi" ]
     then
-        mpirun -n $M_MPI ./$yb -n $N -p $outfile_p -u $outfile_u
+        mpirun -n $M_MPI ./$yb -n $N -p $outfile_p -u $outfile_u 1> /dev/null
     else
-        ./$yb -n $N -t $M -p $outfile_p -u $outfile_u
+        ./$yb -n $N -t $M -p $outfile_p -u $outfile_u 1> /dev/null
     fi
 
     # Compare

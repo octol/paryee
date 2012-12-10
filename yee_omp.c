@@ -56,18 +56,19 @@ int main(int argc, char *argv[])
     printf("Running with: N=%ld, threads=%ld\n", nx, threads);
 
     /* Initialize */
+    f = init_acoustic_field(nx, 0, length);
 #pragma omp parallel sections
     {
 #pragma omp section
         {
-            alloc_field(&f.p, nx);
-            set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx);
+            /*alloc_field(&f.p, nx); */
+            /*set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx); */
             apply_func(&f.p, gauss);    /* initial data */
         }
 #pragma omp section
         {
-            alloc_field(&f.u, nx + 1);
-            set_grid(&f.u, 0, length);
+            /*alloc_field(&f.u, nx + 1); */
+            /*set_grid(&f.u, 0, length); */
             apply_func(&f.u, zero);     /* initial data */
         }
     }
@@ -137,8 +138,9 @@ int main(int argc, char *argv[])
         write_to_disk(f.u, outfile_u);
     }
     free(part);
-    free_field(f.p);
-    free_field(f.u);
+    /*free_field(f.p); */
+    /*free_field(f.u); */
+    free_acoustic_field(f);
 
     return EXIT_SUCCESS;
 }

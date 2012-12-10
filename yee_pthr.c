@@ -91,10 +91,11 @@ int main(int argc, char *argv[])
     printf("Running with: N=%ld, threads=%ld\n", nx, threads);
 
     /* Initialize */
-    alloc_field(&f.p, nx);
-    alloc_field(&f.u, nx + 1);
-    set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx);
-    set_grid(&f.u, 0, length);
+    /*alloc_field(&f.p, nx);                                        */
+    /*alloc_field(&f.u, nx + 1);                                    */
+    /*set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx); */
+    /*set_grid(&f.u, 0, length);                                    */
+    f = init_acoustic_field(nx, 0, length);
     apply_func(&f.p, gauss);    /* initial data */
     apply_func(&f.u, zero);     /* initial data */
 
@@ -148,12 +149,14 @@ int main(int argc, char *argv[])
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, outfile_p);
-    write_to_disk(f.u, outfile_u);
+    /*write_to_disk(f.p, outfile_p); */
+    /*write_to_disk(f.u, outfile_u); */
+    write_field_to_disk(f, outfile_p, outfile_u);
     free(param);
     free(thr);
-    free_field(f.p);
-    free_field(f.u);
+    free_acoustic_field(f);
+    /*free_field(f.p); */
+    /*free_field(f.u); */
 
     pthread_attr_destroy(&attr);
     pthread_barrier_destroy(&barrier);

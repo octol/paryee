@@ -71,15 +71,16 @@ void apply_func(struct field_variable *f, double (*func) (double))
     vec_func(f->value, f->x, func, 0, f->size);
 }
 
-struct field *init_acoustic_field(struct field *f, long cells,
-                                  double start, double end)
+struct field init_acoustic_field(long cells, double start, double end)
 {
-    alloc_field(&f->p, cells);
-    alloc_field(&f->u, cells + 1);
-    set_grid(&f->u, start, end);
-    set_grid(&f->p, start + f->u.dx / 2, end - f->u.dx / 2);
-    apply_func(&f->p, zero);
-    apply_func(&f->u, zero);
+    struct field f;
+
+    alloc_field(&f.p, cells);
+    alloc_field(&f.u, cells + 1);
+    set_grid(&f.u, start, end);
+    set_grid(&f.p, start + f.u.dx / 2, end - f.u.dx / 2);
+    apply_func(&f.p, zero);
+    apply_func(&f.u, zero);
 
     return f;
 }
@@ -87,7 +88,7 @@ struct field *init_acoustic_field(struct field *f, long cells,
 void free_acoustic_field(struct field f)
 {
     free_field(f.p);
-    free_field(f.p);
+    free_field(f.u);
 }
 
 void update_field_s(struct field_variable *restrict dst, int idst,
@@ -115,7 +116,7 @@ void update_field_i(struct field_variable *restrict dst, int dst1,
                     int src1, double dt)
 {
     int i;
-    for (i = dst1; i <= dst2; ++i, ++src1)
+    for (i = dst1; i < dst2; ++i, ++src1)
         dst->value[i] += dt *
 #ifdef EXTRA_WORK
             /* 
@@ -167,34 +168,34 @@ void verify_grid_integrity(struct partition partition, int tid,
     expand_indices(partition, &bp, &ep, &sp, &bu, &eu, &su);
 
     /* Sanity checks */
-    assert(bp == (tid - 1) * nx / numworkers);
-    assert(ep == (tid) * nx / numworkers - 1);
+    assert(bp == (tid) * nx / numworkers);
+    assert(ep == (tid + 1) * nx / numworkers - 1);
     assert(sp == nx / numworkers);
     if (left == NONE) {
         assert(bu == 1);
         assert(su == nx / numworkers - 1);
     } else {
-        assert(bu == (tid - 1) * nx / numworkers);
+        assert(bu == (tid) * nx / numworkers);
         assert(su == nx / numworkers);
     }
-    assert(eu == (tid) * nx / numworkers - 1);
+    assert(eu == (tid + 1) * nx / numworkers - 1);
 
     /* Specific sanity checks */
     if (nx == 8 && numworkers == 4) {
         switch (tid) {
-        case 1:
+        case 0:
             assert(bp == 0 && ep == 1 && sp == 2);
             assert(bu == 1 && eu == 1 && su == 1);
             break;
-        case 2:
+        case 1:
             assert(bp == 2 && ep == 3 && sp == 2);
             assert(bu == 2 && eu == 3 && su == 2);
             break;
-        case 3:
+        case 2:
             assert(bp == 4 && ep == 5 && sp == 2);
             assert(bu == 4 && eu == 5 && su == 2);
             break;
-        case 4:
+        case 3:
             assert(bp == 6 && ep == 7 && sp == 2);
             assert(bu == 6 && eu == 7 && su == 2);
             break;
@@ -275,6 +276,14 @@ int write_to_disk(struct field_variable f, char *str)
     for (i = 0; i < f.size; ++i)
         fprintf(fp, "%e\t%e\n", f.x[i], f.value[i]);
     fclose(fp);
+    return EXIT_SUCCESS;
+}
+
+int write_field_to_disk(struct field f, char *p_str, char *u_str)
+{
+    if (EXIT_FAILURE == write_to_disk(f.u, u_str)
+        || EXIT_FAILURE == write_to_disk(f.p, p_str))
+        return EXIT_FAILURE;
     return EXIT_SUCCESS;
 }
 
