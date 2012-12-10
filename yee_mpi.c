@@ -80,14 +80,8 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
 
-        /*printf ("Starting yee_mpi with %i workers\n",numworkers); */
-        printf("Running with: N=%ld, workers=%i\n", nx, numworkers);
-
         /* Initialize */
-        /*alloc_field(&f.p, nx);                                        */
-        /*alloc_field(&f.u, nx + 1);                                    */
-        /*set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx); */
-        /*set_grid(&f.u, 0, length);                                    */
+        printf("Running with: N=%ld, workers=%i\n", nx, numworkers);
         f = init_acoustic_field(nx, 0, length);
         apply_func(&f.p, gauss);        /* initial data */
         apply_func(&f.u, zero); /* initial data */
@@ -313,8 +307,6 @@ int main(int argc, char *argv[])
 
         /* Remember to deallocate */
         free(part);
-        /*free_field(f.p); */
-        /*free_field(f.u); */
         free_acoustic_field(f);
 
         MPI_Finalize();

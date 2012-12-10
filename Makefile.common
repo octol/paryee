@@ -39,6 +39,10 @@ tests_SH = tests_scaling.sh tests_perf.sh
 tests_DATA = $(tests_SH:.sh=.tsv)
 tests_PNG = $(tests_DATA:.tsv=.png)
 
+unittests_SRC = unit_tests.c yee_common.c
+unittests_OBJ = $(unittests_SRC:.c=.o)
+unittests_BIN = unit_tests
+
 .PHONY: clean
 .PRECIOUS: $(tests_DATA)
 
@@ -54,8 +58,11 @@ savetests: $(tests_PNG)
 	[ ! -e $(SAVEDIR) ] && mkdir $(SAVEDIR) && echo "Create $(SAVEDIR)" || echo "Saving to $(SAVEDIR)"
 	[ -d $(SAVEDIR) ] && cp $(tests_PNG) $(tests_DATA) $(SAVEDIR)
 
-verify: $(BIN)
-	./tests_integrity.sh
+integrationtests: $(BIN)
+	./integration_tests.sh
+
+unittests: $(unittests_BIN)
+	./$<
 
 $(yee_BIN): $(yee_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
@@ -69,17 +76,17 @@ $(yee_omp_BIN): $(yee_omp_OBJ)
 $(yee_ref_BIN): $(yee_ref_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
 
-yee_mpi: $(yee_mpi_OBJ)
+$(yee_mpi_BIN): $(yee_mpi_OBJ)
 	$(MPICC) $^ -o $@
+
+$(unittests_BIN): $(unittests_OBJ)
+	$(CC) $^ $(LDFLAGS) -lcunit -o $@ 
 
 yee_omp.o: yee_omp.c
 	$(CC) $(CFLAGS) -c $< $(OPENMP)
 
 yee_mpi.o: yee_mpi.c
 	$(MPICC) $(MPICFLAGS) -c $<
-
-#%.o: %.c
-#        $(CC) $(CFLAGS) -c $<
 
 $(yee_DATA): $(yee_BIN)
 	./yee -n $N
@@ -101,10 +108,9 @@ $(GNUPLOT): template.gnuplot
 	
 %.png: %.plt %.tsv
 	if [ -f /usr/bin/gnuplot ]; then gnuplot $<; else touch $<; fi
-#gnuplot $<
 
 %.tsv: %.sh $(BIN)
 	./$<
 
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG)
+	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG) $(unittests_BIN) $(unittests_OBJ)

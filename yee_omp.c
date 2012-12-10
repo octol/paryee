@@ -138,8 +138,6 @@ int main(int argc, char *argv[])
         write_to_disk(f.u, outfile_u);
     }
     free(part);
-    /*free_field(f.p); */
-    /*free_field(f.u); */
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

@@ -74,8 +74,7 @@ int main(int argc, char *argv[])
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write data to disk and free data */
-    write_to_disk(f.p, outfile_p);
-    write_to_disk(f.u, outfile_u);
+    write_field_to_disk(f, outfile_p, outfile_u);
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

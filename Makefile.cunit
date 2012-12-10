@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic 
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -Ofast
 LDFLAGS = -lcunit -lm
 SRC = unit_tests.c yee_common.c
 OBJ = $(SRC:.c=.o)
