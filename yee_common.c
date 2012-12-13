@@ -142,46 +142,6 @@ double get_from(struct field_variable fv, unsigned long i, unsigned long j)
     return fv.value[i + j * fv.size_x];
 }
 
-/*void update_field_s(struct field_variable *restrict dst, int idst,          */
-/*                    int size, struct field_variable *restrict src,          */
-/*                    int isrc, double dt)                                    */
-/*{                                                                           */
-/*    int i;                                                                  */
-/*    for (i = idst; i < idst + size; ++i, ++isrc)                            */
-/*        dst->value[i] += dt *                                               */
-/*#ifdef EXTRA_WORK                                                           */
-            /* 
-             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
-             * more operations per memory access. This is to test the
-             * parallel performance. 
-             */
-/*            pow(exp(-pow(sin(dt), 2)), 3.2) *                               */
-/*            pow(exp(-pow(sin(dt), 4)), 1.2) *                               */
-/*            pow(exp(-pow(sin(dt), 2)), 4.2) *                               */
-/*#endif                                                                      */
-/*            (src->value[isrc + 1] - src->value[isrc]) / src->dx;            */
-/*}                                                                           */
-
-/*void update_field_i(struct field_variable *restrict dst, int dst1,          */
-/*                    int dst2, struct field_variable *restrict src,          */
-/*                    int src1, double dt)                                    */
-/*{                                                                           */
-/*    int i;                                                                  */
-/*    for (i = dst1; i < dst2; ++i, ++src1)                                   */
-/*        dst->value[i] += dt *                                               */
-/*#ifdef EXTRA_WORK                                                           */
-            /* 
-             * NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
-             * more operations per memory access. This is to test the
-             * parallel performance. 
-             */
-/*            pow(exp(-pow(sin(dt), 2)), 3.2) *                               */
-/*            pow(exp(-pow(sin(dt), 4)), 1.2) *                               */
-/*            pow(exp(-pow(sin(dt), 2)), 4.2) *                               */
-/*#endif                                                                      */
-/*            (src->value[src1 + 1] - src->value[src1]) / src->dx;            */
-/*}                                                                           */
-
 void leapfrog(struct field *f)
 {
     unsigned long i, j;
@@ -208,24 +168,19 @@ void leapfrog(struct field *f)
         }
     }
 
-    for (i = 1; i < nx - 1; ++i) {
-        for (j = 0; j < ny; ++j) {
+    for (i = 1; i < nx - 1; ++i)
+        for (j = 0; j < ny; ++j) 
             u(i, j) += dt / f->p.dx * (p(i, j) - p(i - 1, j));
-        }
-    }
 
-    for (i = 0; i < nx; ++i) {
-        for (j = 1; j < ny - 1; ++j) {
+    for (i = 0; i < nx; ++i) 
+        for (j = 1; j < ny - 1; ++j) 
             v(i, j) += dt / f->p.dy * (p(i, j) - p(i, j - 1));
-        }
-    }
 }
 
 void timestep_leapfrog(struct field *f, unsigned long Nt)
 {
-    for (unsigned long n = 0; n < Nt; ++n) {
+    for (unsigned long n = 0; n < Nt; ++n) 
         leapfrog(f);
-    }
 }
 
 /*struct partition partition_grid(int current_thread, int cells_per_thread)  */
@@ -366,17 +321,15 @@ int write_to_disk(struct field_variable f, char *fstr)
     return EXIT_SUCCESS;
 }
 
-int write_field_to_disk(struct field f, char *p_str, char *u_str)
-{
-    if (EXIT_FAILURE == write_to_disk(f.u, u_str)
-        || EXIT_FAILURE == write_to_disk(f.p, p_str))
-        return EXIT_FAILURE;
-    return EXIT_SUCCESS;
-}
-
 double gauss(double x)
 {
     return exp(-pow(x - 0.5, 2) / pow(0.05, 2));
+}
+
+double gauss2d(double x, double y)
+{
+    double r_squared = pow(x-0.5,2) + pow(y-0.5,2);
+    return exp(-r_squared / pow(0.05, 2));
 }
 
 double zero(double x)

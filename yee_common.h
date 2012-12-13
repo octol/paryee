@@ -160,12 +160,12 @@ void parse_cmdline(unsigned long *nx, unsigned long *threads,
  * Write field to dist
  */
 int write_to_disk(struct field_variable f, char *fstr);
-int write_field_to_disk(struct field f, char *p_str, char *u_str);
 
 /* 
  * Some grid functions 
  */
 double gauss(double);
+double gauss2d(double x, double y);
 double zero(double);
 double zero2d(double x, double y);
 double identity(double);
