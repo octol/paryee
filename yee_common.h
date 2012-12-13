@@ -29,26 +29,35 @@
 #define NONE -1                 /* no neighbour */
 #define STR_SIZE 256
 
+#define p(x, y) (p[(x) + (y)*nx])
+#define u(x, y) (u[(x) + (y)*(nx + 1)])
+#define v(x, y) (v[(x) + (y)*nx])
+
 /***************************************************************************
  * Data structures
  **************************************************************************/
 struct field_variable {
     double *value;
     double *x;
+    double *y;
     double dx;
-    long size;                  /* number of points */
+    double dy;
+    unsigned long size_x;                  /* number of points */
+    unsigned long size_y;                  /* number of points */
 };
 
 struct field {
     struct field_variable p;
     struct field_variable u;
+    struct field_variable v;
     double dt;
     double Nt;
 };
 
 struct partition {
-    long p[2];                  /* start end indices of internal domain */
-    long u[2];
+    unsigned long p[2];                  /* start end indices of internal domain */
+    unsigned long u[2];
+    unsigned long v[2];
 };
 
 /***************************************************************************
@@ -58,55 +67,55 @@ struct partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field(struct field_variable *, long size);
+void alloc_field(struct field_variable *, const unsigned long size_x, const unsigned long size_y);
 void free_field(struct field_variable);
 
 /* 
- * Generate grid from start to end with N number of points  
+ * Generate grid from start to end
  */
-void set_grid(struct field_variable *, double start, double end);
+void set_grid(struct field_variable *, const double x[2], const double y[2]);
 
 /*
  * Vectorization of function.
  * Apply the function func on the array dst with argument arg.
  */
-void vec_func(double *dst, double *arg, double (*func) (double),
-              long i1, long i2);
+void vec_func(double *dst, double (*func) (double), const double *arg, 
+              const unsigned long size);
+
+void vec_func2d(double *dst, double (*func) (double, double), 
+                const double *arg_x, const unsigned long size_x, 
+                const double *arg_y, const unsigned long size_y);
 
 /*
  * Vectorization of function applied to field_variable.
  */
-void apply_func(struct field_variable *f, double (*func) (double));
+void apply_func(struct field_variable *f, double (*func) (double, double));
 
 /* 
  * Allocates field and sets initial value to zero
  */
-struct field init_acoustic_field(long cells, double start, double end);
+struct field init_acoustic_field(unsigned long cells_x, unsigned long cells_y, double x[2], double y[2]);
 
 /*
  * Deallocate field
  */
 void free_acoustic_field(struct field);
 
-/* 
- * Leapfrog time update.
- * Update the size number of field points starting at the index idst, using
- * the field points starting at isrc. Note: _s in the name indicates the
- * input (size).
+/*
+ * Assign and retrive value from fv(i,j)
  */
-void update_field_s(struct field_variable *restrict dst, int idst,
-                    int size, struct field_variable *restrict src,
-                    int isrc, double dt);
+double assign_to(struct field_variable fv, unsigned long i, unsigned long j, double value);
+double get_from(struct field_variable fv, unsigned long i, unsigned long j);
 
-/* 
- * Leapfrog time update.
- * Update the field points starting at the index dst1 and ending at dst2-1,
- * using the field points starting at src1. Note: _i in the name indicates
- * the input (index).
+/*
+ * Leapfrog update of the field 
  */
-void update_field_i(struct field_variable *restrict dst, int dst1,
-                    int dst2, struct field_variable *restrict src,
-                    int src1, double dt);
+void leapfrog(struct field *f);
+
+/*
+ * Time step n Leapfrog updates of the field 
+ */
+void timestep_leapfrog(struct field *f, unsigned long n);
 
 /*
  * Divide the grid for the different threads.
@@ -144,14 +153,13 @@ void set_local_index(long size_p, long size_u,
  * Parse commandline argument and set the number of grid points, * the
  * number of threads as well as the output filenames.
  */
-void parse_cmdline(long *nx, long *threads,
-                   char *outfile_p, char *outfile_u,
-                   int argc, char *argv[]);
+void parse_cmdline(unsigned long *nx, unsigned long *threads,
+                   char *outfile, int argc, char *argv[]);
 
 /*
  * Write field to dist
  */
-int write_to_disk(struct field_variable f, char *str);
+int write_to_disk(struct field_variable f, char *fstr);
 int write_field_to_disk(struct field f, char *p_str, char *u_str);
 
 /* 
@@ -159,7 +167,9 @@ int write_field_to_disk(struct field f, char *p_str, char *u_str);
  */
 double gauss(double);
 double zero(double);
+double zero2d(double x, double y);
 double identity(double);
+double identity2d(double x, double y);
 
 /*
  * Round up integer division

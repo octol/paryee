@@ -34,48 +34,47 @@ int main(int argc, char *argv[])
 {
     /* Parameters */
     double length = 1;
-    double cfl = 1;
+    double cfl = 0.99 / sqrt(2);
     double T = 0.3;
     double c = 1;
-    long nx = 2048;
+    long nx = 8;
     long n;                     /* time step index */
     double tic, toc;
     struct field f;
-    char outfile_p[STR_SIZE] = "yee_p.tsv";
-    char outfile_u[STR_SIZE] = "yee_u.tsv";
+    char outfile[STR_SIZE] = "yee.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile_p, outfile_u, argc, argv);
-    printf("Running with: N=%li\n", nx);
+    /*parse_cmdline(&nx, NULL, outfile, argc, argv); */
+    /*printf("Running with: N=%li\n", nx); */
 
     /* Initialize */
-    f = init_acoustic_field(nx, 0, length);
-    apply_func(&f.p, gauss);    /* initial data */
-    apply_func(&f.u, zero);     /* initial data */
+    /*f = init_acoustic_field(nx, ny, 0, length);                           */
+    /*apply_func(&f.p, gauss);    [> initial data <]                        */
+    /*apply_func(&f.u, zero);     [> initial data <]                        */
 
-    /* Depends on the numerical variables initialized above */
-    double dx = f.p.dx;
-    double dt = cfl * dx / c;   /* CFL condition is: c*dt/dx = cfl <= 1 */
-    double Nt = T / dt;
-    long i;
+    /*[> Depends on the numerical variables initialized above <]            */
+    /*double dx = f.p.dx;                                                   */
+    /*double dt = cfl * dx / c;   [> CFL condition is: c*dt/dx = cfl <= 1 <] */
+    /*double Nt = T / dt;                                                   */
+    /*long i;                                                               */
 
-    /* timestep */
-    tic = gettime();
-    for (n = 0; n < Nt; ++n) {
-        /* update p */
-        for (i = 0; i < nx; ++i)
-            f.p.value[i] += dt / dx * (f.u.value[i + 1] - f.u.value[i]);
+    /*[> timestep <]                                                        */
+    /*tic = gettime();                                                      */
+    /*for (n = 0; n < Nt; ++n) {                                            */
+    /*    [> update p <]                                                    */
+    /*    for (i = 0; i < nx; ++i)                                          */
+    /*        f.p.value[i] += dt / dx * (f.u.value[i + 1] - f.u.value[i]);  */
 
-        /* update u */
-        for (i = 1; i < nx - 1; ++i)
-            f.u.value[i] += dt / dx * (f.p.value[i] - f.p.value[i - 1]);
-    }
-    toc = gettime();
-    printf("Elapsed: %f seconds\n", toc - tic);
+    /*    [> update u <]                                                    */
+    /*    for (i = 1; i < nx - 1; ++i)                                      */
+    /*        f.u.value[i] += dt / dx * (f.p.value[i] - f.p.value[i - 1]);  */
+    /*}                                                                     */
+    /*toc = gettime();                                                      */
+    /*printf("Elapsed: %f seconds\n", toc - tic);                           */
 
-    /* write data to disk and free data */
-    write_field_to_disk(f, outfile_p, outfile_u);
-    free_acoustic_field(f);
+    /*[> write data to disk and free data <]                                */
+    /*write_field_to_disk(f, outfile_p, outfile_u);                         */
+    /*free_acoustic_field(f);                                               */
 
     return EXIT_SUCCESS;
 }

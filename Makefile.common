@@ -1,4 +1,4 @@
-N=1024
+N=128
 threads=4
 
 HOSTNAME = $(shell hostname)
@@ -23,14 +23,18 @@ yee_pthr_BIN = yee_pthr
 yee_omp_BIN = yee_omp
 yee_ref_BIN = yee_ref
 yee_mpi_BIN = yee_mpi
-BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_omp_BIN) $(yee_mpi_BIN) $(yee_ref_BIN)
+#BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_omp_BIN) $(yee_mpi_BIN) $(yee_ref_BIN)
+BIN = $(yee_BIN)
 
-yee_DATA = $(yee_BIN:=_p.tsv) $(yee_BIN:=_u.tsv)
-yee_pthr_DATA = $(yee_pthr_BIN:=_p.tsv) $(yee_pthr_BIN:=_u.tsv)
-yee_omp_DATA = $(yee_omp_BIN:=_p.tsv) $(yee_omp_BIN:=_u.tsv)
-yee_mpi_DATA = $(yee_mpi_BIN:=_p.tsv) $(yee_mpi_BIN:=_u.tsv)
-yee_ref_DATA = $(yee_ref_BIN:=_p.tsv) $(yee_ref_BIN:=_u.tsv)
-DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_omp_DATA) $(yee_mpi_DATA) $(yee_ref_DATA)
+yee_DATA = $(yee_BIN:=.tsv)
+#yee_DATA = $(yee_BIN:=_p.tsv) $(yee_BIN:=_u.tsv)
+#yee_pthr_DATA = $(yee_pthr_BIN:=_p.tsv) $(yee_pthr_BIN:=_u.tsv)
+#yee_omp_DATA = $(yee_omp_BIN:=_p.tsv) $(yee_omp_BIN:=_u.tsv)
+#yee_mpi_DATA = $(yee_mpi_BIN:=_p.tsv) $(yee_mpi_BIN:=_u.tsv)
+#yee_ref_DATA = $(yee_ref_BIN:=_p.tsv) $(yee_ref_BIN:=_u.tsv)
+#DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_omp_DATA) $(yee_mpi_DATA) $(yee_ref_DATA)
+#DATA = $(yee_DATA) 
+DATA = $(BIN:=.tsv)
 
 GNUPLOT = $(DATA:.tsv=.plt)
 PNG = $(GNUPLOT:.plt=.png)

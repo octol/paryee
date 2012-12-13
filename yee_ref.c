@@ -30,40 +30,39 @@
 
 #define STR_SIZE 256
 
-void parse_cmdline(unsigned long *nx, char *outfile_p, char *outfile_u,
-                   int argc, char *argv[])
+#define p(x, y) (p[(x) + (y)*nx])
+#define u(x, y) (u[(x) + (y)*(nx + 1)])
+#define v(x, y) (v[(x) + (y)*nx])
+
+void parse_cmdline(unsigned long *nx, char *outfile, int argc,
+                   char *argv[])
 {
     int opt;
-    while ((opt = getopt(argc, argv, "n:p:u:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:o:")) != -1) {
         switch (opt) {
         case 'n':
             *nx = atoi(optarg);
             break;
-        case 'p':
-            strncpy(outfile_p, optarg, STR_SIZE);
-            outfile_p[STR_SIZE - 1] = '\0';     /* force null termination */
-            break;
-        case 'u':
-            strncpy(outfile_u, optarg, STR_SIZE);
-            outfile_u[STR_SIZE - 1] = '\0';     /* force null termination */
+        case 'o':
+            strncpy(outfile, optarg, STR_SIZE);
+            outfile[STR_SIZE - 1] = '\0';       /* force null termination */
             break;
         default:               /* '?' */
             fprintf(stderr, "Usage: %s ", argv[0]);
             fprintf(stderr, "[-n intervals] ");
-            fprintf(stderr, "[-p outfile_p] [-u outfile_u]\n");
+            fprintf(stderr, "[-o outfile]\n");
             exit(EXIT_FAILURE);
         }
     }
 }
 
-int write_to_disk(double *f, double *f_x, unsigned long size, char *str)
+int write_to_disk(double *f, double *f_x, double *f_y,
+                  unsigned long size_x, unsigned long size_y, char *str)
 {
-    /* append file suffix */
     char fstr[256];
     FILE *fp;
-    unsigned int i;
+    unsigned long i, j;
     strcpy(fstr, str);
-    /*strcat(fstr,".tsv"); */
 
     printf("Writing to: %s\n", fstr);
 
@@ -72,8 +71,9 @@ int write_to_disk(double *f, double *f_x, unsigned long size, char *str)
         perror("Error: can not write to disk");
         return EXIT_FAILURE;
     }
-    for (i = 0; i < size; ++i)
-        fprintf(fp, "%e\t%e\n", f_x[i], f[i]);
+    for (i = 0; i < size_x; ++i)
+        for (j = 0; j < size_y; ++j)
+            fprintf(fp, "%e\t%e\t%e\n", f_x[i], f_y[i], f[i + j * size_x]);
     fclose(fp);
     return EXIT_SUCCESS;
 }
@@ -87,65 +87,121 @@ double gettime(void)
 
 int main(int argc, char *argv[])
 {
-    double length = 1, cfl = 1, T = 0.3, c = 1;
-    unsigned long nx = 2048, n, i;
-    double dx, dt, Nt;
+    /* Simulation parameters */
+    double length = 1;
+    double cfl = 1 / sqrt(2) * 0.99;
+    double T = 0.3;
+    double c = 1;
+    unsigned long nx = 8;
+    unsigned long ny = 8;
+
+    unsigned long n, i, j;      /* time, x, y index */
+    double dx, dy, dt, Nt;
     double tic, toc;
     double *p;
     double *u;
+    double *v;
     double *p_x;
+    double *p_y;
     double *u_x;
-    char outfile_p[STR_SIZE] = "yee_ref_p.tsv";
-    char outfile_u[STR_SIZE] = "yee_ref_u.tsv";
+    double *u_y;
+    double *v_x;
+    double *v_y;
+    char outfile[STR_SIZE] = "yee_ref.tsv";
+    /*char outfile_u[STR_SIZE] = "yee_ref_u.tsv"; */
+    /*char outfile_v[STR_SIZE] = "yee_ref_v.tsv"; */
+    double radius_squared;      /* shorthand in computations */
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, outfile_p, outfile_u, argc, argv);
+    parse_cmdline(&nx, outfile, argc, argv);
     printf("Running with: N=%lu\n", nx);
 
-    p = malloc(sizeof(double) * nx);
-    u = malloc(sizeof(double) * (nx + 1));
+    p = malloc(sizeof(double) * nx * ny);
+    u = malloc(sizeof(double) * (nx + 1) * ny);
+    v = malloc(sizeof(double) * nx * (ny + 1));
     p_x = malloc(sizeof(double) * nx);
+    p_y = malloc(sizeof(double) * ny);
     u_x = malloc(sizeof(double) * (nx + 1));
-    if (!p || !u || !p_x || !u_x) {
+    u_y = malloc(sizeof(double) * ny);
+    v_x = malloc(sizeof(double) * nx);
+    v_y = malloc(sizeof(double) * (ny + 1));
+    if (!p || !u || !v || !p_x || !p_y || !u_x || !u_y || !v_x || !v_y) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
     dx = length / nx;
+    dy = length / ny;
     dt = cfl * dx / c;
     Nt = T / dt;
 
-    /* set grid (coordinates) and initial data */
+    /* set grid (coordinates) */
     for (i = 0; i < nx; ++i) {
-        u_x[i] = i * dx;
         p_x[i] = (i + 0.5) * dx;
-        u[i] = 0;
-        p[i] = exp(-pow(p_x[i] - 0.5, 2) / pow(0.05, 2));
+        p_y[i] = (i + 0.5) * dy;
+        u_x[i] = i * dx;
+        u_y[i] = (i + 0.5) * dy;
+        u_x[i] = (i + 0.5) * dx;
+        u_y[i] = i * dy;
     }
     u_x[nx] = nx * dx;
-    u[nx] = 0;
+    v_y[ny] = ny * dy;
+
+    /* initial data */
+    for (i = 0; i < nx; ++i) {
+        for (j = 0; i < ny; ++j) {
+            radius_squared = pow(p_x[i] - 0.5, 2) + pow(p_y[j] - 0.5, 2);
+            p(i, j) = exp(-radius_squared / pow(0.05, 2));
+        }
+    }
+    for (i = 0; i < nx + 1; ++i)
+        for (j = 0; i < ny; ++j)
+            u(i, j) = 0;
+    for (i = 0; i < nx; ++i)
+        for (j = 0; i < ny + 1; ++j)
+            v(i, j) = 0;
 
     /* timestep */
     tic = gettime();
     for (n = 0; n < Nt; ++n) {
+
         /* update p */
-        for (i = 0; i < nx; ++i)
-            p[i] += dt / dx * (u[i + 1] - u[i]);
+        for (i = 0; i < nx; ++i) {
+            for (j = 0; i < nx; ++j) {
+                p(i, j) += dt * (1 / dx * (u(i + 1, j) - u(i, j))
+                                 + 1 / dy * (v(i, j + 1) - v(i, j)));
+            }
+        }
 
         /* update u */
-        for (i = 1; i < nx - 1; ++i)
-            u[i] += dt / dx * (p[i] - p[i - 1]);
+        for (i = 1; i < nx - 1; ++i) {
+            for (j = 0; i < ny; ++j) {
+                u(i, j) += dt / dx * (p(i, j) - p(i - 1, j));
+            }
+        }
+
+        /* update v */
+        for (i = 0; i < nx; ++i) {
+            for (j = 1; i < ny - 1; ++j) {
+                u(i, j) += dt / dx * (p(i, j) - p(i, j - 1));
+            }
+        }
     }
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write data to disk and free data */
-    write_to_disk(p, p_x, nx, outfile_p);
-    write_to_disk(u, u_x, nx + 1, outfile_u);
+    write_to_disk(p, p_x, p_y, nx, ny, outfile);
+    /*write_to_disk(u, u_x, nx + 1, outfile_u); */
     free(p);
     free(u);
+    free(v);
     free(p_x);
     free(u_x);
+    free(v_x);
+    free(p_y);
+    free(u_y);
+    free(v_y);
 
     return EXIT_SUCCESS;
 }
