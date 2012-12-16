@@ -29,13 +29,17 @@
 #define NONE -1                 /* no neighbour */
 #define STR_SIZE 256
 
-#define p(x, y) (p[(x) + (y)*nx])
-#define u(x, y) (u[(x) + (y)*(nx + 1)])
-#define v(x, y) (v[(x) + (y)*nx])
+#define P(x, y) (p[(x) + (y)*nx])
+#define U(x, y) (u[(x) + (y)*(nx + 1)])
+#define V(x, y) (v[(x) + (y)*nx])
 
 /***************************************************************************
  * Data structures
  **************************************************************************/
+
+/*
+ * A field variable is scalar valued and defined on a 2D grid.
+ */
 struct field_variable {
     double *value;
     double *x;
@@ -46,6 +50,9 @@ struct field_variable {
     unsigned long size_y;                  /* number of points */
 };
 
+/*
+ * Contains the entire field
+ */
 struct field {
     struct field_variable p;
     struct field_variable u;
@@ -54,10 +61,12 @@ struct field {
     double Nt;
 };
 
-struct partition {
-    unsigned long p[2];                  /* start end indices of internal domain */
-    unsigned long u[2];
-    unsigned long v[2];
+/*
+ * Specifies the start and end cell index of the internal domain
+ */
+struct cell_partition {
+    unsigned long x[2];
+    unsigned long y[2];
 };
 
 /***************************************************************************
@@ -118,36 +127,36 @@ void leapfrog(struct field *f);
 void timestep_leapfrog(struct field *f, unsigned long n);
 
 /*
- * Divide the grid for the different threads.
- * We divide the grid according to cells.
+ * Divide the grid for the different threads. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct partition partition_grid(int current_thread, int cells_per_thread);
+struct cell_partition* partition_grid(unsigned long total_threads,
+        unsigned long cells_x, unsigned long cells_y, unsigned long *partition_size);
 
 /* 
  * Expand the partition struct into indices 
  */
-void expand_indices(struct partition partition,
-                    long *begin_p, long *end_p,
-                    long *size_p, long *begin_u,
-                    long *end_u, long *size_u);
+void expand_indices(struct cell_partition partition,
+                    unsigned long *begin_p, unsigned long *end_p,
+                    unsigned long *size_p, unsigned long *begin_u,
+                    unsigned long *end_u, unsigned long *size_u);
 
 /*
  * Checks that the grid is according to the specs.
  */
-void verify_grid_integrity(struct partition partition, int tid,
-                           long nx, int numworkers, int left);
+void verify_grid_integrity(struct cell_partition partition, long tid,
+                           unsigned long nx, unsigned long numworkers, unsigned long left);
 
 /*
  * Compute the local start/end indices and local array sizes from the
  * partition sizes as well as if the we are on the left boundary.
  */
-void set_local_index(long size_p, long size_u,
-                     long left, long *local_begin_p,
-                     long *local_end_p,
-                     long *local_size_p,
-                     long *local_begin_u,
-                     long *local_end_u, long *local_size_u);
+void set_local_index(unsigned long size_p, unsigned long size_u,
+                     unsigned long left, unsigned long *local_begin_p,
+                     unsigned long *local_end_p,
+                     unsigned long *local_size_p,
+                     unsigned long *local_begin_u,
+                     unsigned long *local_end_u, unsigned long *local_size_u);
 
 /*
  * Parse commandline argument and set the number of grid points, * the
@@ -166,7 +175,7 @@ int write_to_disk(struct field_variable f, char *fstr);
  */
 double gauss(double);
 double gauss2d(double x, double y);
-double zero(double);
+double zero(double x);
 double zero2d(double x, double y);
 double identity(double);
 double identity2d(double x, double y);

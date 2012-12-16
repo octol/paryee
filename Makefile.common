@@ -93,22 +93,22 @@ yee_mpi.o: yee_mpi.c
 	$(MPICC) $(MPICFLAGS) -c $<
 
 $(yee_DATA): $(yee_BIN)
-	./yee -n $N
+	./yee -n $N -o yee.tsv
 
 $(yee_ref_DATA): $(yee_ref_BIN)
-	./yee_ref -n $N
+	./yee_ref -n $N -o yee_ref.tsv
 
 $(yee_pthr_DATA): $(yee_pthr_BIN)
-	./yee_pthr -n $N -t $(threads)
+	./yee_pthr -n $N -t $(threads) -o yee_pthr.tsv
 
 $(yee_omp_DATA): $(yee_omp_BIN)
-	./yee_omp -n $N -t $(threads)
+	./yee_omp -n $N -t $(threads) -o yee_omp.tsv
 
 $(yee_mpi_DATA): $(yee_mpi_BIN)
-	mpirun -n $(shell dc -e '$(threads) 1 + p') yee_mpi -n $N
+	mpirun -n $(shell dc -e '$(threads) 1 + p') yee_mpi -n $N -o yee_mpi.tsv
 
 $(GNUPLOT): template.gnuplot
-	sed 's/file/$(@:.plt=)/' $< > $@
+	sed 's/file/$(@:.plt=)/g' $< > $@
 	
 %.png: %.plt %.tsv
 	if [ -f /usr/bin/gnuplot ]; then gnuplot $<; else touch $<; fi

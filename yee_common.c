@@ -148,13 +148,15 @@ void leapfrog(struct field *f)
     unsigned long nx = f->p.size_x;
     unsigned long ny = f->p.size_y;
     double dt = f->dt;
+
+    /* used by index macro */
     double *p = f->p.value;
     double *u = f->u.value;
     double *v = f->v.value;
 
     for (i = 0; i < nx; ++i) {
         for (j = 0; j < ny; ++j) {
-            p(i, j) +=
+            P(i, j) +=
 #ifdef EXTRA_WORK
                 /* NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
                  * more operations per memory access. This is to test the
@@ -163,41 +165,42 @@ void leapfrog(struct field *f)
                 pow(exp(-pow(sin(dt), 4)), 1.2) *
                 pow(exp(-pow(sin(dt), 2)), 4.2) *
 #endif
-                dt / f->u.dx * (u(i + 1, j) - u(i, j)) +
-                dt / f->v.dy * (v(i, j + 1) - v(i, j));
+                dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
+                dt / f->v.dy * (V(i, j + 1) - V(i, j));
         }
     }
 
     for (i = 1; i < nx - 1; ++i)
-        for (j = 0; j < ny; ++j) 
-            u(i, j) += dt / f->p.dx * (p(i, j) - p(i - 1, j));
+        for (j = 0; j < ny; ++j)
+            U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
 
-    for (i = 0; i < nx; ++i) 
-        for (j = 1; j < ny - 1; ++j) 
-            v(i, j) += dt / f->p.dy * (p(i, j) - p(i, j - 1));
+    for (i = 0; i < nx; ++i)
+        for (j = 1; j < ny - 1; ++j)
+            V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
 void timestep_leapfrog(struct field *f, unsigned long Nt)
 {
-    for (unsigned long n = 0; n < Nt; ++n) 
+    for (unsigned long n = 0; n < Nt; ++n)
         leapfrog(f);
 }
 
-/*struct partition partition_grid(int current_thread, int cells_per_thread)  */
-/*{                                                                          */
-   /*struct partition partition;                                            */
+struct cell_partition *partition_grid(unsigned long total_threads,
+                                      unsigned long cells_x,
+                                      unsigned long cells_y,
+                                      unsigned long *partition_size)
+{
+    assert(total_threads <= cells_x * cells_y);
+    struct cell_partition *partition =
+        malloc(sizeof(struct cell_partition) * total_threads);
 
-   /*partition.p[0] = current_thread * cells_per_thread;                    */
-   /*partition.p[1] = (current_thread + 1) * cells_per_thread - 1;          */
-   /*partition.u[0] = current_thread * cells_per_thread;                    */
-   /*partition.u[1] = (current_thread + 1) * cells_per_thread - 1;          */
+    /*partition.x[0] = current_thread * cells_per_thread;*/
+    /*partition.x[1] = (current_thread + 1) * cells_per_thread - 1;*/
+    /*partition.y[0] = current_thread * cells_per_thread;*/
+    /*partition.y[1] = (current_thread + 1) * cells_per_thread - 1;*/
 
-   /*[> First thread skips the first u, as it sits on the boundary <]       */
-   /*if (current_thread == 0)                                               */
-       /*++partition.u[0];                                                  */
-
-   /*return partition;                                                      */
-/*}                                                                          */
+    return partition;
+}
 
 /*void expand_indices(struct partition partition,                             */
 /*                    long *begin_p, long *end_p,                             */
@@ -277,8 +280,9 @@ void timestep_leapfrog(struct field *f, unsigned long Nt)
 /*    *local_size_u = *local_end_u + 2;                                       */
 /*}                                                                           */
 
-void parse_cmdline(unsigned long *nx, unsigned long *threads,
-                   char *outfile, int argc, char *argv[])
+void parse_cmdline(unsigned long *nx,
+                   unsigned long *threads, char *outfile,
+                   int argc, char *argv[])
 {
     int opt;
     while ((opt = getopt(argc, argv, "t:n:o:")) != -1) {
@@ -307,16 +311,18 @@ void parse_cmdline(unsigned long *nx, unsigned long *threads,
 int write_to_disk(struct field_variable f, char *fstr)
 {
     FILE *fp;
-
     printf("Writing to: %s\n", fstr);
     fp = fopen(fstr, "w");
     if (fp == NULL) {
         perror("Error: can not write to disk");
         return EXIT_FAILURE;
     }
-    for (unsigned long i = 0; i < f.size_x; ++i)
-        for (unsigned long j = 0; j < f.size_y; ++j)
+    for (unsigned long i = 0; i < f.size_x; ++i) {
+        for (unsigned long j = 0; j < f.size_y; ++j) {
             fprintf(fp, "%e\t%e\t%e\n", f.x[i], f.y[j], get_from(f, i, j));
+        }
+        fprintf(fp, "\n");
+    }
     fclose(fp);
     return EXIT_SUCCESS;
 }
@@ -328,17 +334,20 @@ double gauss(double x)
 
 double gauss2d(double x, double y)
 {
-    double r_squared = pow(x-0.5,2) + pow(y-0.5,2);
-    return exp(-r_squared / pow(0.05, 2));
+    double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);
+    return exp(-r_squared / pow(0.1, 2));
 }
 
 double zero(double x)
 {
+    (void) x;
     return 0.0;
 }
 
 double zero2d(double x, double y)
 {
+    (void) x;
+    (void) y;
     return 0.0;
 }
 
@@ -349,6 +358,7 @@ double identity(double x)
 
 double identity2d(double x, double y)
 {
+    (void) y;
     return x;
 }
 

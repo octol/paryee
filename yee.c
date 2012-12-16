@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
     double cfl = 0.99 / sqrt(2);        /* CFL condition: c*dt/dx = cfl <= 1/sqrt(2) */
     double T = 0.3;
     double c = 1;
-    unsigned long nx = 8;
-    unsigned long ny = 8;
+    unsigned long nx = 32;
+    unsigned long ny = 32;
     double tic, toc;
     struct field f;
     char outfile[STR_SIZE] = "yee.tsv";
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
     apply_func(&f.p, gauss2d);  /* initial data */
 
     /* Depends on the numerical variables initialized above */
-    double dt = cfl * f.p.dx / c;
-    double Nt = T / dt;
+    f.dt = cfl * f.p.dx / c;
+    f.Nt = T / f.dt;
 
     /* timestep */
     tic = gettime();
-    timestep_leapfrog(&f, Nt);
+    timestep_leapfrog(&f, f.Nt);
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
