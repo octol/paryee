@@ -6,4 +6,5 @@ TODO
  * Switch to let MPI master do work
     - Update verify_grid_integrity
  * Functions give error codes
+ * Change left/right -> top/bottom in MPI code
 

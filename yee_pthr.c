@@ -16,9 +16,15 @@
  *    You should have received a copy of the GNU General Public License
  *    along with ParYee.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/*
+ * Pthread shared memory parallelization
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
+
 #include <pthread.h>
 
 #include "yee_common.h"
@@ -33,31 +39,56 @@ pthread_barrier_t barrier;
  * Data structures
  */
 struct thread_param {
-    double Nt;
-    double dt;
-    struct field_variable *p;
-    struct field_variable *u;
-    struct partition part;
+    struct field *f;
+    struct cell_partition part;
+    long tid;
 };
 
 void *thread_main(void *arg)
 {
     struct thread_param *param = (struct thread_param *) arg;
-    struct field_variable *p = param->p;;
-    struct field_variable *u = param->u;
-    long n;
-    long i;
-    double dt = param->dt;
-    double dx = p->dx;
+    struct field *f = param->f;
+    long tid = param->tid;
 
-    for (n = 0; n < param->Nt; ++n) {
+    long p0, p1, u0, u1, v0, v1;
+    cellindex_to_nodeindex(tid, param->part, &p0, &p1, &u0, &u1, &v0, &v1);
+#ifdef DEBUG
+    printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
+           tid, p0, p1, u0, u1, v0, v1);
+#endif
+
+    /* for the index macro */
+    double *p = f->p.value;
+    double *u = f->u.value;
+    double *v = f->v.value;
+    long nx = f->p.size_x;
+    long ny = f->p.size_y;
+
+    double dt = f->dt;
+    long n, i, j;
+    for (n = 0; n < f->Nt; ++n) {
+
         /* update the pressure (p) */
-        for (i = param->part.p[0]; i <= param->part.p[1]; ++i)
-            p->value[i] += dt / dx * (u->value[i + 1] - u->value[i]);
+        for (i = p0; i < p1; ++i) {
+            for (j = 0; j < ny; ++j) {
+                P(i, j) +=
+                    dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
+                    dt / f->v.dy * (V(i, j + 1) - V(i, j));
+            }
+        }
         pthread_barrier_wait(&barrier);
-        /* update the velocity (u) */
-        for (i = param->part.u[0]; i <= param->part.u[1]; ++i)
-            u->value[i] += dt / dx * (p->value[i] - p->value[i - 1]);
+
+        /* update the velocity (u,v) */
+        for (i = u0; i < u1; ++i) {
+            for (j = 0; j < ny; ++j) {
+                U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
+            }
+        }
+        for (i = v0; i < v1; ++i) {
+            for (j = 1; j < ny - 1; ++j) {
+                V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
+            }
+        }
         pthread_barrier_wait(&barrier);
     }
 
@@ -70,63 +101,65 @@ void *thread_main(void *arg)
 int main(int argc, char *argv[])
 {
     /* Parameters */
-    double length = 1;
-    double cfl = 1;
+    double x[] = { 0, 1 };
+    double y[] = { 0, 1 };
+    double cfl = 0.99 / sqrt(2);        /* CFL condition: c*dt/dx = cfl <= 1/sqrt(2) */
     double T = 0.3;
     double c = 1;
-    long nx = 2048;
-    double tic, toc;
+    long nx = 32;
+    long ny = 32;
     struct field f;
+    char outfile[STR_SIZE] = "yee_pthr.tsv";
     long threads = 4;
-    long cells_per_thread;
+    struct cell_partition *part;
     pthread_t *thr;
     pthread_attr_t attr;
     struct thread_param *param;
-    char outfile_p[STR_SIZE] = "yee_pthr_p.tsv";
-    char outfile_u[STR_SIZE] = "yee_pthr_u.tsv";
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile_p, outfile_u, argc, argv);
-    printf("Running with: N=%ld, threads=%ld\n", nx, threads);
+    parse_cmdline(&nx, &threads, outfile, argc, argv);
+    ny = nx;                    /* square domain */
+    printf("Domain: %li x %li\n", nx, ny);
+    printf("Pthreads: %li\n", threads);
 
     /* Initialize */
-    f = init_acoustic_field(nx, 0, length);
-    apply_func(&f.p, gauss);    /* initial data */
-    apply_func(&f.u, zero);     /* initial data */
+    f = init_acoustic_field(nx, ny, x, y);
+    apply_func(&f.p, gauss2d);  /* initial data */
 
     /* Depends on the numerical variables initialized above */
-    f.dt = cfl * f.p.dx / c;    /* CFL condition is: c*dt/dx = cfl <= 1 */
+    f.dt = cfl * f.p.dx / c;
     f.Nt = T / f.dt;
 
-    /* Setup threads */
+    /* Setup pthreads */
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
     pthread_barrier_init(&barrier, NULL, threads);
+    /* Note that we also compute in the main threads, hence we only need to
+     * allocate an additinal #(threads-1) threads. */
     thr = malloc(sizeof(pthread_t) * (threads - 1));
     if (!thr) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
-    /* Partion the grid and assemble structs to be used as arguments to the
-     * threads */
+    /* Partition the grid */
+    part = partition_grid(threads, nx);
+
+    /* Assemble structs to be used as arguments to the threads */
     param = malloc(sizeof(struct thread_param) * threads);
     if (!param) {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    cells_per_thread = nx / threads;
-    assert(cells_per_thread * threads == nx);
-    unsigned int i;
+    long i;
     for (i = 0; i < threads; ++i) {
-        param[i].part = partition_grid(i, cells_per_thread);
-        param[i].Nt = f.Nt;
-        param[i].dt = f.dt;
-        param[i].p = &f.p;
-        param[i].u = &f.u;
+        param[i].tid = i;
+        param[i].f = &f;
+        param[i].part = part[i];
     }
 
     /* timestep */
+    double tic, toc;
     tic = gettime();
 
     /* Spawn additional [threads-1] threads */
@@ -143,8 +176,8 @@ int main(int argc, char *argv[])
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
-    /* write data to disk and free data */
-    write_field_to_disk(f, outfile_p, outfile_u);
+    /* write to disk and free data */
+    write_to_disk(f.p, outfile);
     free(param);
     free(thr);
     free_acoustic_field(f);

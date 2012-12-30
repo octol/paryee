@@ -1,5 +1,5 @@
-N=128
-threads=4
+N=4
+threads=2
 
 HOSTNAME = $(shell hostname)
 SAVEDIR = tests_$(HOSTNAME)
@@ -9,31 +9,23 @@ yee_SRC = yee.c yee_common.c
 yee_pthr_SRC = yee_pthr.c yee_common.c
 yee_omp_SRC = yee_omp.c yee_common.c
 yee_mpi_SRC = yee_mpi.c yee_common.c
-yee_ref_SRC = yee_ref.c
 
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
 yee_omp_OBJ = $(yee_omp_SRC:.c=.o)
 yee_mpi_OBJ = $(yee_mpi_SRC:.c=.o)
-yee_ref_OBJ = $(yee_ref_SRC:.c=.o)
-OBJ = $(yee_OBJ) $(yee_pthr_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ) $(yee_ref_OBJ)
+OBJ = $(yee_OBJ) $(yee_pthr_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ)
 
 yee_BIN = yee
 yee_pthr_BIN = yee_pthr
 yee_omp_BIN = yee_omp
-yee_ref_BIN = yee_ref
 yee_mpi_BIN = yee_mpi
-#BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_omp_BIN) $(yee_mpi_BIN) $(yee_ref_BIN)
-BIN = $(yee_BIN)
+BIN = $(yee_BIN) $(yee_pthr_BIN) $(yee_omp_BIN) $(yee_mpi_BIN)
 
 yee_DATA = $(yee_BIN:=.tsv)
-#yee_DATA = $(yee_BIN:=_p.tsv) $(yee_BIN:=_u.tsv)
-#yee_pthr_DATA = $(yee_pthr_BIN:=_p.tsv) $(yee_pthr_BIN:=_u.tsv)
-#yee_omp_DATA = $(yee_omp_BIN:=_p.tsv) $(yee_omp_BIN:=_u.tsv)
-#yee_mpi_DATA = $(yee_mpi_BIN:=_p.tsv) $(yee_mpi_BIN:=_u.tsv)
-#yee_ref_DATA = $(yee_ref_BIN:=_p.tsv) $(yee_ref_BIN:=_u.tsv)
-#DATA = $(yee_DATA) $(yee_pthr_DATA) $(yee_omp_DATA) $(yee_mpi_DATA) $(yee_ref_DATA)
-#DATA = $(yee_DATA) 
+yee_pthr_DATA = $(yee_pthr_BIN:=.tsv)
+yee_omp_DATA = $(yee_omp_BIN:=.tsv) 
+yee_mpi_DATA = $(yee_mpi_BIN:=.tsv)
 DATA = $(BIN:=.tsv)
 
 GNUPLOT = $(DATA:.tsv=.plt)
@@ -77,9 +69,6 @@ $(yee_pthr_BIN): $(yee_pthr_OBJ)
 $(yee_omp_BIN): $(yee_omp_OBJ)
 	$(CC) $^ $(LDFLAGS) $(OPENMP) -o $@ 
 
-$(yee_ref_BIN): $(yee_ref_OBJ)
-	$(CC) $^ $(LDFLAGS) -o $@ 
-
 $(yee_mpi_BIN): $(yee_mpi_OBJ)
 	$(MPICC) $^ -o $@
 
@@ -95,9 +84,6 @@ yee_mpi.o: yee_mpi.c
 $(yee_DATA): $(yee_BIN)
 	./yee -n $N -o yee.tsv
 
-$(yee_ref_DATA): $(yee_ref_BIN)
-	./yee_ref -n $N -o yee_ref.tsv
-
 $(yee_pthr_DATA): $(yee_pthr_BIN)
 	./yee_pthr -n $N -t $(threads) -o yee_pthr.tsv
 
@@ -105,7 +91,7 @@ $(yee_omp_DATA): $(yee_omp_BIN)
 	./yee_omp -n $N -t $(threads) -o yee_omp.tsv
 
 $(yee_mpi_DATA): $(yee_mpi_BIN)
-	mpirun -n $(shell dc -e '$(threads) 1 + p') yee_mpi -n $N -o yee_mpi.tsv
+	mpirun -n $(threads) yee_mpi -n $N -o yee_mpi.tsv
 
 $(GNUPLOT): template.gnuplot
 	sed 's/file/$(@:.plt=)/g' $< > $@

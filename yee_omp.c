@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <unistd.h>
 #include <math.h>
 
 #include <omp.h>
@@ -36,92 +35,82 @@
 int main(int argc, char *argv[])
 {
     /* Parameters */
-    double length = 1;
-    double cfl = 1;
+    double x[] = { 0, 1 };
+    double y[] = { 0, 1 };
+    double cfl = 0.99 / sqrt(2);        /* CFL condition: c*dt/dx = cfl <= 1/sqrt(2) */
     double T = 0.3;
     double c = 1;
-    long nx = 2048;
-    long n;                     /* time step index */
-    double tic, toc;
+    long nx = 32;
+    long ny = 32;
     struct field f;
+    char outfile[STR_SIZE] = "yee_omp.tsv";
     long threads = 4;
-    long cells_per_thread;
-    struct partition *part;
-    char outfile_p[STR_SIZE] = "yee_omp_p.tsv";
-    char outfile_u[STR_SIZE] = "yee_omp_u.tsv";
+    struct cell_partition *part;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile_p, outfile_u, argc, argv);
+    parse_cmdline(&nx, &threads, outfile, argc, argv);
+    ny = nx;                    /* square domain */
     omp_set_num_threads(threads);
-    printf("Running with: N=%ld, threads=%ld\n", nx, threads);
+    printf("Domain: %li x %li\n", nx, ny);
+    printf("OpenMP threads: %li\n", threads);
 
     /* Initialize */
-    f = init_acoustic_field(nx, 0, length);
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            /*alloc_field(&f.p, nx); */
-            /*set_grid(&f.p, 0.5 * length / nx, length - 0.5 * length / nx); */
-            apply_func(&f.p, gauss);    /* initial data */
-        }
-#pragma omp section
-        {
-            /*alloc_field(&f.u, nx + 1); */
-            /*set_grid(&f.u, 0, length); */
-            apply_func(&f.u, zero);     /* initial data */
-        }
-    }
-
-    /* check integrity of the generated structures */
-    assert(fabs(f.p.dx - f.u.dx) < 1e-14);
+    f = init_acoustic_field(nx, ny, x, y);
+    apply_func(&f.p, gauss2d);  /* initial data */
 
     /* Depends on the numerical variables initialized above */
-    f.dt = cfl * f.p.dx / c;    /* CFL condition is: c*dt/dx = cfl <= 1 */
+    f.dt = cfl * f.p.dx / c;
     f.Nt = T / f.dt;
 
-    /* Setup parallellization */
-    long i;
-    cells_per_thread = nx / threads;
-    assert(cells_per_thread * threads == nx);
-    part = malloc((long) sizeof(struct partition) * threads);
-    if (!part) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-    for (i = 0; i < threads; ++i)
-        part[i] = partition_grid(i, cells_per_thread);
+    /* Partition the grid */
+    part = partition_grid(threads, nx);
 
     /* Maybe we can make optimization of the inner loop a bit easier for the
      * compiler? 
      * This is probably not needed. */
     double *p = f.p.value;
     double *u = f.u.value;
+    double *v = f.v.value;
 
     /* timestep */
+    long n, i, j;
+    double tic, toc;
     tic = gettime();
-#pragma omp parallel default(shared) private(i,n)
+#pragma omp parallel default(shared) private(i,j,n)
     {
         /* private variables used in the time stepping */
-        double dx = f.p.dx;
+        /*double dx = f.p.dx; */
         double dt = f.dt;
         double Nt = f.Nt;
         long tid = omp_get_thread_num();
-        long p0 = part[tid].p[0];       /* start index */
-        long p1 = part[tid].p[1];       /* end index */
-        long u0 = part[tid].u[0];       /* start index */
-        long u1 = part[tid].u[1];       /* end index */
+        long p0, p1, u0, u1, v0, v1;
+        cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
+                               &v1);
+#ifdef DEBUG
+        printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
+               tid, p0, p1, u0, u1, v0, v1);
+#endif
 
         for (n = 0; n < Nt; ++n) {
 
             /* update the pressure (p) */
-            for (i = p0; i <= p1; ++i)
-                p[i] += dt / dx * (u[i + 1] - u[i]);
+            for (i = p0; i < p1; ++i) {
+                for (j = 0; j < ny; ++j) {
+                    P(i, j) +=
+                        dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
+                        dt / f.v.dy * (V(i, j + 1) - V(i, j));
+                }
+            }
 #pragma omp barrier
 
-            /* update the velocity (u) */
-            for (i = u0; i <= u1; ++i)
-                u[i] += dt / dx * (p[i] - p[i - 1]);
+            /* update the velocity (u,v) */
+            for (i = u0; i < u1; ++i)
+                for (j = 0; j < ny; ++j)
+                    U(i, j) += dt / f.p.dx * (P(i, j) - P(i - 1, j));
+
+            for (i = v0; i < v1; ++i)
+                for (j = 1; j < ny - 1; ++j)
+                    V(i, j) += dt / f.p.dy * (P(i, j) - P(i, j - 1));
 #pragma omp barrier
         }
     }
@@ -129,15 +118,8 @@ int main(int argc, char *argv[])
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
-    /* write data to disk and free data */
-#pragma omp parallel sections
-    {
-#pragma omp section
-        write_to_disk(f.p, outfile_p);
-#pragma omp section
-        write_to_disk(f.u, outfile_u);
-    }
-    free(part);
+    /* write to disk and free data */
+    write_to_disk(f.p, outfile);
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

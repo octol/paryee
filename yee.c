@@ -38,9 +38,8 @@ int main(int argc, char *argv[])
     double cfl = 0.99 / sqrt(2);        /* CFL condition: c*dt/dx = cfl <= 1/sqrt(2) */
     double T = 0.3;
     double c = 1;
-    unsigned long nx = 32;
-    unsigned long ny = 32;
-    double tic, toc;
+    long nx = 32;
+    long ny = 32;
     struct field f;
     char outfile[STR_SIZE] = "yee.tsv";
 
@@ -58,6 +57,7 @@ int main(int argc, char *argv[])
     f.Nt = T / f.dt;
 
     /* timestep */
+    double tic, toc;
     tic = gettime();
     timestep_leapfrog(&f, f.Nt);
     toc = gettime();

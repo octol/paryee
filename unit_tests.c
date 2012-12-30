@@ -285,46 +285,56 @@ void test_leapfrog(void)
     free_acoustic_field(f);
 }
 
-/*void test_partition_grid(void)*/
-/*{*/
-    /*unsigned long cells = 8;*/
-    /*struct cell_partition part;*/
-    /*unsigned long tid;          [> thread ID <]*/
+void test_partition_grid(void)
+{
+    struct cell_partition *part;
+    unsigned long cells_x;
+    unsigned long threads;
 
-    /*tid = 0;*/
-    /*part = partition_grid(tid, cells, cells);*/
-    /*CU_ASSERT(part.x[0] == 0 && part.x[1] == 7);*/
-    /*CU_ASSERT(part.y[0] == 0 && part.y[1] == 7);*/
+    cells_x = 8;
+    threads = 1;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 7);
+    free(part);
 
-    /*part = partition_grid(tid, cells/2, cells);*/
-    /*CU_ASSERT(part.x[0] == 0 && part.x[1] == 3);*/
-    /*CU_ASSERT(part.y[0] == 0 && part.y[1] == 3);*/
+    cells_x = 8;
+    threads = 2;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 3);
+    CU_ASSERT(part[1].start == 4 && part[1].end == 7);
+    free(part);
 
-    /*tid = 1;*/
-    /*part = partition_grid(tid, cells/2, cells);*/
-    /*CU_ASSERT(part.x[0] == 4 && part.x[1] == 7);*/
-    /*CU_ASSERT(part.y[0] == 4 && part.y[1] == 7);*/
+    cells_x = 8;
+    threads = 4;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 1);
+    CU_ASSERT(part[1].start == 2 && part[1].end == 3);
+    CU_ASSERT(part[2].start == 4 && part[2].end == 5);
+    CU_ASSERT(part[3].start == 6 && part[3].end == 7);
+    free(part);
 
-    /*tid = 0;*/
-    /*part = partition_grid(tid, cells/4, cells);*/
-    /*CU_ASSERT(part.x[0] == 0 && part.x[1] == 1);*/
-    /*CU_ASSERT(part.y[0] == 0 && part.y[1] == 1);*/
+    cells_x = 3;
+    threads = 2;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 1);
+    CU_ASSERT(part[1].start == 2 && part[1].end == 2);
+    free(part);
 
-    /*tid = 1;*/
-    /*part = partition_grid(tid, cells/4, cells);*/
-    /*CU_ASSERT(part.x[0] == 2 && part.x[1] == 3);*/
-    /*CU_ASSERT(part.y[0] == 2 && part.y[1] == 3);*/
+    cells_x = 9;
+    threads = 2;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 4);
+    CU_ASSERT(part[1].start == 5 && part[1].end == 8);
+    free(part);
 
-    /*tid = 2;*/
-    /*part = partition_grid(tid, cells/4, cells);*/
-    /*CU_ASSERT(part.x[0] == 4 && part.x[1] == 5);*/
-    /*CU_ASSERT(part.y[0] == 4 && part.y[1] == 5);*/
-
-    /*tid = 3;*/
-    /*part = partition_grid(tid, cells/4, cells);*/
-    /*CU_ASSERT(part.x[0] == 6 && part.x[1] == 7);*/
-    /*CU_ASSERT(part.y[0] == 6 && part.y[1] == 7);*/
-/*}*/
+    cells_x = 7;
+    threads = 3;
+    part = partition_grid(threads, cells_x);
+    CU_ASSERT(part[0].start == 0 && part[0].end == 2);
+    CU_ASSERT(part[1].start == 3 && part[1].end == 5);
+    CU_ASSERT(part[2].start == 6 && part[2].end == 6);
+    free(part);
+}
 
 /*[> void expand_indices(struct partition partition, long *begin_p, long *end_p,<]        */
 /*[>         long *size_p, long *begin_u, long *end_u, long *size_u);           <]        */
@@ -483,7 +493,7 @@ int main()
                         test_init_acoustic_field)
         || !CU_add_test(pSuite, "assign_to, get_from", test_assign_and_get)
         || !CU_add_test(pSuite, "leapfrog", test_leapfrog)
-        /*|| !CU_add_test(pSuite, "partition_grid", test_partition_grid)*/
+        || !CU_add_test(pSuite, "partition_grid", test_partition_grid)
         /*|| !CU_add_test(pSuite, "expand_indices", test_expand_indices) */
         /*|| !CU_add_test(pSuite, "verify_grid_integrity", test_verify_grid) */
         /*|| !CU_add_test(pSuite, "set_local_index", test_set_local_index) */

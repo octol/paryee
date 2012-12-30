@@ -29,10 +29,10 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field(struct field_variable *f, const unsigned long size_x,
-                 const unsigned long size_y)
+void alloc_field(struct field_variable *f, const long size_x,
+                 const long size_y)
 {
-    unsigned long block = sizeof(double) * size_x * size_y;
+    long block = sizeof(double) * size_x * size_y;
     f->size_x = size_x;
     f->size_y = size_y;
     f->value = (double *) malloc(block);
@@ -55,7 +55,7 @@ void free_field(struct field_variable f)
 void set_grid(struct field_variable *f, const double x[2],
               const double y[2])
 {
-    unsigned long i;
+    long i;
 
     /* NOTE: f->size is the number of grid points, not intervals */
     f->dx = (x[1] - x[0]) / ((double) f->size_x - 1.0);
@@ -67,18 +67,18 @@ void set_grid(struct field_variable *f, const double x[2],
 }
 
 void vec_func(double *dst, double (*func) (double), const double *arg,
-              const unsigned long size)
+              const long size)
 {
-    for (unsigned long i = 0; i < size; ++i)
+    for (long i = 0; i < size; ++i)
         dst[i] = func(arg[i]);
 }
 
 void vec_func2d(double *dst, double (*func) (double, double),
-                const double *arg_x, const unsigned long size_x,
-                const double *arg_y, const unsigned long size_y)
+                const double *arg_x, const long size_x,
+                const double *arg_y, const long size_y)
 {
-    for (unsigned long ii = 0; ii < size_x; ++ii)
-        for (unsigned long jj = 0; jj < size_y; ++jj)
+    for (long ii = 0; ii < size_x; ++ii)
+        for (long jj = 0; jj < size_y; ++jj)
             dst[ii + jj * size_x] = func(arg_x[ii], arg_y[jj]);
 }
 
@@ -87,8 +87,8 @@ void apply_func(struct field_variable *f, double (*func) (double, double))
     vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
 
-struct field init_acoustic_field(unsigned long cells_x,
-                                 unsigned long cells_y, double x[2],
+struct field init_acoustic_field(long cells_x,
+                                 long cells_y, double x[2],
                                  double y[2])
 {
     struct field f;
@@ -130,23 +130,23 @@ void free_acoustic_field(struct field f)
     free_field(f.v);
 }
 
-double assign_to(struct field_variable fv, unsigned long i,
-                 unsigned long j, double value)
+double assign_to(struct field_variable fv, long i,
+                 long j, double value)
 {
     fv.value[i + j * fv.size_x] = value;
     return value;
 }
 
-double get_from(struct field_variable fv, unsigned long i, unsigned long j)
+double get_from(struct field_variable fv, long i, long j)
 {
     return fv.value[i + j * fv.size_x];
 }
 
 void leapfrog(struct field *f)
 {
-    unsigned long i, j;
-    unsigned long nx = f->p.size_x;
-    unsigned long ny = f->p.size_y;
+    long i, j;
+    long nx = f->p.size_x;
+    long ny = f->p.size_y;
     double dt = f->dt;
 
     /* used by index macro */
@@ -161,9 +161,9 @@ void leapfrog(struct field *f)
                 /* NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
                  * more operations per memory access. This is to test the
                  * parallel performance.  */
-                pow(exp(-pow(sin(dt), 2)), 3.2) *
-                pow(exp(-pow(sin(dt), 4)), 1.2) *
-                pow(exp(-pow(sin(dt), 2)), 4.2) *
+                /*pow(exp(-pow(sin(dt), 2)), 3.2) * */
+                /*pow(exp(-pow(sin(dt), 4)), 1.2) * */
+                /*pow(exp(-pow(sin(dt), 2)), 4.2) * */
 #endif
                 dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
                 dt / f->v.dy * (V(i, j + 1) - V(i, j));
@@ -179,42 +179,67 @@ void leapfrog(struct field *f)
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
-void timestep_leapfrog(struct field *f, unsigned long Nt)
+void timestep_leapfrog(struct field *f, double Nt)
 {
-    for (unsigned long n = 0; n < Nt; ++n)
+    for (long n = 0; n < Nt; ++n)
         leapfrog(f);
 }
 
-struct cell_partition *partition_grid(unsigned long total_threads,
-                                      unsigned long cells_x,
-                                      unsigned long cells_y,
-                                      unsigned long *partition_size)
+struct cell_partition *partition_grid(long total_threads,
+                                      long cells)
 {
-    assert(total_threads <= cells_x * cells_y);
-    struct cell_partition *partition =
-        malloc(sizeof(struct cell_partition) * total_threads);
+    assert(total_threads <= cells);
+    long i;
+    long cells_per_thread;
+    struct cell_partition *partition;
 
-    /*partition.x[0] = current_thread * cells_per_thread;*/
-    /*partition.x[1] = (current_thread + 1) * cells_per_thread - 1;*/
-    /*partition.y[0] = current_thread * cells_per_thread;*/
-    /*partition.y[1] = (current_thread + 1) * cells_per_thread - 1;*/
+    partition = malloc(sizeof(struct cell_partition) * total_threads);
+    cells_per_thread = ceil((double) cells / (double) total_threads);
+
+    for (i = 0; i < total_threads - 1; ++i) {
+        partition[i].begin = i * cells_per_thread;
+        partition[i].end = (i + 1) * cells_per_thread - 1;
+    }
+
+    /* last cell gets is sometimes smaller to make up for the fact that 
+     * the number of cells is not evenly divided among the threads. */
+    i = total_threads - 1;
+    partition[i].begin = (i == 0) ? 0 : partition[i - 1].end + 1;
+    partition[i].end = cells - 1;
 
     return partition;
 }
 
-/*void expand_indices(struct partition partition,                             */
-/*                    long *begin_p, long *end_p,                             */
-/*                    long *size_p, long *begin_u, long *end_u, long *size_u) */
-/*{                                                                           */
-/*    *begin_p = partition.p[0];  [> begin index <]                           */
-/*    *begin_u = partition.u[0];                                              */
-/*    *end_p = partition.p[1];    [> end index <]                             */
-/*    *end_u = partition.u[1];                                                */
+void cellindex_to_nodeindex(long tid, struct cell_partition part,
+                            long *p0, long *p1,
+                            long *u0, long *u1,
+                            long *v0, long *v1)
+{
+    *p0 = part.begin;
+    *p1 = part.end + 1;
+    *u0 = part.begin;
+    *u1 = part.end + 1;
+    *v0 = part.begin;
+    *v1 = part.end + 1;
+    if (tid == 0) {
+        ++(*u0);
+    }
+}
 
-/*    [> sizes <]                                                             */
-/*    *size_p = *end_p - *begin_p + 1;                                        */
-/*    *size_u = *end_u - *begin_u + 1;                                        */
-/*}                                                                           */
+/*void expand_indices(struct cell_partition partition,*/
+                    /*long *begin_p, long *end_p,*/
+                    /*long *size_p, long *begin_u, long *end_u, long *size_u)*/
+/*{*/
+    /**begin_p = partition.begin;*/
+    /**end_p = partition.end;    [> end index <]*/
+    /**begin_u = partition.begin;*/
+    /**end_u = partition.end;*/
+
+    /*[> sizes <]*/
+    /**size_p = *end_p - *begin_p + 1;*/
+    /**size_u = *end_u - *begin_u + 1;*/
+    /**size_v = *end_v - *begin_v + 1;*/
+/*}*/
 
 /*void verify_grid_integrity(struct partition partition, int tid,             */
 /*                           long nx, int numworkers, int left)               */
@@ -280,8 +305,8 @@ struct cell_partition *partition_grid(unsigned long total_threads,
 /*    *local_size_u = *local_end_u + 2;                                       */
 /*}                                                                           */
 
-void parse_cmdline(unsigned long *nx,
-                   unsigned long *threads, char *outfile,
+void parse_cmdline(long *nx,
+                   long *threads, char *outfile,
                    int argc, char *argv[])
 {
     int opt;
@@ -317,8 +342,8 @@ int write_to_disk(struct field_variable f, char *fstr)
         perror("Error: can not write to disk");
         return EXIT_FAILURE;
     }
-    for (unsigned long i = 0; i < f.size_x; ++i) {
-        for (unsigned long j = 0; j < f.size_y; ++j) {
+    for (long i = 0; i < f.size_x; ++i) {
+        for (long j = 0; j < f.size_y; ++j) {
             fprintf(fp, "%e\t%e\t%e\n", f.x[i], f.y[j], get_from(f, i, j));
         }
         fprintf(fp, "\n");
