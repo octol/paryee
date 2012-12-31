@@ -113,9 +113,71 @@ struct field init_acoustic_field(long cells_x,
     assert(fabs(v_x[0] - (x[0] + dx / 2.0)) < 1e-14);
     assert(fabs(v_y[0] - y[0]) < 1e-14);
 
+    assert(fabs(p_x[1] - (x[1] - dx / 2.0)) < 1e-14);
+    assert(fabs(p_y[1] - (y[1] - dy / 2.0)) < 1e-14);
+    assert(fabs(u_x[1] - x[1]) < 1e-14);
+    assert(fabs(u_y[1] - (y[1] - dy / 2.0)) < 1e-14);
+    assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
+    assert(fabs(v_y[1] - y[1]) < 1e-14);
+
     set_grid(&f.p, p_x, p_y);
     set_grid(&f.u, u_x, u_y);
     set_grid(&f.v, v_x, v_y);
+
+    assert(fabs(f.p.dx - f.u.dx) < 1e-14);
+    assert(fabs(f.p.dx - f.v.dx) < 1e-14);
+    assert(fabs(f.p.dy - f.u.dy) < 1e-14);
+    assert(fabs(f.p.dy - f.v.dy) < 1e-14);
+
+    apply_func(&f.p, zero2d);
+    apply_func(&f.u, zero2d);
+    apply_func(&f.v, zero2d);
+
+    return f;
+}
+
+struct field init_local_acoustic_field(long cells_x, long cells_y, double x[2], double y[2])
+{
+    struct field f;
+
+    alloc_field(&f.p, cells_x, cells_y + 1); /* differs */
+    alloc_field(&f.u, cells_x + 1, cells_y); 
+    alloc_field(&f.v, cells_x, cells_y + 1);
+
+    double dx = (x[1] - x[0]) / (double) cells_x;
+    double dy = (y[1] - y[0]) / (double) cells_y;
+    double p_x[2] = { x[0] + dx / 2.0, x[1] - dx / 2.0 };
+    double p_y[2] = { y[0] - dy / 2.0, y[1] - dy / 2.0 }; /* differs */
+    double u_x[2] = { x[0], x[1] };
+    double u_y[2] = { y[0] + dy / 2.0, y[1] - dy / 2.0 }; 
+    double v_x[2] = { x[0] + dx / 2.0, x[1] - dx / 2.0 };
+    double v_y[2] = { y[0], y[1] };
+
+    assert(fabs(p_x[0] - (x[0] + dx / 2.0)) < 1e-14);
+    assert(fabs(p_y[0] - (y[0] - dy / 2.0)) < 1e-14);
+    assert(fabs(u_x[0] - x[0]) < 1e-14);
+    assert(fabs(u_y[0] - (y[0] + dy / 2.0)) < 1e-14);
+    assert(fabs(v_x[0] - (x[0] + dx / 2.0)) < 1e-14);
+    assert(fabs(v_y[0] - y[0]) < 1e-14);
+
+    assert(fabs(p_x[1] - (x[1] - dx / 2.0)) < 1e-14);
+    assert(fabs(p_y[1] - (y[1] - dy / 2.0)) < 1e-14);
+    assert(fabs(u_x[1] - x[1]) < 1e-14);
+    assert(fabs(u_y[1] - (y[1] - dy / 2.0)) < 1e-14);
+    assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
+    assert(fabs(v_y[1] - y[1]) < 1e-14);
+
+    set_grid(&f.p, p_x, p_y);
+    set_grid(&f.u, u_x, u_y);
+    set_grid(&f.v, v_x, v_y);
+
+    assert(fabs(f.p.dx - dx) < 1e-14);
+    assert(fabs(f.p.dy - dy) < 1e-14);
+    assert(fabs(f.p.dx - f.u.dx) < 1e-14);
+    assert(fabs(f.p.dx - f.v.dx) < 1e-14);
+    assert(fabs(f.p.dy - f.u.dy) < 1e-14);
+    assert(fabs(f.p.dy - f.v.dy) < 1e-14);
+
     apply_func(&f.p, zero2d);
     apply_func(&f.u, zero2d);
     apply_func(&f.v, zero2d);
@@ -142,6 +204,27 @@ double get_from(struct field_variable fv, long i, long j)
     return fv.value[i + j * fv.size_x];
 }
 
+void set_boundary(struct field *f)
+{
+    long nx, i, j;
+
+    nx = f->v.size_x;
+    j = 0;
+    for (i = 0; i < f->v.size_x; ++i)
+        f->v.value[i + j*nx] = 0;
+    j = f->v.size_y - 1;
+    for (i = 0; i < f->v.size_x; ++i)
+        f->v.value[i + j*nx] = 0;
+
+    nx = f->u.size_x;
+    i = 0;
+    for (j = 0; j < f->u.size_y; ++j)
+        f->u.value[i + j*nx] = 0;
+    i = f->u.size_x - 1;
+    for (j = 0; j < f->u.size_y; ++j)
+        f->u.value[i + j*nx] = 0;
+}
+
 void leapfrog(struct field *f)
 {
     long i, j;
@@ -156,6 +239,13 @@ void leapfrog(struct field *f)
 
     for (i = 0; i < nx; ++i) {
         for (j = 0; j < ny; ++j) {
+
+            /*if (j == 1) {*/
+                /*printf("i=%li:  dt=%e  f.u.dx=%e  f.v.dy=%e  ",i,dt,f->u.dx, f->v.dy);*/
+                /*[>printf("U(i+1,j)=%e  U(i,j)=%e  \n",U(i + 1, j), U(i, j));<]*/
+                /*printf("V(i,j+1)=%e  V(i,j)=%e  \n",V(i, j + 1), V(i, j));*/
+            /*}*/
+
             P(i, j) +=
 #ifdef EXTRA_WORK
                 /* NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
@@ -170,13 +260,29 @@ void leapfrog(struct field *f)
         }
     }
 
-    for (i = 1; i < nx - 1; ++i)
-        for (j = 0; j < ny; ++j)
+    /*for (i = 1; i < nx - 1; ++i) {*/
+    for (i = 1; i < nx; ++i) {
+        for (j = 0; j < ny; ++j) {
+            /*if (i == 3) {*/
+                /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dx);*/
+                /*printf("P(i,j)=%e  P(i - 1,j)=%e  \n",P(i, j), P(i - 1, j));*/
+            /*}*/
             U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
+        }
+    }
 
-    for (i = 0; i < nx; ++i)
-        for (j = 1; j < ny - 1; ++j)
+    for (i = 0; i < nx; ++i) {
+        for (j = 1; j < ny; ++j) {
+
+            /*printf("j=%li\n",j);*/
+            /*if (j == 3) {*/
+                /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dy);*/
+                /*printf("P(i,j)=%e  P(i,j - 1)=%e  \n",P(i, j), P(i, j - 1));*/
+            /*}*/
+
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
+        }
+    }
 }
 
 void timestep_leapfrog(struct field *f, double Nt)
@@ -199,6 +305,8 @@ struct cell_partition *partition_grid(long total_threads,
     for (i = 0; i < total_threads - 1; ++i) {
         partition[i].begin = i * cells_per_thread;
         partition[i].end = (i + 1) * cells_per_thread - 1;
+        partition[i].size = partition[i].end - partition[i].begin + 1;
+        assert(partition[i].size != 0);
     }
 
     /* last cell gets is sometimes smaller to make up for the fact that 
@@ -206,8 +314,23 @@ struct cell_partition *partition_grid(long total_threads,
     i = total_threads - 1;
     partition[i].begin = (i == 0) ? 0 : partition[i - 1].end + 1;
     partition[i].end = cells - 1;
+    partition[i].size = partition[i].end - partition[i].begin + 1;
+    assert(partition[i].size != 0);
 
     return partition;
+}
+
+void get_partition_coords(struct cell_partition part, long left, long right, struct field *f, double *y)
+{
+    long begin = part.begin;
+    long end = part.end + 1;
+    y[0] = f->v.y[begin];
+    y[1] = f->v.y[end];
+    /* Due to the staggered grid we need one half cell to the left (bottom) */
+    /*if (left != NONE)*/
+        /*y[0] -= f->v.dy/2.0;*/
+    /*if (right != NONE)*/
+        /*y[1] += f->v.dy/2.0;*/
 }
 
 void cellindex_to_nodeindex(long tid, struct cell_partition part,
@@ -344,7 +467,7 @@ int write_to_disk(struct field_variable f, char *fstr)
     }
     for (long i = 0; i < f.size_x; ++i) {
         for (long j = 0; j < f.size_y; ++j) {
-            fprintf(fp, "%e\t%e\t%e\n", f.x[i], f.y[j], get_from(f, i, j));
+            fprintf(fp, "%.16e\t%.16e\t%.16e\n", f.x[i], f.y[j], get_from(f, i, j));
         }
         fprintf(fp, "\n");
     }
@@ -359,7 +482,8 @@ double gauss(double x)
 
 double gauss2d(double x, double y)
 {
-    double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);
+    /*double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);*/
+    double r_squared = pow(x - 0.5, 2) + pow(y - 0.5, 2);
     return exp(-r_squared / pow(0.1, 2));
 }
 
@@ -374,6 +498,13 @@ double zero2d(double x, double y)
     (void) x;
     (void) y;
     return 0.0;
+}
+
+double one2d(double x, double y)
+{
+    (void) x;
+    (void) y;
+    return 1.0;
 }
 
 double identity(double x)

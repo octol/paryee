@@ -51,6 +51,10 @@ int main(int argc, char *argv[])
     /* Initialize */
     f = init_acoustic_field(nx, ny, x, y);
     apply_func(&f.p, gauss2d);  /* initial data */
+    /*printf("TEMP: Init velocity also to gauss2d\n");*/
+    /*apply_func(&f.u, gauss2d);      [> initial data <]*/
+    /*apply_func(&f.v, gauss2d);      [> initial data <]*/
+    set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
@@ -59,12 +63,15 @@ int main(int argc, char *argv[])
     /* timestep */
     double tic, toc;
     tic = gettime();
+    /*f.Nt = 1;*/
     timestep_leapfrog(&f, f.Nt);
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
     write_to_disk(f.p, outfile);
+    /*write_to_disk(f.u, outfile);*/
+    /*write_to_disk(f.v, outfile);*/
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

@@ -1,5 +1,5 @@
-N=4
-threads=2
+N=32
+threads=4
 
 HOSTNAME = $(shell hostname)
 SAVEDIR = tests_$(HOSTNAME)

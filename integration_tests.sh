@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # Run integration tests by comparing to single thread reference solution.
 
-N=32
-threads=2
-threads_MPI=3
-limit=1e-8
+N=64
+threads=4
+limit=1e-14
 
-yee_bin="yee_omp yee_pthr"
+yee_bin="yee_omp yee_pthr yee_mpi"
 args="-n $N" 
 
 printf "\n  Integration tests:\n"
@@ -21,7 +20,7 @@ do
     outfile=/tmp/${yb}.tsv
     if [ $yb == "yee_mpi" ]
     then
-        mpirun -n $threads_MPI ./$yb -o $outfile $args 1> /dev/null
+        mpirun -n $threads ./$yb -o $outfile $args 1> /dev/null
     else
         ./$yb -t $threads -o $outfile $args 1> /dev/null
     fi

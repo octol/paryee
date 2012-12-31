@@ -85,7 +85,8 @@ void *thread_main(void *arg)
             }
         }
         for (i = v0; i < v1; ++i) {
-            for (j = 1; j < ny - 1; ++j) {
+            /*for (j = 1; j < ny - 1; ++j) {*/
+            for (j = 1; j < ny; ++j) {
                 V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
             }
         }
@@ -125,6 +126,7 @@ int main(int argc, char *argv[])
     /* Initialize */
     f = init_acoustic_field(nx, ny, x, y);
     apply_func(&f.p, gauss2d);  /* initial data */
+    set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;

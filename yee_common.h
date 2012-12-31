@@ -66,6 +66,7 @@ struct field {
 struct cell_partition {
     long begin;
     long end;
+    long size;
 };
 
 /***************************************************************************
@@ -108,6 +109,15 @@ struct field init_acoustic_field(long cells_x,
                                  long cells_y, double x[2],
                                  double y[2]);
 
+/* 
+ * Allocates field and sets initial value to zero. This variant is for
+ * distributed memory local domains. The difference is we get one more p
+ * node to the left (below). This the generated grid will actually start
+ * dy/2 before y[0].
+ * NOTE: Function not valid for the left most (bottom) partition.
+ */
+struct field init_local_acoustic_field(long cells_x, long cells_y, double x[2], double y[2]);
+
 /*
  * Deallocate field
  */
@@ -120,6 +130,11 @@ double assign_to(struct field_variable fv, long i,
                  long j, double value);
 double get_from(struct field_variable fv, long i,
                 long j);
+
+/*
+ * Sets the outer boundary (u,v) to zero.
+ */
+void set_boundary(struct field *f);
 
 /*
  * Leapfrog update of the field 
@@ -140,6 +155,12 @@ struct cell_partition *partition_grid(long total_threads,
                                       long cells);
 
 /*
+ * Given partition information, get the corresponding domain coordinates.
+ * NOTE: this is for when we divide on the y-axis for the MPI version.
+ */
+void get_partition_coords(struct cell_partition part, long left, long right, struct field *f, double *y);
+
+/*
  * Convert the cell indices that specifies the partition, to node indices
  * that specifies which nodes to update (leapfrog update / time step).
  * Note that the end index is such that the indices <p1, <u1, <v1 are
@@ -153,29 +174,29 @@ void cellindex_to_nodeindex(long tid, struct cell_partition part,
 /* 
  * Expand the partition struct into indices 
  */
-void expand_indices(struct cell_partition partition,
+/*void expand_indices(struct cell_partition partition,
                     long *begin_p, long *end_p,
                     long *size_p, long *begin_u,
-                    long *end_u, long *size_u);
+                    long *end_u, long *size_u);*/
 
 /*
  * Checks that the grid is according to the specs.
  */
-void verify_grid_integrity(struct cell_partition partition, long tid,
+/*void verify_grid_integrity(struct cell_partition partition, long tid,
                            long nx, long numworkers,
-                           long left);
+                           long left);*/
 
 /*
  * Compute the local start/end indices and local array sizes from the
  * partition sizes as well as if the we are on the left boundary.
  */
-void set_local_index(long size_p, long size_u,
+/*void set_local_index(long size_p, long size_u,
                      long left, long *local_begin_p,
                      long *local_end_p,
                      long *local_size_p,
                      long *local_begin_u,
                      long *local_end_u,
-                     long *local_size_u);
+                     long *local_size_u);*/
 
 /*
  * Parse commandline argument and set the number of grid points, * the
@@ -196,6 +217,7 @@ double gauss(double);
 double gauss2d(double x, double y);
 double zero(double x);
 double zero2d(double x, double y);
+double one2d(double x, double y);
 double identity(double);
 double identity2d(double x, double y);
 

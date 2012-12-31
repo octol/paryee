@@ -94,3 +94,48 @@ The communication is
  p[N/M-1]->  <-u[0] p[N/M-1]->  <-u[0]
 
 
+2D GRID AND SIMULATION INFORMATION
+==================================
+
+  v   v   v   v     nx=4
+u p u p u p u p u   ny=4
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+-------------------
+  v   v   v   v     nx=4
+u p u p u p u p u   ny=2
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+ (p) (p) (p) (p)
+
+ (v) (v) (v) (v)
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+-------------------
+  v   v   v   v     nx=4
+u p u p u p u p u   ny=1
+  v   v   v   v
+ (p) (p) (p) (p)
+
+ (v) (v) (v) (v)
+u p u p u p u p u
+  v   v   v   v
+ (p) (p) (p) (p)
+
+ (v) (v) (v) (v)
+u p u p u p u p u
+  v   v   v   v
+ (p) (p) (p) (p)
+
+ (v) (v) (v) (v)
+u p u p u p u p u
+  v   v   v   v
+

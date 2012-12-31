@@ -1,10 +1,14 @@
 TODO
 ====
 
+ * Merge branch
  * Github
- * Optimize MPI (yee_mpi2)
- * Switch to let MPI master do work
-    - Update verify_grid_integrity
+ * Optimize MPI
+ * Update verify_grid_integrity
+ * Remaining disabled unit tests
  * Functions give error codes
  * Change left/right -> top/bottom in MPI code
+ * Performance analysis
+ * Clean up MPI version (more functions)
+ * Grid documentation.
 

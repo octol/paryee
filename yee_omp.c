@@ -57,10 +57,15 @@ int main(int argc, char *argv[])
     /* Initialize */
     f = init_acoustic_field(nx, ny, x, y);
     apply_func(&f.p, gauss2d);  /* initial data */
+    /*printf("TEMP: Init velocity also to gauss2d\n");*/
+    /*apply_func(&f.u, gauss2d);      [> initial data <]*/
+    /*apply_func(&f.v, gauss2d);      [> initial data <]*/
+    set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
     f.Nt = T / f.dt;
+    /*f.Nt = 1;*/
 
     /* Partition the grid */
     part = partition_grid(threads, nx);
@@ -104,12 +109,19 @@ int main(int argc, char *argv[])
 #pragma omp barrier
 
             /* update the velocity (u,v) */
-            for (i = u0; i < u1; ++i)
-                for (j = 0; j < ny; ++j)
+            for (i = u0; i < u1; ++i) {
+                for (j = 0; j < ny; ++j) {
+                    /*if (i == 3) {*/
+                        /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dx);*/
+                        /*printf("P(i,j)=%e  P(i - 1,j)=%e  \n",P(i, j), P(i - 1, j));*/
+                    /*}*/
                     U(i, j) += dt / f.p.dx * (P(i, j) - P(i - 1, j));
+                }
+            }
 
             for (i = v0; i < v1; ++i)
-                for (j = 1; j < ny - 1; ++j)
+                /*for (j = 1; j < ny - 1; ++j)*/
+                for (j = 1; j < ny; ++j)
                     V(i, j) += dt / f.p.dy * (P(i, j) - P(i, j - 1));
 #pragma omp barrier
         }
@@ -120,6 +132,8 @@ int main(int argc, char *argv[])
 
     /* write to disk and free data */
     write_to_disk(f.p, outfile);
+    /*write_to_disk(f.u, outfile);*/
+    /*write_to_disk(f.v, outfile);*/
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

@@ -32,114 +32,104 @@
 
 #define BEGIN 1                 /* message tag */
 #define COLLECT 2               /* message tag */
-#define UTAG 3                  /* communication tag */
-#define PTAG 4                  /* communication tag */
+#define PTAG 3                  /* communication tag */
+#define UTAG 4                  /* communication tag */
+#define VTAG 5                  /* communication tag */
 
-void send_param_data(int taskid, long left, long right, struct cell_partition part)
+void send_grid_data(int taskid, long left, long right, long size, double y[2])
 {
     /* Send out neighbour information */
     MPI_Send(&left, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
     MPI_Send(&right, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
 
     /* Send out partition information */
-    MPI_Send(&part.begin, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
-    MPI_Send(&part.end, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
+    MPI_Send(&size, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
 
-#ifdef DEBUG
-    printf("Sent to task %i:  ", taskid);
-    printf("left=%li  right=%li  ", left, right);
-    printf("begin=%li  end=%li\n", part.begin, part.end);
-#endif
+    /* Send the coordinates of the local partition (domain) */
+    MPI_Send(y, 2, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
 }
 
-
-void receive_param_data(long *left, long *right, long *begin, long *end, MPI_Status *status)
+void receive_grid_data(long *left, long *right, long *size, double *y, MPI_Status *status)
 {
     /* Data on neighbours */
     MPI_Recv(left, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
     MPI_Recv(right, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
 
     /* Partition information */
-    MPI_Recv(begin, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
-    MPI_Recv(end, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
+    MPI_Recv(size, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
+
+    /* Domain coordinates */
+    MPI_Recv(y, 2, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
 }
 
-void send_grid_data(int taskid, struct field *f)
+void send_field_data(long taskid, struct field *f, struct cell_partition part)
 {
-    MPI_Send(&f->p.dx, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
-    /*MPI_Send(&f->u.dx, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->v.dx, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->p.dy, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->u.dy, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->v.dy, 1, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->p.x[0], f->p.size_x, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->u.x[0], f->u.size_x, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->v.x[0], f->v.size_x, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->p.y[begin_yp], size_yp, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->u.y[begin_yu], size_yu, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->v.y[begin_yv], size_yv, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-
-#ifdef DEBUG
-    printf("Sent to task %i:  ", taskid);
-    printf("dx=%f\n", f->p.dx);
-#endif
-}
-
-void receive_grid_data(struct field *f, MPI_Status *status)
-{
-    MPI_Recv(&f->p.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
-    /*MPI_Recv(&f.u.dx, 1, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, &status);*/
-}
-
-/*void send_field_data()*/
-/*{*/
     /* Send out field data.
      * Note that MASTER deals with the taskid=0 special case, i.e., we do
      * not have to worry about it here. */
-    /*long begin = part.begin;    [> for convenience <]*/
-    /*long size = part.end - part.begin;*/
+    long begin = part.begin;    /* for convenience */
+    long size = part.size;
 
-    /*long nx = f->p.size_x;*/
-    /*long ny = f->p.size_y;*/
-    /*long begin_p = begin*nx;*/
-    /*long begin_u = begin*(nx + 1);*/
-    /*long begin_v = begin*nx;*/
-    
-    /*MPI_Send(&f->p.value[begin_p], size, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->u.value[begin_u], size, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
-    /*MPI_Send(&f->v.value[begin_v], size, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);*/
+    long nx = f->p.size_x;
+    long begin_p = 0 + begin*nx;
+    long begin_u = 0 + begin*(nx + 1);
+    long begin_v = 0 + begin*nx;
+    long size_p = size*nx;
+    long size_u = size*(nx + 1);
+    long size_v = size*nx;
 
-    /* Send out grid data. 
-     * This needs to take into consideration that the clients need to
-     * know the grid data for the nodes that they receive data for. */
-    /*long begin_yp = begin - 1;*/
-    /*long begin_yu = begin - 1;*/
-    /*long begin_yv = begin;*/
-    /*long size_yp = size + 1;*/
-    /*long size_yu = size + 1;*/
-    /*long size_yv = size + 1;*/
-
-/*}*/
-
-void receive_field_data()
-{
-    /* Field data */
-    /*MPI_Recv(f->p.value[begin, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);*/
-    /*MPI_Recv(end, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);*/
+    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
+    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
+    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
 }
 
-void collect_data(int taskid, struct cell_partition part, struct field *f, MPI_Status *status)
+void receive_field_data(struct field *f, long left, long right, long size, MPI_Status *status)
+{
+    long nx = f->p.size_x;
+    long begin_p = 0 + 1*nx;
+    long begin_u = 0 + 0*(nx + 1);
+    long begin_v = 0 + 0*nx;
+    long size_p = size*nx;
+    long size_u = size*(nx + 1);
+    long size_v = size*nx;
+
+    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
+}
+
+void return_data(struct field *f, long left, long right, long size)
+{
+    long nx = f->p.size_x;
+    long begin_p = 0 + 1*nx;
+    long begin_u = 0 + 0*(nx + 1);
+    long begin_v = 0 + 0*nx;
+    long size_p = size*nx;
+    long size_u = size*(nx + 1);
+    long size_v = size*nx;
+
+    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
+    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
+    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
+}
+
+
+void collect_data(long taskid, struct cell_partition part, struct field *f, MPI_Status *status)
 {
     long begin = part.begin;    /* for convenience */
-    long size = part.end - part.begin;
+    long size = part.size;
 
-    MPI_Recv(&f->p.value[begin], size, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->u.value[begin], size, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->v.value[begin], size, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
+    long nx = f->p.size_x;
+    long begin_p = 0 + begin*nx;
+    long begin_u = 0 + begin*(nx + 1);
+    long begin_v = 0 + begin*nx;
+    long size_p = size*nx;
+    long size_u = size*(nx + 1);
+    long size_v = size*nx;
 
-#ifdef DEBUG
-    printf("Results collected from task %d\n", taskid);
-#endif
+    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
 }
 
 /* 
@@ -156,13 +146,10 @@ int main(int argc, char *argv[])
     long nx = 32;
     long ny = 32;
     char outfile[STR_SIZE] = "yee_mpi.tsv";
-    long left = 0;
-    long right = 0;
 
     /* Parse parameters from commandline */
     parse_cmdline(&nx, NULL, outfile, argc, argv);
     ny = nx;                    /* square domain */
-    printf("Domain: %li x %li\n", nx, ny);
 
     /* Setup MPI and initialize variables */
     MPI_Status status;
@@ -186,12 +173,14 @@ int main(int argc, char *argv[])
         /********************* Master code *********************/
         /* MASTER deals with the setting up, sending out, receiving the result,
          * writing to disk. 
-         * It also deals with the bottom partition. */
+         * It also deals with the bottom partition (first partition). */
         
         /* Initialize */
+        printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
         f = init_acoustic_field(nx, ny, x, y);
         apply_func(&f.p, gauss2d);      /* initial data */
+        set_boundary(&f);
 
         /* Compute partition, neighbours and then send out data to the
          * workers */
@@ -199,143 +188,203 @@ int main(int argc, char *argv[])
         part = partition_grid(numtasks, ny);
 
         for (long taskid = 1; taskid < numtasks; ++taskid) {
-            /* compute neighbours */
-            left = taskid - 1;
-            right = (taskid == numtasks - 1) ? NONE : taskid + 1;
+            /* Compute neighbours */
+            long left = taskid - 1;
+            long right = (taskid == numtasks - 1) ? NONE : taskid + 1;
 
-            /* send out data to the other workers / computational nodes */
-            send_param_data(taskid, left, right, part[taskid]);
-            send_grid_data(taskid, &f);
-            /*send_field_data();*/
+            /* Compute (start/end) coordinates of the partition */
+            double y_part[2];
+            get_partition_coords(part[taskid], left, right, &f, y_part);
+
+            /* Send out data to the other workers / computational nodes */
+            /* We send the number of inner cells (size) */
+            send_grid_data(taskid, left, right, part[taskid].size, y_part);
+            send_field_data(taskid, &f, part[taskid]);
         }
 
+        /*
+         * Time stepping section
+         */
+        /* Time step on the leftmost partition.  */
+        long left = NONE;
+        long right = (numtasks > 1) ? 1 : NONE;
+        long size = part[0].size;
+
+        /* Depends on the numerical variables initialized above */
+        /* CFL condition is: c*dt/dx = cfl <= 1 */
+        f.dt = cfl * f.p.dx / c;
+        f.Nt = T / f.dt;
+        double dt = f.dt;
+
+        /* used by index macro */
+        double *p = f.p.value;
+        double *u = f.u.value;
+        double *v = f.v.value;
+
         /* timing */
-        /*double tic, toc;*/
-        /*tic = gettime();*/
+        double tic, toc;
+        tic = gettime();
 
-        /*[> Compute on the leftmost partition.  <]*/
+        long i, j;
+        /*f.Nt = 1;*/
+        for (long n = 0; n < f.Nt; ++n) {
 
-        /*[> Wait for returning data from the workers <]*/
-        /*for (long taskid = 1; taskid < numtasks; ++taskid) {*/
-            /*collect_data(taskid, part[taskid], &f, &status);*/
-        /*}*/
+            /* Communicate */
+            /* receive v from the right (top) */
+            if (right != NONE) {
+                long begin_v = 0 + size*nx;
+                long size_v = 1*nx;
+                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG, MPI_COMM_WORLD, &status);
+            }
 
-        /*toc = gettime();*/
-        /*printf("Elapsed: %f seconds\n", toc - tic);*/
+            /* update the pressure (p) */
+            /*printf("Master: updating p\n");*/
+            for (i = 0; i < nx; ++i) {
+                for (j = part[taskid].begin; j < part[taskid].end + 1; ++j) {
+                    P(i, j) +=
+                        dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
+                        dt / f.v.dy * (V(i, j + 1) - V(i, j));
+                }
+            }
 
-        sleep(2);
+            /* Communicate */
+            /* send p to the right (top) */
+            if (right != NONE) {
+                long begin_p = 0 + (size - 1)*nx; /* since we don't have extra ghost p */
+                long size_p = 1*nx;
+                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG, MPI_COMM_WORLD);
+            }
+
+            /* update the velocity (u,v) */
+            for (i = 1; i < nx; ++i)
+                for (j = part[taskid].begin; j < part[taskid].end + 1; ++j)
+                    U(i, j) += dt / f.p.dx * (P(i, j) - P(i - 1, j));
+
+            for (i = 0; i < nx; ++i)
+                for (j = 1; j < part[taskid].end + 1; ++j)
+                    V(i, j) += dt / f.p.dy * (P(i, j) - P(i, j - 1));
+        }
+
+        /*
+         * End time stepping section
+         */
+
+        /* Wait for returning data from the workers */
+        for (long taskid = 1; taskid < numtasks; ++taskid)
+            collect_data(taskid, part[taskid], &f, &status);
+
+        toc = gettime();
+        printf("Elapsed: %f seconds\n", toc - tic);
 
         write_to_disk(f.p, outfile);
+        /*write_to_disk(f.u, outfile);*/
+        /*write_to_disk(f.v, outfile);*/
         free(part);
         free_acoustic_field(f);
         MPI_Finalize();
 
     } else {
         /********************* Worker code *********************/
-        /*part = malloc(sizeof(struct cell_partition));*/
-        /*if (!part) {*/
-            /*fprintf(stderr, "Memory allocation failed\n");*/
-            /*exit(EXIT_FAILURE);*/
-        /*}*/
-
-        /* Receive grid and node parameters from master */
+        /* Receives grid and node parameters from master */
 
         /* Partition data */
-        long begin, end;
-        receive_param_data(&left, &right, &begin, &end, &status);
-        long size = end - begin;
+        long left, right, size;
+        double y_part[2];
+        receive_grid_data(&left, &right, &size, y_part, &status);
 
 #ifdef DEBUG
         printf("Task %i received:  ", taskid);
         printf("left=%li  right=%li  ", left, right);
-        printf("begin=%li  end=%li\n", begin, end);
+        printf("size=%li  ", size);
+        printf("y[0]=%.2f  y[1]=%.2f  ", y_part[0], y_part[1]);
+        printf("\n");
 #endif
 
-        receive_grid_data(&f, &status);
+        /* Allocate and receive the local copy of the field */
+        f = init_local_acoustic_field(nx, size, x, y_part);
+        receive_field_data(&f, left, right, size, &status);
 
-        /* Given the partition data we compute the corresponding local array
-         * indices in the array that is expanded to also contain the
-         * neighbouring points needed to update. */
-        /*long begin_p = 1*nx;*/
-        /*long begin_u = 0*(nx+1);*/
-        /*long begin_v = 1*nx;*/
-        /*long size_p = (size + 1)*nx;*/
-        /*long size_u = (size + 1)*nx;*/
-        /*long size_v = (size + 1)*nx;*/
+        /* Set out v to zero for the rightmost (top) partition. */
+        if (right == NONE) {
+            long j = size;
+            long nx = f.p.size_x;
+            double *v = f.v.value;
+            for (long i = 0; i < nx; ++i) {
+                V(i, j) = 0;
+            }
+        }
 
-/*#ifdef DEBUG*/
-        /*printf("taskid=%i:", taskid);*/
-        /*printf("begin_p=%li  begin_u=%li  begin_v=%li  ", begin_p, begin_u, begin_v);*/
-        /*printf("size_p=%li  size_u=%li  size_v=%li  ", size_p, size_u, size_v);*/
-/*#endif*/
+        /* Depends on the numerical variables initialized above */
+        /* CFL condition is: c*dt/dx = cfl <= 1 */
+        f.dt = cfl * f.p.dx / c;
+        f.Nt = T / f.dt;
 
-        /* Now that we have the grid info we can setup the data structures
-         * containing the field. */
-        /*alloc_field(&f.p, lsp);*/
-        /*alloc_field(&f.u, lsu);*/
-        /*apply_func(&f.p, zero); [> set everything to zero <]*/
-        /*apply_func(&f.u, zero); [> set everything to zero <]*/
+        /* Time step */
+        long i, j;
+        long nx = f.p.size_x;
+        double dt = f.dt;
 
-        /*[> Field data <]*/
-        /*[> NOTE: we only recieve sp/su number of values, not lsp/lsu. <]*/
-        /*MPI_Recv(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, &status);*/
-        /*MPI_Recv(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, &status);*/
-        /*[> Grid data <]*/
-        /*MPI_Recv(&f.p.x[lbp], sp, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, &status);*/
-        /*MPI_Recv(&f.u.x[lbu], su, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, &status);*/
-/*#ifdef DEBUG*/
-        /*printf("Task=%d received:  left=%ld  right=%ld", taskid, left, right);*/
-        /*printf("  bp=%ld  ep=%ld", bp, ep);*/
-        /*printf("  bu=%ld  eu=%ld\n", bu, eu);*/
-/*#endif*/
+        /* used by index macro */
+        double *p = f.p.value;
+        double *u = f.u.value;
+        double *v = f.v.value;
 
-        /*[> Depends on the numerical variables initialized above <]*/
-        /*[> CFL condition is: c*dt/dx = cfl <= 1 <]*/
-        /*f.dt = cfl * f.p.dx / c;*/
-        /*f.Nt = T / f.dt;*/
+        /*f.Nt = 1;*/
+        for (long n = 0; n < f.Nt; ++n) {
+            /*printf("Worker %i: %li\n", taskid, n);*/
+            /* Communicate */
+            /* send v to the left (bottom) */
+            /* receive v from the right (top) */
+            if (left != NONE) {
+                long begin_v = 0 + 0*nx;
+                long size_v = 1*nx;
+                MPI_Send(&f.v.value[begin_v], size_v, MPI_DOUBLE, left, VTAG, MPI_COMM_WORLD);
+            }
+            if (right != NONE) {
+                long begin_v = 0 + size*nx;
+                long size_v = 1*nx;
+                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG, MPI_COMM_WORLD, &status);
+            }
 
-        /*long i;*/
-        /*for (long n = 0; n < f.Nt; ++n) {*/
-            /*[> Communicate <]*/
-            /*[> send u to the left <]*/
-            /*[> receive u from the right <]*/
-            /*if (left != NONE) {*/
-                /*MPI_Send(&f.u.value[lbu], 1, MPI_DOUBLE, left, UTAG, MPI_COMM_WORLD);*/
-            /*}*/
-            /*if (right != NONE) {*/
-                /*MPI_Recv(&f.u.value[leu + 1], 1, MPI_DOUBLE, right, UTAG, MPI_COMM_WORLD, &status);*/
-            /*}*/
+            /* update the pressure (p) */
+            for (i = 0; i < nx; ++i) {
+                for (j = 0; j < size; ++j) {
+                    P(i, j + 1) +=
+                        dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
+                        dt / f.v.dy * (V(i, j + 1) - V(i, j));
+                }
+            }
 
-            /*[> update the pressure (p) <]*/
-            /*[>update_field_s(&f.p, lbp, sp, &f.u, 0, f.dt); <]*/
-            /*for (i = lbp; i <= lbp + sp - 1; ++i)*/
-                /*f.p.value[i] += f.dt / f.p.dx*/
-                    /** (f.u.value[i + 1 - lbp] - f.u.value[i - lbp]);*/
+            /* Communicate */
+            /* receive p from the left */
+            /* send p to the right */
+            if (left != NONE) {
+                long begin_p = 0 + 0*nx;
+                long size_p = 1*nx;
+                MPI_Recv(&f.p.value[begin_p], size_p, MPI_DOUBLE, left, PTAG, MPI_COMM_WORLD, &status);
+            }
+            if (right != NONE) {
+                long begin_p = 0 + size*nx;
+                long size_p = 1*nx;
+                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG, MPI_COMM_WORLD);
+            }
 
-            /*[> Communicate <]*/
-            /*[> receive p from the left <]*/
-            /*[> send p to the right <]*/
-            /*if (left != NONE) {*/
-                /*MPI_Recv(&f.p.value[lbp - 1], 1, MPI_DOUBLE, left, PTAG, MPI_COMM_WORLD, &status);*/
-            /*}*/
-            /*if (right != NONE) {*/
-                /*MPI_Send(&f.p.value[lep], 1, MPI_DOUBLE, right, PTAG, MPI_COMM_WORLD);*/
-            /*}*/
+            /* update the velocity (u) */
+            for (i = 1; i < nx; ++i)
+                for (j = 0; j < size; ++j)
+                    U(i, j) += dt / f.p.dx * (P(i, j + 1) - P(i - 1, j + 1));
 
-            /*[> update the velocity (u) <]*/
-            /*[>update_field_s(&f.u, lbu, su, &f.p, 0, f.dt); <]*/
-            /*for (i = lbu; i <= lbu + su - 1; ++i)*/
-                /*f.u.value[i] += f.dt / f.p.dx*/
-                    /** (f.p.value[i - lbu + 1] - f.p.value[i - lbu]);*/
-        /*}*/
+            /*printf("worker %i: updating v\n",taskid);*/
+            for (i = 0; i < nx; ++i)
+                for (j = 0; j < size; ++j)
+                    V(i, j) += dt / f.p.dy * (P(i, j + 1) - P(i, j));
+        }
 
-        /*[> Send back data to master <]*/
-        /*MPI_Send(&f.p.value[lbp], sp, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);*/
-        /*MPI_Send(&f.u.value[lbu], su, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);*/
+        /* Send back data to master */
+        return_data(&f, left, right, size);
 
         /* Remember to deallocate */
-        /*free(part);*/
-        /*free_acoustic_field(f);*/
+        free_acoustic_field(f);
 
         MPI_Finalize();
     }
