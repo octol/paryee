@@ -12,6 +12,8 @@ pressure and (u,v) are the x- and y-components of the velocity field.
 
 Both shared and distributed memory implementations are included.
 
+For some figures, see: https://github.com/octol/paryee/wiki/Figures
+
 GRID AND SIMULATION INFORMATION
 ===============================
 
