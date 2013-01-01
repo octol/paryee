@@ -158,7 +158,7 @@ struct cell_partition *partition_grid(long total_threads,
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct cell_partition part, long left, long right, struct field *f, double *y);
+void get_partition_coords(struct cell_partition part, struct field *f, double *y);
 
 /*
  * Convert the cell indices that specifies the partition, to node indices

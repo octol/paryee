@@ -83,7 +83,7 @@ void send_field_data(long taskid, struct field *f, struct cell_partition part)
     MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
 }
 
-void receive_field_data(struct field *f, long left, long right, long size, MPI_Status *status)
+void receive_field_data(struct field *f, long size, MPI_Status *status)
 {
     long nx = f->p.size_x;
     long begin_p = 0 + 1*nx;
@@ -98,7 +98,7 @@ void receive_field_data(struct field *f, long left, long right, long size, MPI_S
     MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
 }
 
-void return_data(struct field *f, long left, long right, long size)
+void return_data(struct field *f, long size)
 {
     long nx = f->p.size_x;
     long begin_p = 0 + 1*nx;
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 
             /* Compute (start/end) coordinates of the partition */
             double y_part[2];
-            get_partition_coords(part[taskid], left, right, &f, y_part);
+            get_partition_coords(part[taskid], &f, y_part);
 
             /* Send out data to the other workers / computational nodes */
             /* We send the number of inner cells (size) */
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
          * Time stepping section
          */
         /* Time step on the leftmost partition.  */
-        long left = NONE;
+        /*long left = NONE;*/
         long right = (numtasks > 1) ? 1 : NONE;
         long size = part[0].size;
 
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 
         /* Allocate and receive the local copy of the field */
         f = init_local_acoustic_field(nx, size, x, y_part);
-        receive_field_data(&f, left, right, size, &status);
+        receive_field_data(&f, size, &status);
 
         /* Set out v to zero for the rightmost (top) partition. */
         if (right == NONE) {
@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
         }
 
         /* Send back data to master */
-        return_data(&f, left, right, size);
+        return_data(&f, size);
 
         /* Remember to deallocate */
         free_acoustic_field(f);

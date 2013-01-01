@@ -508,167 +508,68 @@ void test_get_partition_coords(void)
     double x[] = { 0, 1 };
     double y[] = { 0, 1 };
     double y_part[2];
-    long threads, n, left, right;
+    long threads, n;
     struct field f;
     struct cell_partition *part;
-    double dy;
 
     n = 4;
     threads = 1;
-    left = NONE;
-    right = NONE;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[0], left, right, &f, y_part);
+    get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
     free_acoustic_field(f);
 
     n = 4;
     threads = 2;
-    left = NONE;
-    right = 1;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[0], left, right, &f, y_part);
+    get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.5, TOL);
     free_acoustic_field(f);
 
     n = 4;
     threads = 2;
-    left = 0;
-    right = NONE;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[1], left, right, &f, y_part);
+    get_partition_coords(part[1], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.5, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
     free_acoustic_field(f);
 
     n = 4;
     threads = 4;
-    left = NONE;
-    right = 1;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[0], left, right, &f, y_part);
+    get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.25, TOL);
     free_acoustic_field(f);
 
-    left = 0;
-    right = 2;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[1], left, right, &f, y_part);
+    get_partition_coords(part[1], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.25, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.5, TOL);
     free_acoustic_field(f);
 
-    left = 1;
-    right = 3;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[2], left, right, &f, y_part);
+    get_partition_coords(part[2], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.5, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.75, TOL);
     free_acoustic_field(f);
 
-    left = 2;
-    right = NONE;
     f = init_acoustic_field(n, n, x, y);
-    dy = f.v.dy;
     part = partition_grid(threads, n);
-    get_partition_coords(part[3], left, right, &f, y_part);
+    get_partition_coords(part[3], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.75, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
     free_acoustic_field(f);
 }
 
-/*[> void expand_indices(struct partition partition, long *begin_p, long *end_p,<]        */
-/*[>         long *size_p, long *begin_u, long *end_u, long *size_u);           <]        */
-/*void test_expand_indices(void)                                                          */
-/*{                                                                                       */
-/*    long cells = 8;                                                                     */
-/*    struct partition part;                                                              */
-/*    long bp, ep, sp, bu, eu, su;                                                        */
-
-/*    part = partition_grid(0, cells);                                                    */
-/*    expand_indices(part, &bp, &ep, &sp, &bu, &eu, &su);                                 */
-/*    CU_ASSERT(bp == 0);                                                                 */
-/*    CU_ASSERT(ep == 7);                                                                 */
-/*    CU_ASSERT(sp == 8);                                                                 */
-/*    CU_ASSERT(bu == 1);                                                                 */
-/*    CU_ASSERT(eu == 7);                                                                 */
-/*    CU_ASSERT(su == 7);                                                                 */
-
-/*    part = partition_grid(0, cells / 2);                                                */
-/*    expand_indices(part, &bp, &ep, &sp, &bu, &eu, &su);                                 */
-/*    CU_ASSERT(bp == 0);                                                                 */
-/*    CU_ASSERT(ep == 3);                                                                 */
-/*    CU_ASSERT(sp == 4);                                                                 */
-/*    CU_ASSERT(bu == 1);                                                                 */
-/*    CU_ASSERT(eu == 3);                                                                 */
-/*    CU_ASSERT(su == 3);                                                                 */
-
-/*    part = partition_grid(0, cells / 4);                                                */
-/*    expand_indices(part, &bp, &ep, &sp, &bu, &eu, &su);                                 */
-/*    CU_ASSERT(bp == 0);                                                                 */
-/*    CU_ASSERT(ep == 1);                                                                 */
-/*    CU_ASSERT(sp == 2);                                                                 */
-/*    CU_ASSERT(bu == 1);                                                                 */
-/*    CU_ASSERT(eu == 1);                                                                 */
-/*    CU_ASSERT(su == 1);                                                                 */
-/*}                                                                                       */
-
-/*[> void verify_grid_integrity(struct partition partition, int tid, long nx, int<]       */
-/*[>         numworkers, int left);                                              <]       */
-/*void test_verify_grid(void)                                                             */
-/*{                                                                                       */
-/*    struct partition part;                                                              */
-/*    part = partition_grid(0, 8);                                                        */
-/*    verify_grid_integrity(part, 0, 8, 1, NONE);                                         */
-/*    part = partition_grid(0, 4);                                                        */
-/*    verify_grid_integrity(part, 0, 4, 1, NONE);                                         */
-/*    part = partition_grid(1, 4);                                                        */
-/*    verify_grid_integrity(part, 1, 4, 2, 0);                                            */
-/*}                                                                                       */
-
-/*[> void set_local_index(long size_p, long size_u, long left, long *local_begin_p,<]     */
-/*[>         long *local_end_p, long *local_size_p, long *local_begin_u, long      <]     */
-/*[>         *local_end_u, long *local_size_u);                                    <]     */
-/*void test_set_local_index(void)                                                         */
-/*{                                                                                       */
-/*    long local_begin_p;                                                                 */
-/*    long local_end_p;                                                                   */
-/*    long local_size_p;                                                                  */
-/*    long local_begin_u;                                                                 */
-/*    long local_end_u;                                                                   */
-/*    long local_size_u;                                                                  */
-
-/*    long size_p = 4;                                                                    */
-/*    long size_u = 3;                                                                    */
-/*    long left = NONE;                                                                   */
-/*    set_local_index(size_p, size_u, left, &local_begin_p, &local_end_p,                 */
-/*                    &local_size_p, &local_begin_u, &local_end_u,                        */
-/*                    &local_size_u);                                                     */
-/*    CU_ASSERT(local_begin_p == 1);                                                      */
-/*    CU_ASSERT(local_end_p == 4);                                                        */
-/*    CU_ASSERT(local_size_p == 5);                                                       */
-/*    CU_ASSERT(local_begin_u == 0);                                                      */
-/*    CU_ASSERT(local_end_u == 2);                                                        */
-/*    CU_ASSERT(local_size_u == 4);                                                       */
-/*}                                                                                       */
-
-/* void parse_cmdline(long *nx, long *threads, char *outfile_p, char *outfile_u,*/
-/*         int argc, char *argv[]);                                             */
 void test_parse_cmdline(void)
 {
     long nx = 0;

@@ -320,7 +320,7 @@ struct cell_partition *partition_grid(long total_threads,
     return partition;
 }
 
-void get_partition_coords(struct cell_partition part, long left, long right, struct field *f, double *y)
+void get_partition_coords(struct cell_partition part, struct field *f, double *y)
 {
     long begin = part.begin;
     long end = part.end + 1;
