@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <unistd.h>             // sleep
 
 #include "mpi.h"
 
@@ -148,6 +147,116 @@ void collect_data(long taskid, struct cell_partition part, struct field *f,
              MPI_COMM_WORLD, status);
 }
 
+void leapfrog_master(struct field *f, long right, long size,
+                     struct cell_partition part)
+{
+    MPI_Status status;
+
+    /* used by index macro */
+    double *p = f->p.value;
+    double *u = f->u.value;
+    double *v = f->v.value;
+    long nx = f->p.size_x;
+
+    /* Communicate */
+    /* receive v from the right (top) */
+    if (right != NONE) {
+        long begin_v = 0 + size * nx;
+        long size_v = 1 * nx;
+        MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG,
+                 MPI_COMM_WORLD, &status);
+    }
+
+    /* update the pressure (p) */
+    /*printf("Master: updating p\n"); */
+    for (long i = 0; i < nx; ++i) {
+        for (long j = part.begin; j < part.end + 1; ++j) {
+            P(i, j) +=
+                f->dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
+                f->dt / f->v.dy * (V(i, j + 1) - V(i, j));
+        }
+    }
+
+    /* Communicate */
+    /* send p to the right (top) */
+    if (right != NONE) {
+        long begin_p = 0 + (size - 1) * nx;     /* since we don't have extra ghost p */
+        long size_p = 1 * nx;
+        MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG,
+                 MPI_COMM_WORLD);
+    }
+
+    /* update the velocity (u,v) */
+    for (long i = 1; i < nx; ++i)
+        for (long j = part.begin; j < part.end + 1; ++j)
+            U(i, j) += f->dt / f->p.dx * (P(i, j) - P(i - 1, j));
+
+    for (long i = 0; i < nx; ++i)
+        for (long j = 1; j < part.end + 1; ++j)
+            V(i, j) += f->dt / f->p.dy * (P(i, j) - P(i, j - 1));
+}
+
+void leapfrog_worker(struct field *f, long left, long right, long size)
+{
+    MPI_Status status;
+
+    /* used by index macro */
+    long nx = f->p.size_x;
+    double *p = f->p.value;
+    double *u = f->u.value;
+    double *v = f->v.value;
+
+    /* Communicate */
+    /* send v to the left (bottom) */
+    /* receive v from the right (top) */
+    if (left != NONE) {
+        long begin_v = 0 + 0 * nx;
+        long size_v = 1 * nx;
+        MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, left, VTAG,
+                 MPI_COMM_WORLD);
+    }
+    if (right != NONE) {
+        long begin_v = 0 + size * nx;
+        long size_v = 1 * nx;
+        MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG,
+                 MPI_COMM_WORLD, &status);
+    }
+
+    /* update the pressure (p) */
+    for (long i = 0; i < nx; ++i) {
+        for (long j = 0; j < size; ++j) {
+            P(i, j + 1) +=
+                f->dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
+                f->dt / f->v.dy * (V(i, j + 1) - V(i, j));
+        }
+    }
+
+    /* Communicate */
+    /* receive p from the left */
+    /* send p to the right */
+    if (left != NONE) {
+        long begin_p = 0 + 0 * nx;
+        long size_p = 1 * nx;
+        MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, left, PTAG,
+                 MPI_COMM_WORLD, &status);
+    }
+    if (right != NONE) {
+        long begin_p = 0 + size * nx;
+        long size_p = 1 * nx;
+        MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG,
+                 MPI_COMM_WORLD);
+    }
+
+    /* update the velocity (u) */
+    for (long i = 1; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            U(i, j) += f->dt / f->p.dx * (P(i, j + 1) - P(i - 1, j + 1));
+
+    for (long i = 0; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            V(i, j) += f->dt / f->p.dy * (P(i, j + 1) - P(i, j));
+}
+
 /* 
  * Main program 
  */
@@ -198,11 +307,19 @@ int main(int argc, char *argv[])
         apply_func(&f.p, gauss2d);      /* initial data */
         set_boundary(&f);
 
-        /* Compute partition, neighbours and then send out data to the
-         * workers */
-        /* NOTE: partitioning across ny! (not nx) */
+        /* Depends on the numerical variables initialized above */
+        /* CFL condition is: c*dt/dx = cfl <= 1 */
+        f.dt = cfl * f.p.dx / c;
+        f.Nt = T / f.dt;
+
+        /* Compute partition. NOTE: partitioning across ny! (not nx) */
         part = partition_grid(numtasks, ny);
 
+        /* Timing */
+        double tic, toc;
+        tic = gettime();
+
+        /* Send out data to the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid) {
             /* Compute neighbours */
             long left = taskid - 1;
@@ -218,73 +335,12 @@ int main(int argc, char *argv[])
             send_field_data(taskid, &f, part[taskid]);
         }
 
-        /*
-         * Time stepping section
-         */
+        /* The worker to the right of master */
+        long right = (numtasks > 1) ? 1 : NONE;
 
         /* Time step on the leftmost partition.  */
-        /*long left = NONE; */
-        long right = (numtasks > 1) ? 1 : NONE;
-        long size = part[0].size;
-
-        /* Depends on the numerical variables initialized above */
-        /* CFL condition is: c*dt/dx = cfl <= 1 */
-        f.dt = cfl * f.p.dx / c;
-        f.Nt = T / f.dt;
-
-        /* used by index macro */
-        double *p = f.p.value;
-        double *u = f.u.value;
-        double *v = f.v.value;
-
-        /* timing */
-        double tic, toc;
-        tic = gettime();
-
-        long i, j;
-        for (long n = 0; n < f.Nt; ++n) {
-
-            /* Communicate */
-            /* receive v from the right (top) */
-            if (right != NONE) {
-                long begin_v = 0 + size * nx;
-                long size_v = 1 * nx;
-                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right,
-                         VTAG, MPI_COMM_WORLD, &status);
-            }
-
-            /* update the pressure (p) */
-            /*printf("Master: updating p\n"); */
-            for (i = 0; i < nx; ++i) {
-                for (j = part[taskid].begin; j < part[taskid].end + 1; ++j) {
-                    P(i, j) +=
-                        f.dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
-                        f.dt / f.v.dy * (V(i, j + 1) - V(i, j));
-                }
-            }
-
-            /* Communicate */
-            /* send p to the right (top) */
-            if (right != NONE) {
-                long begin_p = 0 + (size - 1) * nx;     /* since we don't have extra ghost p */
-                long size_p = 1 * nx;
-                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right,
-                         PTAG, MPI_COMM_WORLD);
-            }
-
-            /* update the velocity (u,v) */
-            for (i = 1; i < nx; ++i)
-                for (j = part[taskid].begin; j < part[taskid].end + 1; ++j)
-                    U(i, j) += f.dt / f.p.dx * (P(i, j) - P(i - 1, j));
-
-            for (i = 0; i < nx; ++i)
-                for (j = 1; j < part[taskid].end + 1; ++j)
-                    V(i, j) += f.dt / f.p.dy * (P(i, j) - P(i, j - 1));
-        }
-
-        /*
-         * End time stepping section
-         */
+        for (long n = 0; n < f.Nt; ++n)
+            leapfrog_master(&f, right, part[0].size, part[taskid]);
 
         /* Wait for returning data from the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid)
@@ -307,95 +363,25 @@ int main(int argc, char *argv[])
         double y_part[2];
         receive_grid_data(&left, &right, &size, y_part, &status);
 
-#ifdef DEBUG
-        printf("Task %i received:  ", taskid);
-        printf("left=%li  right=%li  ", left, right);
-        printf("size=%li  ", size);
-        printf("y[0]=%.2f  y[1]=%.2f  ", y_part[0], y_part[1]);
-        printf("\n");
-#endif
-
         /* Allocate and receive the local copy of the field */
         f = init_local_acoustic_field(nx, size, x, y_part);
         receive_field_data(&f, size, &status);
-
-        /* Set out v to zero for the rightmost (top) partition. */
-        if (right == NONE) {
-            long j = size;
-            long nx = f.p.size_x;
-            double *v = f.v.value;
-            for (long i = 0; i < nx; ++i) {
-                V(i, j) = 0;
-            }
-        }
 
         /* Depends on the numerical variables initialized above */
         /* CFL condition is: c*dt/dx = cfl <= 1 */
         f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
 
-        /* used by index macro */
-        long nx = f.p.size_x;
-        double *p = f.p.value;
-        double *u = f.u.value;
-        double *v = f.v.value;
+        /* Set out v to zero for the rightmost (top) partition. */
+        if (right == NONE) {
+            long j = size;
+            for (long i = 0; i < nx; ++i)
+                assign_to(f.v, i, j, 0);
+        }
 
         /* Time step */
-        long i, j;
-        for (long n = 0; n < f.Nt; ++n) {
-            /*printf("Worker %i: %li\n", taskid, n); */
-            /* Communicate */
-            /* send v to the left (bottom) */
-            /* receive v from the right (top) */
-            if (left != NONE) {
-                long begin_v = 0 + 0 * nx;
-                long size_v = 1 * nx;
-                MPI_Send(&f.v.value[begin_v], size_v, MPI_DOUBLE, left,
-                         VTAG, MPI_COMM_WORLD);
-            }
-            if (right != NONE) {
-                long begin_v = 0 + size * nx;
-                long size_v = 1 * nx;
-                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right,
-                         VTAG, MPI_COMM_WORLD, &status);
-            }
-
-            /* update the pressure (p) */
-            for (i = 0; i < nx; ++i) {
-                for (j = 0; j < size; ++j) {
-                    P(i, j + 1) +=
-                        f.dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
-                        f.dt / f.v.dy * (V(i, j + 1) - V(i, j));
-                }
-            }
-
-            /* Communicate */
-            /* receive p from the left */
-            /* send p to the right */
-            if (left != NONE) {
-                long begin_p = 0 + 0 * nx;
-                long size_p = 1 * nx;
-                MPI_Recv(&f.p.value[begin_p], size_p, MPI_DOUBLE, left,
-                         PTAG, MPI_COMM_WORLD, &status);
-            }
-            if (right != NONE) {
-                long begin_p = 0 + size * nx;
-                long size_p = 1 * nx;
-                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right,
-                         PTAG, MPI_COMM_WORLD);
-            }
-
-            /* update the velocity (u) */
-            for (i = 1; i < nx; ++i)
-                for (j = 0; j < size; ++j)
-                    U(i, j) +=
-                        f.dt / f.p.dx * (P(i, j + 1) - P(i - 1, j + 1));
-
-            /*printf("worker %i: updating v\n",taskid); */
-            for (i = 0; i < nx; ++i)
-                for (j = 0; j < size; ++j)
-                    V(i, j) += f.dt / f.p.dy * (P(i, j + 1) - P(i, j));
-        }
+        for (long n = 0; n < f.Nt; ++n)
+            leapfrog_worker(&f, left, right, size);
 
         /* Send back data to master */
         return_data(&f, size);
