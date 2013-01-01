@@ -35,7 +35,7 @@ The number of cells in each coordinate direction is denoted by nx and ny. We
 note that we have nx+1 number of u points along the x-axis, and ny+1 number of
 v points along the y-axis. 
 
-The field points are grouped such that each cell consisists of a single p, u
+The field points are grouped such that each cell consists of a single p, u
 and v value, where the u and v value is located just before the p points along
 its respective axis. 
 
@@ -46,7 +46,7 @@ Thus for the cell indexed by (i,j), we have the coordinates
  v: x = (i + 1/2)*dx, y = j*dy.
 
 The last u points on the x-axis and the last v points on
-y-axis are treated as auxilliary points. This does not present a practical
+y-axis are treated as auxiliary points. This does not present a practical
 problem as these are boundary cells anyway, which are not updated.
 
 The outer boundary is set to u=0 at x=0 and x=L, and v=0 at y=0 and y=L. Thus
@@ -88,8 +88,8 @@ u p    u p    u p    u p u
 PARTITION OF GRID (DISTRIBUTED MEMORY)
 ======================================
 
-Note that the points surrounded by a parenthesis the examples below are ghost
-points that needs to be sent between the computational nodes.
+Note that the points surrounded by a parenthesis in the examples below are
+ghost points that needs to be sent between the computational nodes.
 
 The grid is split along the y-axis to make it at bit more convenient to send
 data as single segments.
