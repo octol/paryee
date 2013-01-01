@@ -26,7 +26,7 @@ yee_DATA = $(yee_BIN:=.tsv)
 yee_pthr_DATA = $(yee_pthr_BIN:=.tsv)
 yee_omp_DATA = $(yee_omp_BIN:=.tsv) 
 yee_mpi_DATA = $(yee_mpi_BIN:=.tsv)
-DATA = $(BIN:=.tsv)
+DATA = $(BIN:=.tsv) 
 
 GNUPLOT = $(DATA:.tsv=.plt) yee0.plt
 PNG = $(GNUPLOT:.plt=.png) yee0.png
@@ -103,4 +103,4 @@ $(GNUPLOT): template.gnuplot
 	./$<
 
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG) $(unittests_BIN) $(unittests_OBJ)
+	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG) $(unittests_BIN) $(unittests_OBJ) yee0.tsv
