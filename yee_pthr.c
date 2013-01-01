@@ -85,7 +85,7 @@ void *thread_main(void *arg)
             }
         }
         for (i = v0; i < v1; ++i) {
-            /*for (j = 1; j < ny - 1; ++j) {*/
+            /*for (j = 1; j < ny - 1; ++j) { */
             for (j = 1; j < ny; ++j) {
                 V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
             }

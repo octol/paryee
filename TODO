@@ -1,14 +1,7 @@
 TODO
 ====
 
- * Merge branch
- * Github
- * Optimize MPI
- * Update verify_grid_integrity
- * Remaining disabled unit tests
+ * Optimize MPI version
  * Functions give error codes
  * Change left/right -> top/bottom in MPI code
- * Performance analysis
- * Clean up MPI version (more functions)
- * Grid documentation.
- * Plot of initial field
+ * Clean up MPI version

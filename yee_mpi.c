@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <unistd.h> // sleep
+#include <unistd.h>             // sleep
 
 #include "mpi.h"
 
@@ -36,7 +36,8 @@
 #define UTAG 4                  /* communication tag */
 #define VTAG 5                  /* communication tag */
 
-void send_grid_data(int taskid, long left, long right, long size, double y[2])
+void send_grid_data(int taskid, long left, long right, long size,
+                    double y[2])
 {
     /* Send out neighbour information */
     MPI_Send(&left, 1, MPI_LONG, taskid, BEGIN, MPI_COMM_WORLD);
@@ -49,7 +50,8 @@ void send_grid_data(int taskid, long left, long right, long size, double y[2])
     MPI_Send(y, 2, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
 }
 
-void receive_grid_data(long *left, long *right, long *size, double *y, MPI_Status *status)
+void receive_grid_data(long *left, long *right, long *size, double *y,
+                       MPI_Status * status)
 {
     /* Data on neighbours */
     MPI_Recv(left, 1, MPI_LONG, MASTER, BEGIN, MPI_COMM_WORLD, status);
@@ -62,7 +64,8 @@ void receive_grid_data(long *left, long *right, long *size, double *y, MPI_Statu
     MPI_Recv(y, 2, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
 }
 
-void send_field_data(long taskid, struct field *f, struct cell_partition part)
+void send_field_data(long taskid, struct field *f,
+                     struct cell_partition part)
 {
     /* Send out field data.
      * Note that MASTER deals with the taskid=0 special case, i.e., we do
@@ -71,65 +74,78 @@ void send_field_data(long taskid, struct field *f, struct cell_partition part)
     long size = part.size;
 
     long nx = f->p.size_x;
-    long begin_p = 0 + begin*nx;
-    long begin_u = 0 + begin*(nx + 1);
-    long begin_v = 0 + begin*nx;
-    long size_p = size*nx;
-    long size_u = size*(nx + 1);
-    long size_v = size*nx;
+    long begin_p = 0 + begin * nx;
+    long begin_u = 0 + begin * (nx + 1);
+    long begin_v = 0 + begin * nx;
+    long size_p = size * nx;
+    long size_u = size * (nx + 1);
+    long size_v = size * nx;
 
-    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
-    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
-    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
+    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, BEGIN,
+             MPI_COMM_WORLD);
+    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, BEGIN,
+             MPI_COMM_WORLD);
+    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, BEGIN,
+             MPI_COMM_WORLD);
 }
 
-void receive_field_data(struct field *f, long size, MPI_Status *status)
+void receive_field_data(struct field *f, long size, MPI_Status * status)
 {
     long nx = f->p.size_x;
-    long begin_p = 0 + 1*nx;
-    long begin_u = 0 + 0*(nx + 1);
-    long begin_v = 0 + 0*nx;
-    long size_p = size*nx;
-    long size_u = size*(nx + 1);
-    long size_v = size*nx;
+    long begin_p = 0 + 1 * nx;
+    long begin_u = 0 + 0 * (nx + 1);
+    long begin_v = 0 + 0 * nx;
+    long size_p = size * nx;
+    long size_u = size * (nx + 1);
+    long size_v = size * nx;
 
-    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, BEGIN,
+             MPI_COMM_WORLD, status);
+    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, BEGIN,
+             MPI_COMM_WORLD, status);
+    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, BEGIN,
+             MPI_COMM_WORLD, status);
 }
 
 void return_data(struct field *f, long size)
 {
     long nx = f->p.size_x;
-    long begin_p = 0 + 1*nx;
-    long begin_u = 0 + 0*(nx + 1);
-    long begin_v = 0 + 0*nx;
-    long size_p = size*nx;
-    long size_u = size*(nx + 1);
-    long size_v = size*nx;
+    long begin_p = 0 + 1 * nx;
+    long begin_u = 0 + 0 * (nx + 1);
+    long begin_v = 0 + 0 * nx;
+    long size_p = size * nx;
+    long size_u = size * (nx + 1);
+    long size_v = size * nx;
 
-    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
-    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
-    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, COLLECT, MPI_COMM_WORLD);
+    MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, MASTER, COLLECT,
+             MPI_COMM_WORLD);
+    MPI_Send(&f->u.value[begin_u], size_u, MPI_DOUBLE, MASTER, COLLECT,
+             MPI_COMM_WORLD);
+    MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, MASTER, COLLECT,
+             MPI_COMM_WORLD);
 }
 
 
-void collect_data(long taskid, struct cell_partition part, struct field *f, MPI_Status *status)
+void collect_data(long taskid, struct cell_partition part, struct field *f,
+                  MPI_Status * status)
 {
     long begin = part.begin;    /* for convenience */
     long size = part.size;
 
     long nx = f->p.size_x;
-    long begin_p = 0 + begin*nx;
-    long begin_u = 0 + begin*(nx + 1);
-    long begin_v = 0 + begin*nx;
-    long size_p = size*nx;
-    long size_u = size*(nx + 1);
-    long size_v = size*nx;
+    long begin_p = 0 + begin * nx;
+    long begin_u = 0 + begin * (nx + 1);
+    long begin_v = 0 + begin * nx;
+    long size_p = size * nx;
+    long size_u = size * (nx + 1);
+    long size_v = size * nx;
 
-    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
-    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, COLLECT, MPI_COMM_WORLD, status);
+    MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, taskid, COLLECT,
+             MPI_COMM_WORLD, status);
+    MPI_Recv(&f->u.value[begin_u], size_u, MPI_DOUBLE, taskid, COLLECT,
+             MPI_COMM_WORLD, status);
+    MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, taskid, COLLECT,
+             MPI_COMM_WORLD, status);
 }
 
 /* 
@@ -174,7 +190,7 @@ int main(int argc, char *argv[])
         /* MASTER deals with the setting up, sending out, receiving the result,
          * writing to disk. 
          * It also deals with the bottom partition (first partition). */
-        
+
         /* Initialize */
         printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
@@ -205,8 +221,9 @@ int main(int argc, char *argv[])
         /*
          * Time stepping section
          */
+
         /* Time step on the leftmost partition.  */
-        /*long left = NONE;*/
+        /*long left = NONE; */
         long right = (numtasks > 1) ? 1 : NONE;
         long size = part[0].size;
 
@@ -214,7 +231,6 @@ int main(int argc, char *argv[])
         /* CFL condition is: c*dt/dx = cfl <= 1 */
         f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
-        double dt = f.dt;
 
         /* used by index macro */
         double *p = f.p.value;
@@ -226,43 +242,44 @@ int main(int argc, char *argv[])
         tic = gettime();
 
         long i, j;
-        /*f.Nt = 1;*/
         for (long n = 0; n < f.Nt; ++n) {
 
             /* Communicate */
             /* receive v from the right (top) */
             if (right != NONE) {
-                long begin_v = 0 + size*nx;
-                long size_v = 1*nx;
-                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG, MPI_COMM_WORLD, &status);
+                long begin_v = 0 + size * nx;
+                long size_v = 1 * nx;
+                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right,
+                         VTAG, MPI_COMM_WORLD, &status);
             }
 
             /* update the pressure (p) */
-            /*printf("Master: updating p\n");*/
+            /*printf("Master: updating p\n"); */
             for (i = 0; i < nx; ++i) {
                 for (j = part[taskid].begin; j < part[taskid].end + 1; ++j) {
                     P(i, j) +=
-                        dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
-                        dt / f.v.dy * (V(i, j + 1) - V(i, j));
+                        f.dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
+                        f.dt / f.v.dy * (V(i, j + 1) - V(i, j));
                 }
             }
 
             /* Communicate */
             /* send p to the right (top) */
             if (right != NONE) {
-                long begin_p = 0 + (size - 1)*nx; /* since we don't have extra ghost p */
-                long size_p = 1*nx;
-                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG, MPI_COMM_WORLD);
+                long begin_p = 0 + (size - 1) * nx;     /* since we don't have extra ghost p */
+                long size_p = 1 * nx;
+                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right,
+                         PTAG, MPI_COMM_WORLD);
             }
 
             /* update the velocity (u,v) */
             for (i = 1; i < nx; ++i)
                 for (j = part[taskid].begin; j < part[taskid].end + 1; ++j)
-                    U(i, j) += dt / f.p.dx * (P(i, j) - P(i - 1, j));
+                    U(i, j) += f.dt / f.p.dx * (P(i, j) - P(i - 1, j));
 
             for (i = 0; i < nx; ++i)
                 for (j = 1; j < part[taskid].end + 1; ++j)
-                    V(i, j) += dt / f.p.dy * (P(i, j) - P(i, j - 1));
+                    V(i, j) += f.dt / f.p.dy * (P(i, j) - P(i, j - 1));
         }
 
         /*
@@ -277,8 +294,6 @@ int main(int argc, char *argv[])
         printf("Elapsed: %f seconds\n", toc - tic);
 
         write_to_disk(f.p, outfile);
-        /*write_to_disk(f.u, outfile);*/
-        /*write_to_disk(f.v, outfile);*/
         free(part);
         free_acoustic_field(f);
         MPI_Finalize();
@@ -319,39 +334,38 @@ int main(int argc, char *argv[])
         f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
 
-        /* Time step */
-        long i, j;
-        long nx = f.p.size_x;
-        double dt = f.dt;
-
         /* used by index macro */
+        long nx = f.p.size_x;
         double *p = f.p.value;
         double *u = f.u.value;
         double *v = f.v.value;
 
-        /*f.Nt = 1;*/
+        /* Time step */
+        long i, j;
         for (long n = 0; n < f.Nt; ++n) {
-            /*printf("Worker %i: %li\n", taskid, n);*/
+            /*printf("Worker %i: %li\n", taskid, n); */
             /* Communicate */
             /* send v to the left (bottom) */
             /* receive v from the right (top) */
             if (left != NONE) {
-                long begin_v = 0 + 0*nx;
-                long size_v = 1*nx;
-                MPI_Send(&f.v.value[begin_v], size_v, MPI_DOUBLE, left, VTAG, MPI_COMM_WORLD);
+                long begin_v = 0 + 0 * nx;
+                long size_v = 1 * nx;
+                MPI_Send(&f.v.value[begin_v], size_v, MPI_DOUBLE, left,
+                         VTAG, MPI_COMM_WORLD);
             }
             if (right != NONE) {
-                long begin_v = 0 + size*nx;
-                long size_v = 1*nx;
-                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG, MPI_COMM_WORLD, &status);
+                long begin_v = 0 + size * nx;
+                long size_v = 1 * nx;
+                MPI_Recv(&f.v.value[begin_v], size_v, MPI_DOUBLE, right,
+                         VTAG, MPI_COMM_WORLD, &status);
             }
 
             /* update the pressure (p) */
             for (i = 0; i < nx; ++i) {
                 for (j = 0; j < size; ++j) {
                     P(i, j + 1) +=
-                        dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
-                        dt / f.v.dy * (V(i, j + 1) - V(i, j));
+                        f.dt / f.u.dx * (U(i + 1, j) - U(i, j)) +
+                        f.dt / f.v.dy * (V(i, j + 1) - V(i, j));
                 }
             }
 
@@ -359,25 +373,28 @@ int main(int argc, char *argv[])
             /* receive p from the left */
             /* send p to the right */
             if (left != NONE) {
-                long begin_p = 0 + 0*nx;
-                long size_p = 1*nx;
-                MPI_Recv(&f.p.value[begin_p], size_p, MPI_DOUBLE, left, PTAG, MPI_COMM_WORLD, &status);
+                long begin_p = 0 + 0 * nx;
+                long size_p = 1 * nx;
+                MPI_Recv(&f.p.value[begin_p], size_p, MPI_DOUBLE, left,
+                         PTAG, MPI_COMM_WORLD, &status);
             }
             if (right != NONE) {
-                long begin_p = 0 + size*nx;
-                long size_p = 1*nx;
-                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG, MPI_COMM_WORLD);
+                long begin_p = 0 + size * nx;
+                long size_p = 1 * nx;
+                MPI_Send(&f.p.value[begin_p], size_p, MPI_DOUBLE, right,
+                         PTAG, MPI_COMM_WORLD);
             }
 
             /* update the velocity (u) */
             for (i = 1; i < nx; ++i)
                 for (j = 0; j < size; ++j)
-                    U(i, j) += dt / f.p.dx * (P(i, j + 1) - P(i - 1, j + 1));
+                    U(i, j) +=
+                        f.dt / f.p.dx * (P(i, j + 1) - P(i - 1, j + 1));
 
-            /*printf("worker %i: updating v\n",taskid);*/
+            /*printf("worker %i: updating v\n",taskid); */
             for (i = 0; i < nx; ++i)
                 for (j = 0; j < size; ++j)
-                    V(i, j) += dt / f.p.dy * (P(i, j + 1) - P(i, j));
+                    V(i, j) += f.dt / f.p.dy * (P(i, j + 1) - P(i, j));
         }
 
         /* Send back data to master */

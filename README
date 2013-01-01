@@ -1,114 +1,103 @@
 README
 ======
 
-Basic implementation of 1D wave equation on system form
+Basic implementation of 2D wave equation on system form
 
      p_t = a u_x
      u_t = b p_x
+     v_t = b p_y
 
 This formulation is sometimes used in acoustics, where then p is the
-pressure and u is the velocity field in the direction of the x-axis.
+pressure and (u,v) are the x- and y-components of the velocity field.
 
-Both shared memory and distributed memory implementations are included.
+Both shared and distributed memory implementations are included.
 
 GRID AND SIMULATION INFORMATION
 ===============================
 
-The x-axis is discretized on a staggered grid, with u defined on the
-endpoints, and thus on full integer indices. N denotes the number of
-interval lengths (cells), i.e., we have N+1 number of nodes for u and N
-number of nodes for p.
+The grid is discretized in a staggered fashion with p placed in the middle of
+the cells, and u and v placed on the middle of the sides.
 
-Each cell is composed by a (u,p) pair, ordered such that u is placed at
-x=index*dx, and p is placed at x=(index+1/2)*dx.
-
-The outer (x=0, x=L) boundary is set to u=0. Thus we only update the 
-inner points. 
-
-The time axis is also staggered, with u defined at t=0 and p at t=-dt/2 
-as initial conditions. 
-
-When partitioning this grid into M nodes, we divide according to
-node size = N/M, with the last node having an extra (outer) u node placed
-at x=L. Thus we require that N/M is an integer. 
-
-Example: N=8 cells and M=4 nodes. N/M=2.
+Example: nx=4, ny=4
 --------
 
- grid:   u   u   u   u   u   u   u   u   u    t=0
-           p   p   p   p   p   p   p   p      t=-dt/2
+  v   v   v   v     
+u p u p u p u p u   
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
 
- index:  0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 
+The number of cells in each coordinate direction is denoted by nx and ny. We
+note that we have nx+1 number of u points along the x-axis, and ny+1 number of
+v points along the y-axis. 
 
- split grid:     u   u      u   u      u   u      u   u   u    
-                   p   p      p   p      p   p      p   p     
+The field points are grouped such that each cell consisists of a single p, u
+and v value, where the u and v value is located just before the p points along
+its respective axis. 
 
- global index:   0 0 1 1    2 2 3 3    4 4 5 5    6 6 7 7 8 
- local  index:   0 0 1 1    0 0 1 1    0 0 1 1    0 0 1 1 2 
- u size:            2          2          2           3
- p size:            2          2          2           2
- 
-For these then the outer points are not updated, hence inner points (the
-ones that we update in each time step) are
+Thus for the cell indexed by (i,j), we have the coordinates
 
- inner grid:        u        u   u        u   u        u   u        
-                  p   p        p   p        p   p        p   p     
+ p: x = (i + 1/2)*dx, y = (j + 1/2)*dy,
+ u: x = i*dx,         y = (j + 1/2)*dy,
+ v: x = (i + 1/2)*dx, y = j*dy.
 
- global index:    0 1 1      2 2 3 3      4 4 5 5      6 6 7 7   
- local  index:    0 1 1      0 0 1 1      0 0 1 1      0 0 1 1   
- u size:            1           2            2            2
- p size:            2           2            2            2
+The last u points on the x-axis and the last v points on
+y-axis are treated as auxilliary points. This does not present a practical
+problem as these are boundary cells anyway, which are not updated.
 
- communication:    p[1]-> <-u[0] p[1]-> <-u[0] p[1]-> <-u[0]
+The outer boundary is set to u=0 at x=0 and x=L, and v=0 at y=0 and y=L. Thus
+we only update the inner points. 
 
-General:
+The time axis is also staggered, with (u,v) defined at t=0 and p at t=-dt/2 as
+initial conditions. 
+
+PARTITION OF GRID (SHARED MEMORY)
+======================================
+
+The grid is split along the x-axis so that the different threads stay close in
+memory to each other.
+
+Example: nx=4, ny=4, 2 partitions
 --------
+  v   v      v   v     
+u p u p    u p u p u   
+  v   v      v   v
+u p u p    u p u p u
+  v   v      v   v
+u p u p    u p u p u
+  v   v      v   v
+u p u p    u p u p u
+  v   v      v   v
 
-Total grid:  u[0,...,N],    p[0,...,N-1]
-Inner grid:  u[1,...,N-1],  p[0,...,N-1]
+Example: nx=4, ny=4, 4 partitions
+--------
+  v      v      v      v     
+u p    u p    u p    u p u   
+  v      v      v      v
+u p    u p    u p    u p u
+  v      v      v      v
+u p    u p    u p    u p u
+  v      v      v      v
+u p    u p    u p    u p u
+  v      v      v      v
 
- global index
- 
- u[0,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M]
- p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
+PARTITION OF GRID (DISTRIBUTED MEMORY)
+======================================
 
- local index
+Note that the points surrounded by a parenthesis the examples below are ghost
+points that needs to be sent between the computational nodes.
 
- u[0,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M]
- p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
+The grid is split along the y-axis to make it at bit more convenient to send
+data as single segments.
 
-Reducing to the inner grid points gives:
-
- global index
- 
- u[1,...,N/M-1], u[N/M,...,2*N/M-1], ... , u[(M-1)*N/M,...,M*N/M-1]
- p[0,...,N/M-1], p[N/M,...,2*N/M-1], ... , p[(M-1)*N/M,...,M*N/M-1]
-
- local index
-
- u[1,...,N/M-1], u[0,...,N/M-1], ... , u[0,...,N/M-1]
- p[0,...,N/M-1], p[0,...,N/M-1], ... , p[0,...,N/M-1]
-
-The communication is
- 
- p[N/M-1]->  <-u[0] p[N/M-1]->  <-u[0]
-
-
-2D GRID AND SIMULATION INFORMATION
-==================================
-
-  v   v   v   v     nx=4
-u p u p u p u p u   ny=4
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
--------------------
-  v   v   v   v     nx=4
-u p u p u p u p u   ny=2
+Example: nx=4, ny=4, 2 partitions
+--------
+  v   v   v   v     
+u p u p u p u p u   
   v   v   v   v
 u p u p u p u p u
   v   v   v   v
@@ -119,9 +108,12 @@ u p u p u p u p u
   v   v   v   v
 u p u p u p u p u
   v   v   v   v
--------------------
-  v   v   v   v     nx=4
-u p u p u p u p u   ny=1
+
+
+Example: nx=4, ny=4, 4 partitions
+--------
+  v   v   v   v     
+u p u p u p u p u  
   v   v   v   v
  (p) (p) (p) (p)
 

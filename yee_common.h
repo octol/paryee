@@ -44,8 +44,8 @@ struct field_variable {
     double *y;
     double dx;
     double dy;
-    long size_x;       /* number of points */
-    long size_y;       /* number of points */
+    long size_x;                /* number of points */
+    long size_y;                /* number of points */
 };
 
 /*
@@ -106,8 +106,7 @@ void apply_func(struct field_variable *f, double (*func) (double, double));
  * Allocates field and sets initial value to zero
  */
 struct field init_acoustic_field(long cells_x,
-                                 long cells_y, double x[2],
-                                 double y[2]);
+                                 long cells_y, double x[2], double y[2]);
 
 /* 
  * Allocates field and sets initial value to zero. This variant is for
@@ -116,7 +115,8 @@ struct field init_acoustic_field(long cells_x,
  * dy/2 before y[0].
  * NOTE: Function not valid for the left most (bottom) partition.
  */
-struct field init_local_acoustic_field(long cells_x, long cells_y, double x[2], double y[2]);
+struct field init_local_acoustic_field(long cells_x, long cells_y,
+                                       double x[2], double y[2]);
 
 /*
  * Deallocate field
@@ -126,10 +126,8 @@ void free_acoustic_field(struct field);
 /*
  * Assign and retrive value from fv(i,j)
  */
-double assign_to(struct field_variable fv, long i,
-                 long j, double value);
-double get_from(struct field_variable fv, long i,
-                long j);
+double assign_to(struct field_variable fv, long i, long j, double value);
+double get_from(struct field_variable fv, long i, long j);
 
 /*
  * Sets the outer boundary (u,v) to zero.
@@ -151,14 +149,14 @@ void timestep_leapfrog(struct field *f, double n);
  * strips. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct cell_partition *partition_grid(long total_threads,
-                                      long cells);
+struct cell_partition *partition_grid(long total_threads, long cells);
 
 /*
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct cell_partition part, struct field *f, double *y);
+void get_partition_coords(struct cell_partition part, struct field *f,
+                          double *y);
 
 /*
  * Convert the cell indices that specifies the partition, to node indices
@@ -168,35 +166,7 @@ void get_partition_coords(struct cell_partition part, struct field *f, double *y
  */
 void cellindex_to_nodeindex(long tid, struct cell_partition part,
                             long *p0, long *p1,
-                            long *u0, long *u1,
-                            long *v0, long *v1);
-
-/* 
- * Expand the partition struct into indices 
- */
-/*void expand_indices(struct cell_partition partition,
-                    long *begin_p, long *end_p,
-                    long *size_p, long *begin_u,
-                    long *end_u, long *size_u);*/
-
-/*
- * Checks that the grid is according to the specs.
- */
-/*void verify_grid_integrity(struct cell_partition partition, long tid,
-                           long nx, long numworkers,
-                           long left);*/
-
-/*
- * Compute the local start/end indices and local array sizes from the
- * partition sizes as well as if the we are on the left boundary.
- */
-/*void set_local_index(long size_p, long size_u,
-                     long left, long *local_begin_p,
-                     long *local_end_p,
-                     long *local_size_p,
-                     long *local_begin_u,
-                     long *local_end_u,
-                     long *local_size_u);*/
+                            long *u0, long *u1, long *v0, long *v1);
 
 /*
  * Parse commandline argument and set the number of grid points, * the

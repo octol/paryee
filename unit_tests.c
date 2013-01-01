@@ -194,7 +194,7 @@ void test_init_acoustic_field(void)
 }
 
 void test_init_local_acoustic_field_internal(double x[2], double y[2],
-                                       unsigned long cells)
+                                             unsigned long cells)
 {
     struct field f = init_local_acoustic_field(cells, cells, x, y);
 
@@ -219,7 +219,7 @@ void test_init_local_acoustic_field_internal(double x[2], double y[2],
     CU_ASSERT_DOUBLE_EQUAL(f.p.y[0], f.u.y[0] - f.p.dy, TOL);
     for (unsigned long i = 0; i < cells; ++i) {
         CU_ASSERT_DOUBLE_EQUAL(f.p.x[i], f.u.x[i] + f.u.dx / 2.0, TOL);
-        CU_ASSERT_DOUBLE_EQUAL(f.p.y[i+1], f.u.y[i], TOL);
+        CU_ASSERT_DOUBLE_EQUAL(f.p.y[i + 1], f.u.y[i], TOL);
         CU_ASSERT_DOUBLE_EQUAL(f.p.x[i], f.v.x[i], TOL);
         CU_ASSERT_DOUBLE_EQUAL(f.p.y[i], f.v.y[i] - f.v.dy / 2.0, TOL);
     }
@@ -230,7 +230,8 @@ void test_init_local_acoustic_field_internal(double x[2], double y[2],
 
     for (unsigned long i = 0; i < cells + 1; ++i)
         for (unsigned long j = 0; j < cells; ++j)
-            CU_ASSERT_DOUBLE_EQUAL(f.u.value[i + j * (cells + 1)], 0.0, TOL);
+            CU_ASSERT_DOUBLE_EQUAL(f.u.value[i + j * (cells + 1)], 0.0,
+                                   TOL);
 
     for (unsigned long i = 0; i < cells; ++i)
         for (unsigned long j = 0; j < cells + 1; ++j)
@@ -315,7 +316,7 @@ void test_set_boundary(void)
 {
     double x[] = { 0, 1 };
     double y[] = { 0, 1 };
-    struct field f = init_acoustic_field(2, 4, x, y);   
+    struct field f = init_acoustic_field(2, 4, x, y);
 
     /* used by the indexing macro */
     double *u = f.u.value;
@@ -333,82 +334,82 @@ void test_set_boundary(void)
      * u p u p u
      *   v   v
      */
-    CU_ASSERT_DOUBLE_EQUAL(V(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(0,4), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,4), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 4), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 4), 0, TOL);
 
-    CU_ASSERT_DOUBLE_EQUAL(U(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 3), 0, TOL);
 
-    apply_func(&f.u, one2d);  /* initial data */
-    apply_func(&f.v, one2d);  /* initial data */
+    apply_func(&f.u, one2d);    /* initial data */
+    apply_func(&f.v, one2d);    /* initial data */
 
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,4), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,4), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 4), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 4), 0, TOL);
 
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2,3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 3), 0, TOL);
 
     set_boundary(&f);
 
-    CU_ASSERT_DOUBLE_EQUAL(V(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(0,4), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(V(1,4), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(0, 4), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(V(1, 4), 0, TOL);
 
-    CU_ASSERT_DOUBLE_EQUAL(U(0,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(0,3), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,0), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,1), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,2), 0, TOL);
-    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1,3), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,0), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,1), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,2), 0, TOL);
-    CU_ASSERT_DOUBLE_EQUAL(U(2,3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(0, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_NOT_EQUAL(U(1, 3), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 0), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 1), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 2), 0, TOL);
+    CU_ASSERT_DOUBLE_EQUAL(U(2, 3), 0, TOL);
 }
 
 void test_leapfrog(void)
@@ -654,7 +655,8 @@ int main()
         || !CU_add_test(pSuite, "set_boundary", test_set_boundary)
         || !CU_add_test(pSuite, "leapfrog", test_leapfrog)
         || !CU_add_test(pSuite, "partition_grid", test_partition_grid)
-        || !CU_add_test(pSuite, "get_partition_coords", test_get_partition_coords)
+        || !CU_add_test(pSuite, "get_partition_coords",
+                        test_get_partition_coords)
         /*|| !CU_add_test(pSuite, "expand_indices", test_expand_indices) */
         /*|| !CU_add_test(pSuite, "verify_grid_integrity", test_verify_grid) */
         /*|| !CU_add_test(pSuite, "set_local_index", test_set_local_index) */

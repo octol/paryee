@@ -1,4 +1,4 @@
-N=32
+N=128
 threads=4
 
 HOSTNAME = $(shell hostname)
@@ -28,8 +28,8 @@ yee_omp_DATA = $(yee_omp_BIN:=.tsv)
 yee_mpi_DATA = $(yee_mpi_BIN:=.tsv)
 DATA = $(BIN:=.tsv)
 
-GNUPLOT = $(DATA:.tsv=.plt)
-PNG = $(GNUPLOT:.plt=.png)
+GNUPLOT = $(DATA:.tsv=.plt) yee0.plt
+PNG = $(GNUPLOT:.plt=.png) yee0.png
 
 tests_SH = tests_scaling.sh tests_perf.sh
 tests_DATA = $(tests_SH:.sh=.tsv)
