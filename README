@@ -1,16 +1,23 @@
-README
-======
+README - ParYee
+===============
 
-Basic implementation of 2D wave equation on system form
+Basic parallel implementation of the finite-difference time-domain (FDTD)
+method applied to the 2D wave equation on system form. 
 
-     p_t = a u_x
-     u_t = b p_x
-     v_t = b p_y
+     p_t = a u_x,
+     u_t = b p_x,
+     v_t = b p_y.
 
-This formulation is sometimes used in acoustics, where then p is the
-pressure and (u,v) are the x- and y-components of the velocity field.
+This formulation is sometimes used in acoustics, where p is the pressure and
+(u,v) are the x- and y-components of the velocity field.
 
-Both shared and distributed memory implementations are included.
+A number of different implementations are included, of varying complexity.
+
+    yee      - Single thread reference implementation to compare against.
+    yee_omp  - Shared memory parallelization using OpenMP.
+    yee_pthr - Shared memory parallelization using POSIX threads.
+    yee_mpi  - Distributed memory parallelization using MPI.
+
 
 GRID AND SIMULATION INFORMATION
 ===============================
@@ -35,7 +42,7 @@ The number of cells in each coordinate direction is denoted by nx and ny. We
 note that we have nx+1 number of u points along the x-axis, and ny+1 number of
 v points along the y-axis. 
 
-The field points are grouped such that each cell consisists of a single p, u
+The field points are grouped such that each cell consists of a single p, u
 and v value, where the u and v value is located just before the p points along
 its respective axis. 
 
@@ -46,7 +53,7 @@ Thus for the cell indexed by (i,j), we have the coordinates
  v: x = (i + 1/2)*dx, y = j*dy.
 
 The last u points on the x-axis and the last v points on
-y-axis are treated as auxilliary points. This does not present a practical
+y-axis are treated as auxiliary points. This does not present a practical
 problem as these are boundary cells anyway, which are not updated.
 
 The outer boundary is set to u=0 at x=0 and x=L, and v=0 at y=0 and y=L. Thus
@@ -55,8 +62,9 @@ we only update the inner points.
 The time axis is also staggered, with (u,v) defined at t=0 and p at t=-dt/2 as
 initial conditions. 
 
+
 PARTITION OF GRID (SHARED MEMORY)
-======================================
+=================================
 
 The grid is split along the x-axis so that the different threads stay close in
 memory to each other.
@@ -84,6 +92,7 @@ u p    u p    u p    u p u
   v      v      v      v
 u p    u p    u p    u p u
   v      v      v      v
+
 
 PARTITION OF GRID (DISTRIBUTED MEMORY)
 ======================================
@@ -130,4 +139,10 @@ u p u p u p u p u
  (v) (v) (v) (v)
 u p u p u p u p u
   v   v   v   v
+
+
+AUTHOR
+======
+
+Jon Haggblad <jon@haeggblad.com>
 
