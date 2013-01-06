@@ -1,4 +1,4 @@
-set terminal png truecolor font Helvetica 9
+set terminal png truecolor size 400,300 font Helvetica 9
 set out "file.png"
 set contour
 set hidden3d
