@@ -1,5 +1,4 @@
-README - ParYee
-===============
+# README - ParYee
 
 Basic parallel implementation of the finite-difference time-domain (FDTD)
 method applied to the 2D wave equation on system form. 
@@ -21,24 +20,10 @@ A number of different implementations are included, of varying complexity.
 
 For some figures, see: https://github.com/octol/paryee/wiki/Figures
 
-GRID AND SIMULATION INFORMATION
-===============================
+# GRID AND SIMULATION INFORMATION
 
 The grid is discretized in a staggered fashion with p placed in the middle of
 the cells, and u and v placed on the middle of the sides.
-
-Example: nx=4, ny=4
---------
-
-  v   v   v   v     
-u p u p u p u p u   
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
 
 The number of cells in each coordinate direction is denoted by nx and ny. We
 note that we have nx+1 number of u points along the x-axis, and ny+1 number of
@@ -64,15 +49,27 @@ we only update the inner points.
 The time axis is also staggered, with (u,v) defined at t=0 and p at t=-dt/2 as
 initial conditions. 
 
+## Example: nx=4, ny=4
 
-PARTITION OF GRID (SHARED MEMORY)
-=================================
+  v   v   v   v     
+u p u p u p u p u   
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+u p u p u p u p u
+  v   v   v   v
+
+
+
+# PARTITION OF GRID (SHARED MEMORY)
 
 The grid is split along the x-axis so that the different threads stay close in
 memory to each other.
 
-Example: nx=4, ny=4, 2 partitions
---------
+## Example: nx=4, ny=4, 2 partitions
+
   v   v      v   v     
 u p u p    u p u p u   
   v   v      v   v
@@ -83,8 +80,8 @@ u p u p    u p u p u
 u p u p    u p u p u
   v   v      v   v
 
-Example: nx=4, ny=4, 4 partitions
---------
+## Example: nx=4, ny=4, 4 partitions
+
   v      v      v      v     
 u p    u p    u p    u p u   
   v      v      v      v
@@ -96,8 +93,7 @@ u p    u p    u p    u p u
   v      v      v      v
 
 
-PARTITION OF GRID (DISTRIBUTED MEMORY)
-======================================
+# PARTITION OF GRID (DISTRIBUTED MEMORY)
 
 Note that the points surrounded by a parenthesis in the examples below are
 ghost points that needs to be sent between the computational nodes.
@@ -105,8 +101,8 @@ ghost points that needs to be sent between the computational nodes.
 The grid is split along the y-axis to make it at bit more convenient to send
 data as single segments.
 
-Example: nx=4, ny=4, 2 partitions
---------
+## Example: nx=4, ny=4, 2 partitions
+
   v   v   v   v     
 u p u p u p u p u   
   v   v   v   v
@@ -121,8 +117,8 @@ u p u p u p u p u
   v   v   v   v
 
 
-Example: nx=4, ny=4, 4 partitions
---------
+## Example: nx=4, ny=4, 4 partitions
+
   v   v   v   v     
 u p u p u p u p u  
   v   v   v   v
@@ -143,8 +139,7 @@ u p u p u p u p u
   v   v   v   v
 
 
-AUTHOR
-======
+# AUTHOR
 
 Jon Haggblad <jon@haeggblad.com>
 
