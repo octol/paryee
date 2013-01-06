@@ -1,26 +1,47 @@
-# README - ParYee
+README - ParYee
+===============
 
 Basic parallel implementation of the finite-difference time-domain (FDTD)
 method applied to the 2D wave equation on system form. 
 
-     p_t = a u_x,
-     u_t = b p_x,
-     v_t = b p_y.
+        p_t = a u_x,
+        u_t = b p_x,
+        v_t = b p_y.
 
 This formulation is sometimes used in acoustics, where p is the pressure and
 (u,v) are the x- and y-components of the velocity field.
 
 A number of different implementations are included, of varying complexity.
 
-    yee      - Single thread reference implementation to compare against.
-    yee_omp  - Shared memory parallelization using OpenMP.
-    yee_pthr - Shared memory parallelization using POSIX threads.
-    yee_mpi  - Distributed memory parallelization using MPI.
+- yee      - Single thread reference implementation to compare against.
+- yee_omp  - Shared memory parallelization using OpenMP.
+- yee_pthr - Shared memory parallelization using POSIX threads.
+- yee_mpi  - Distributed memory parallelization using MPI.
+
+Visualizations
+--------------
+
+![Initial field](https://raw.github.com/octol/paryee/master/figures/yee0.png)
+![Field afterwards](https://raw.github.com/octol/paryee/master/figures/yee.png)
+
+Performance tests
+-----------------
+
+### Intel Core i7 920, 4 cores (8 threads) @ 2.80 GHz
+![Performance tests](https://raw.github.com/octol/paryee/master/figures/tests_perf.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/figures/tests_scaling.png)
+
+### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
+![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
+
+### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
+![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_perf.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_scaling.png)
 
 
-For some figures, see: https://github.com/octol/paryee/wiki/Figures
-
-# GRID AND SIMULATION INFORMATION
+Grid and simulation information
+-------------------------------
 
 The grid is discretized in a staggered fashion with p placed in the middle of
 the cells, and u and v placed on the middle of the sides.
@@ -35,9 +56,9 @@ its respective axis.
 
 Thus for the cell indexed by (i,j), we have the coordinates
 
- p: x = (i + 1/2)*dx, y = (j + 1/2)*dy,
- u: x = i*dx,         y = (j + 1/2)*dy,
- v: x = (i + 1/2)*dx, y = j*dy.
+        p: x = (i + 1/2)*dx, y = (j + 1/2)*dy,
+        u: x = i*dx,         y = (j + 1/2)*dy,
+        v: x = (i + 1/2)*dx, y = j*dy.
 
 The last u points on the x-axis and the last v points on
 y-axis are treated as auxiliary points. This does not present a practical
@@ -49,51 +70,51 @@ we only update the inner points.
 The time axis is also staggered, with (u,v) defined at t=0 and p at t=-dt/2 as
 initial conditions. 
 
-## Example: nx=4, ny=4
+### Example: nx=4, ny=4
 
-  v   v   v   v     
-u p u p u p u p u   
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
+          v   v   v   v     
+        u p u p u p u p u   
+          v   v   v   v
+        u p u p u p u p u
+          v   v   v   v 
+        u p u p u p u p u
+          v   v   v   v 
+        u p u p u p u p u
+          v   v   v   v
 
-
-
-# PARTITION OF GRID (SHARED MEMORY)
+Partition of grid (shared memory)
+---------------------------------
 
 The grid is split along the x-axis so that the different threads stay close in
 memory to each other.
 
-## Example: nx=4, ny=4, 2 partitions
+### Example: nx=4, ny=4, 2 partitions
 
-  v   v      v   v     
-u p u p    u p u p u   
-  v   v      v   v
-u p u p    u p u p u
-  v   v      v   v
-u p u p    u p u p u
-  v   v      v   v
-u p u p    u p u p u
-  v   v      v   v
+          v   v      v   v     
+        u p u p    u p u p u   
+          v   v      v   v
+        u p u p    u p u p u
+          v   v      v   v
+        u p u p    u p u p u
+          v   v      v   v
+        u p u p    u p u p u
+          v   v      v   v
 
-## Example: nx=4, ny=4, 4 partitions
+### Example: nx=4, ny=4, 4 partitions
 
-  v      v      v      v     
-u p    u p    u p    u p u   
-  v      v      v      v
-u p    u p    u p    u p u
-  v      v      v      v
-u p    u p    u p    u p u
-  v      v      v      v
-u p    u p    u p    u p u
-  v      v      v      v
+          v      v      v      v     
+        u p    u p    u p    u p u   
+          v      v      v      v
+        u p    u p    u p    u p u
+          v      v      v      v
+        u p    u p    u p    u p u
+          v      v      v      v
+        u p    u p    u p    u p u
+          v      v      v      v
 
 
-# PARTITION OF GRID (DISTRIBUTED MEMORY)
+Partition of grid (distributed memory)
+--------------------------------------
 
 Note that the points surrounded by a parenthesis in the examples below are
 ghost points that needs to be sent between the computational nodes.
@@ -101,45 +122,45 @@ ghost points that needs to be sent between the computational nodes.
 The grid is split along the y-axis to make it at bit more convenient to send
 data as single segments.
 
-## Example: nx=4, ny=4, 2 partitions
+### Example: nx=4, ny=4, 2 partitions
 
-  v   v   v   v     
-u p u p u p u p u   
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
- (p) (p) (p) (p)
+          v   v   v   v     
+        u p u p u p u p u   
+          v   v   v   v
+        u p u p u p u p u
+          v   v   v   v
+         (p) (p) (p) (p)
+        
+         (v) (v) (v) (v)
+        u p u p u p u p u
+          v   v   v   v
+        u p u p u p u p u
+          v   v   v   v
 
- (v) (v) (v) (v)
-u p u p u p u p u
-  v   v   v   v
-u p u p u p u p u
-  v   v   v   v
+### Example: nx=4, ny=4, 4 partitions
 
+          v   v   v   v     
+        u p u p u p u p u  
+          v   v   v   v
+         (p) (p) (p) (p)
 
-## Example: nx=4, ny=4, 4 partitions
+         (v) (v) (v) (v)
+        u p u p u p u p u
+          v   v   v   v
+         (p) (p) (p) (p)
 
-  v   v   v   v     
-u p u p u p u p u  
-  v   v   v   v
- (p) (p) (p) (p)
+         (v) (v) (v) (v)
+        u p u p u p u p u
+          v   v   v   v
+         (p) (p) (p) (p)
 
- (v) (v) (v) (v)
-u p u p u p u p u
-  v   v   v   v
- (p) (p) (p) (p)
+         (v) (v) (v) (v)
+        u p u p u p u p u
+          v   v   v   v
 
- (v) (v) (v) (v)
-u p u p u p u p u
-  v   v   v   v
- (p) (p) (p) (p)
-
- (v) (v) (v) (v)
-u p u p u p u p u
-  v   v   v   v
-
-
-# AUTHOR
+Author
+------
 
 Jon Haggblad <jon@haeggblad.com>
+
 
