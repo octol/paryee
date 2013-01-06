@@ -16,6 +16,7 @@ printf "  Testing that all implementations produce the same output.\n\n"
 
 for yb in $yee_bin
 do
+    printf "\nTest: ${yb}\n"
     # Compute solution
     outfile=/tmp/${yb}.tsv
     if [ $yb == "yee_mpi" ]
@@ -28,6 +29,8 @@ do
     # Compare
     errlog=/tmp/numdiff_log_${yb}.txt
     numdiff -S -a $limit /tmp/yee.tsv $outfile > $errlog
+    #numdiff -S -a $limit /tmp/yee.tsv $outfile | grep -A 1 "Largest absolute error"
+    cat $errlog | grep -A 1 "Sum of all absolute errors"
 
     # Eval results
     if [ $? == 0 ]
