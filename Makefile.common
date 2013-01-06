@@ -70,7 +70,7 @@ $(yee_omp_BIN): $(yee_omp_OBJ)
 	$(CC) $^ $(LDFLAGS) $(OPENMP) -o $@ 
 
 $(yee_mpi_BIN): $(yee_mpi_OBJ)
-	$(MPICC) $^ -o $@
+	$(MPICC) $^ $(MPILDFLAGS) -o $@
 
 $(unittests_BIN): $(unittests_OBJ)
 	$(CC) $^ $(LDFLAGS) -lcunit -o $@ 

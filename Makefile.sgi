@@ -1,8 +1,8 @@
-# CC =
-# CFLAGS = 
-# MPICC = 
-# MPICFLAGS = 
-# LDFLAGS = 
-# OPENMP = 
+CC = c99
+CFLAGS = -64 -Ofast
+MPICC = c99
+MPICFLAGS = -64 -Ofast
+LDFLAGS = -64 -lm -Ofast
+OPENMP = -mp
 
 include Makefile.common
