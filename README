@@ -19,6 +19,8 @@ A number of different implementations are included, of varying complexity.
     yee_mpi  - Distributed memory parallelization using MPI.
 
 
+For some figures, see: https://github.com/octol/paryee/wiki/Figures
+
 GRID AND SIMULATION INFORMATION
 ===============================
 
@@ -97,8 +99,8 @@ u p    u p    u p    u p u
 PARTITION OF GRID (DISTRIBUTED MEMORY)
 ======================================
 
-Note that the points surrounded by a parenthesis the examples below are ghost
-points that needs to be sent between the computational nodes.
+Note that the points surrounded by a parenthesis in the examples below are
+ghost points that needs to be sent between the computational nodes.
 
 The grid is split along the y-axis to make it at bit more convenient to send
 data as single segments.
