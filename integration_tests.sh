@@ -9,7 +9,7 @@ yee_bin="yee_omp yee_pthr yee_mpi"
 args="-n $N" 
 
 printf "\n  Integration tests:\n"
-printf "  Testing that all implementations produce the same output.\n\n"
+printf "  Testing that all implementations produce the same output.\n"
 
 # Generate reference solution to compare against
 ./yee -o /tmp/yee.tsv $args 1> /dev/null
@@ -30,12 +30,18 @@ do
     errlog=/tmp/numdiff_log_${yb}.txt
     numdiff -S -a $limit /tmp/yee.tsv $outfile > $errlog
     #numdiff -S -a $limit /tmp/yee.tsv $outfile | grep -A 1 "Largest absolute error"
+    success=$?
     cat $errlog | grep -A 1 "Sum of all absolute errors"
 
     # Eval results
-    if [ $? == 0 ]
+    if [ $success == 0 ]
     then
         echo "OK: $yb passed test."
+        diff /tmp/yee.tsv $outfile > $errlog
+        if [ $? == 0 ]
+        then
+            echo "Results exactly identical."
+        fi
     else
         echo "FAIL: $yb output differs! See $errlog"
     fi
