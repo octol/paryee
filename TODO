@@ -1,7 +1,7 @@
 TODO
 ====
 
- * Optimize MPI version
- * Functions give error codes
- * Change left/right -> top/bottom in MPI code
- * Clean up MPI version
+ * Optimize MPI version.
+ * Functions give error codes.
+ * Change left/right -> top/bottom in MPI code.
+
