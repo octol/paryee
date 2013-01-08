@@ -35,7 +35,7 @@ tests_SH = tests_scaling.sh tests_perf.sh
 tests_DATA = $(tests_SH:.sh=.tsv)
 tests_PNG = $(tests_DATA:.tsv=.png)
 
-unittests_SRC = unit_tests.c yee_common.c yee_common_mpi.c
+unittests_SRC = unit_tests.c yee_common.c
 unittests_OBJ = $(unittests_SRC:.c=.o)
 unittests_BIN = unit_tests
 
