@@ -35,6 +35,9 @@
 #define UTAG 4                  /* communication tag */
 #define VTAG 5                  /* communication tag */
 
+/*
+ * Sends the grid data from the master node to the worker nodes.
+ */
 void send_grid_data(int taskid, long left, long right, long size,
                     double y[2])
 {
@@ -49,6 +52,9 @@ void send_grid_data(int taskid, long left, long right, long size,
     MPI_Send(y, 2, MPI_DOUBLE, taskid, BEGIN, MPI_COMM_WORLD);
 }
 
+/*
+ * Each worker node receives its local grid data from the master node.
+ */
 void receive_grid_data(long *left, long *right, long *size, double *y,
                        MPI_Status * status)
 {
@@ -63,6 +69,9 @@ void receive_grid_data(long *left, long *right, long *size, double *y,
     MPI_Recv(y, 2, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
 }
 
+/*
+ * The actual field (pressure and velocity) is sent from master to worker node. 
+ */
 void send_field_data(long taskid, struct field *f,
                      struct cell_partition part)
 {
@@ -88,6 +97,10 @@ void send_field_data(long taskid, struct field *f,
              MPI_COMM_WORLD);
 }
 
+/*
+ * Each worker node receives its field (pressure and velocity) from the master
+ * node.
+ */
 void receive_field_data(struct field *f, long size, MPI_Status * status)
 {
     long nx = f->p.size_x;
@@ -106,6 +119,10 @@ void receive_field_data(struct field *f, long size, MPI_Status * status)
              MPI_COMM_WORLD, status);
 }
 
+/* 
+ * After simulation/time stepping is done, each worker node sends its field
+ * data back to the master node.
+ */
 void return_data(struct field *f, long size)
 {
     long nx = f->p.size_x;
@@ -124,7 +141,9 @@ void return_data(struct field *f, long size)
              MPI_COMM_WORLD);
 }
 
-
+/*
+ * The master collects all data into one unit.
+ */
 void collect_data(long taskid, struct cell_partition part, struct field *f,
                   MPI_Status * status)
 {
@@ -147,114 +166,165 @@ void collect_data(long taskid, struct cell_partition part, struct field *f,
              MPI_COMM_WORLD, status);
 }
 
-void leapfrog_master(struct field *f, long right, long size,
-                     struct cell_partition part)
+/* 
+ * Compute one time step for the pressure. This is the same expression as in
+ * the shared memory implementations.
+ */
+void leapfrog_master_p(double *restrict p, double *restrict u,
+                       double *restrict v, long nx, double dt, double dx,
+                       double dy, long size)
 {
-    MPI_Status status;
-
-    /* used by index macro */
-    double *p = f->p.value;
-    double *u = f->u.value;
-    double *v = f->v.value;
-    long nx = f->p.size_x;
-
-    /* Communicate */
-    /* receive v from the right (top) */
-    if (right != NONE) {
-        long begin_v = 0 + size * nx;
-        long size_v = 1 * nx;
-        MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG,
-                 MPI_COMM_WORLD, &status);
-    }
-
-    /* update the pressure (p) */
-    /*printf("Master: updating p\n"); */
-    for (long i = 0; i < nx; ++i) {
-        for (long j = part.begin; j < part.end + 1; ++j) {
-            P(i, j) +=
-                f->dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
-                f->dt / f->v.dy * (V(i, j + 1) - V(i, j));
-        }
-    }
-
-    /* Communicate */
-    /* send p to the right (top) */
-    if (right != NONE) {
-        long begin_p = 0 + (size - 1) * nx;     /* since we don't have extra ghost p */
-        long size_p = 1 * nx;
-        MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG,
-                 MPI_COMM_WORLD);
-    }
-
-    /* update the velocity (u,v) */
-    for (long i = 1; i < nx; ++i)
-        for (long j = part.begin; j < part.end + 1; ++j)
-            U(i, j) += f->dt / f->p.dx * (P(i, j) - P(i - 1, j));
-
     for (long i = 0; i < nx; ++i)
-        for (long j = 1; j < part.end + 1; ++j)
-            V(i, j) += f->dt / f->p.dy * (P(i, j) - P(i, j - 1));
+        for (long j = 0; j < size; ++j)
+            P(i, j) +=
+                dt / dx * (U(i + 1, j) - U(i, j)) +
+                dt / dy * (V(i, j + 1) - V(i, j));
 }
 
-void leapfrog_worker(struct field *f, long left, long right, long size)
+/*
+ * Compute one time step for the pressure on the worker nodes. This differs
+ * since we now have extra ghost cells to take into consideration. In
+ * particular, grid indices for pressure needs to be shifter up by one along
+ * the y-axis.
+ */
+void leapfrog_worker_p(double *restrict p, double *restrict u,
+                       double *restrict v, long nx, double dt, double dx,
+                       double dy, long size)
 {
-    MPI_Status status;
+    for (long i = 0; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            P(i, j + 1) +=
+                dt / dx * (U(i + 1, j) - U(i, j)) +
+                dt / dy * (V(i, j + 1) - V(i, j));
+}
 
-    /* used by index macro */
-    long nx = f->p.size_x;
-    double *p = f->p.value;
-    double *u = f->u.value;
-    double *v = f->v.value;
+/* 
+ * Compute one time step for the velocity field. This is the same expression as
+ * in the shared memory implementations.
+ */
+void leapfrog_master_uv(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size)
+{
+    for (long i = 1; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            U(i, j) += dt / dx * (P(i, j) - P(i - 1, j));
 
-    /* Communicate */
-    /* send v to the left (bottom) */
-    /* receive v from the right (top) */
+    for (long i = 0; i < nx; ++i)
+        for (long j = 1; j < size; ++j)
+            V(i, j) += dt / dy * (P(i, j) - P(i, j - 1));
+}
+
+/*
+ * Compute one time step for the velocity field on the worker nodes. This
+ * differs since we now have extra ghost cells to take into consideration. In
+ * particular, grid indices for pressure needs to be shifter up by one along
+ * the y-axis.
+ */
+void leapfrog_worker_uv(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size)
+{
+    for (long i = 1; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            U(i, j) += dt / dx * (P(i, j + 1) - P(i - 1, j + 1));
+
+    for (long i = 0; i < nx; ++i)
+        for (long j = 0; j < size; ++j)
+            V(i, j) += dt / dy * (P(i, j + 1) - P(i, j));
+}
+
+/*
+ * Before/after each time step we need to send the boundary data between each
+ * computational node.
+ *  Send v to the left (bottom),
+ *  Receive v from the right (top). 
+ */
+void communicate_v(double *v, long left, long right, long nx, long size,
+                   MPI_Status * status)
+{
     if (left != NONE) {
         long begin_v = 0 + 0 * nx;
         long size_v = 1 * nx;
-        MPI_Send(&f->v.value[begin_v], size_v, MPI_DOUBLE, left, VTAG,
+        MPI_Send(&v[begin_v], size_v, MPI_DOUBLE, left, VTAG,
                  MPI_COMM_WORLD);
     }
     if (right != NONE) {
         long begin_v = 0 + size * nx;
         long size_v = 1 * nx;
-        MPI_Recv(&f->v.value[begin_v], size_v, MPI_DOUBLE, right, VTAG,
-                 MPI_COMM_WORLD, &status);
+        MPI_Recv(&v[begin_v], size_v, MPI_DOUBLE, right, VTAG,
+                 MPI_COMM_WORLD, status);
     }
+}
 
-    /* update the pressure (p) */
-    for (long i = 0; i < nx; ++i) {
-        for (long j = 0; j < size; ++j) {
-            P(i, j + 1) +=
-                f->dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
-                f->dt / f->v.dy * (V(i, j + 1) - V(i, j));
-        }
-    }
-
-    /* Communicate */
-    /* receive p from the left */
-    /* send p to the right */
+/*
+ * Before/after each time step we need to send the boundary data between each
+ * computational node.
+ *  Receive p from the left (bottom)
+ *  Send p to the right (top)
+ */
+void communicate_p(double *p, long left, long right, long nx, long size,
+                   MPI_Status * status)
+{
     if (left != NONE) {
         long begin_p = 0 + 0 * nx;
         long size_p = 1 * nx;
-        MPI_Recv(&f->p.value[begin_p], size_p, MPI_DOUBLE, left, PTAG,
-                 MPI_COMM_WORLD, &status);
+        MPI_Recv(&p[begin_p], size_p, MPI_DOUBLE, left, PTAG,
+                 MPI_COMM_WORLD, status);
     }
     if (right != NONE) {
-        long begin_p = 0 + size * nx;
+        /* For the master node we don't have an extra ghost point p to the 
+         * left (below) */
+        long begin_p =
+            (left == NONE) ? 0 + (size - 1) * nx : 0 + size * nx;
         long size_p = 1 * nx;
-        MPI_Send(&f->p.value[begin_p], size_p, MPI_DOUBLE, right, PTAG,
+        MPI_Send(&p[begin_p], size_p, MPI_DOUBLE, right, PTAG,
                  MPI_COMM_WORLD);
     }
+}
 
-    /* update the velocity (u) */
-    for (long i = 1; i < nx; ++i)
-        for (long j = 0; j < size; ++j)
-            U(i, j) += f->dt / f->p.dx * (P(i, j + 1) - P(i - 1, j + 1));
+/*
+ * The full update done in each time step. This includes sending/receiving data between the computational nodes
+ * as well as performing the leapfrog update of the field.
+ */
+void leapfrog_mpi(struct field *f, long left, long right, long size)
+{
+    MPI_Status status;
 
-    for (long i = 0; i < nx; ++i)
-        for (long j = 0; j < size; ++j)
-            V(i, j) += f->dt / f->p.dy * (P(i, j + 1) - P(i, j));
+    /* Used by index macro */
+    double *p = f->p.value;
+    double *u = f->u.value;
+    double *v = f->v.value;
+    long nx = f->p.size_x;
+
+    /* Communicate: */
+    /* send v to the left (bottom), receive v from the right (top) */
+    communicate_v(v, left, right, nx, size, &status);
+
+    /* Update the pressure (p) */
+    if (left == NONE)
+        leapfrog_master_p(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size);
+    else
+        leapfrog_worker_p(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size);
+
+    /* Communicate: */
+    /* send p to the right (top), receive p from the left (bottom) */
+    communicate_p(p, left, right, nx, size, &status);
+
+    /* Update the velocity (u,v) */
+    if (left == NONE)
+        leapfrog_master_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
+    else
+        leapfrog_worker_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
+}
+
+/*
+ * Update the field data from the start time to the end time.
+ */
+void timestep(struct field *f, long left, long right, long size)
+{
+    for (long n = 0; n < f->Nt; ++n)
+        leapfrog_mpi(f, left, right, size);
 }
 
 /* 
@@ -289,10 +359,8 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
     /* Field variables - data structures for the simulation */
-    /* Contains field data (pressure and velocity) */
-    struct field f;
-    /* Array of domain partitions */
-    struct cell_partition *part;
+    struct field f;             /* Contains pressure and velocity */
+    struct cell_partition *part;        /* Array of domain partitions */
 
     if (taskid == MASTER) {
         /********************* Master code *********************/
@@ -335,12 +403,12 @@ int main(int argc, char *argv[])
             send_field_data(taskid, &f, part[taskid]);
         }
 
-        /* The worker to the right of master */
+        /* The neighbours of the master node */
+        long left = NONE;
         long right = (numtasks > 1) ? 1 : NONE;
 
         /* Time step on the leftmost partition.  */
-        for (long n = 0; n < f.Nt; ++n)
-            leapfrog_master(&f, right, part[0].size, part[taskid]);
+        timestep(&f, left, right, part[0].size);
 
         /* Wait for returning data from the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid)
@@ -360,7 +428,7 @@ int main(int argc, char *argv[])
 
         /* Partition data */
         long left, right, size;
-        double y_part[2];
+        double y_part[2];       /* coord interval on y-axis */
         receive_grid_data(&left, &right, &size, y_part, &status);
 
         /* Allocate and receive the local copy of the field */
@@ -372,23 +440,16 @@ int main(int argc, char *argv[])
         f.dt = cfl * f.p.dx / c;
         f.Nt = T / f.dt;
 
-        /* Set out v to zero for the rightmost (top) partition. */
+        /* Set outer v to zero for the rightmost (top) partition. */
         if (right == NONE) {
             long j = size;
             for (long i = 0; i < nx; ++i)
                 assign_to(f.v, i, j, 0);
         }
 
-        /* Time step */
-        for (long n = 0; n < f.Nt; ++n)
-            leapfrog_worker(&f, left, right, size);
-
-        /* Send back data to master */
-        return_data(&f, size);
-
-        /* Remember to deallocate */
+        timestep(&f, left, right, size);
+        return_data(&f, size);  /* Send back data to master */
         free_acoustic_field(f);
-
         MPI_Finalize();
     }
 
