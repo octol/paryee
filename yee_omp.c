@@ -80,7 +80,6 @@ int main(int argc, char *argv[])
 #pragma omp parallel default(shared) private(i,j,n)
     {
         /* private variables used in the time stepping */
-        /*double dx = f.p.dx; */
         double dt = f.dt;
         double Nt = f.Nt;
         long tid = omp_get_thread_num();
@@ -107,10 +106,6 @@ int main(int argc, char *argv[])
             /* update the velocity (u,v) */
             for (i = u0; i < u1; ++i) {
                 for (j = 0; j < ny; ++j) {
-                    /*if (i == 3) { */
-                    /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dx); */
-                    /*printf("P(i,j)=%e  P(i - 1,j)=%e  \n",P(i, j), P(i - 1, j)); */
-                    /*} */
                     U(i, j) += dt / f.p.dx * (P(i, j) - P(i - 1, j));
                 }
             }
@@ -128,6 +123,7 @@ int main(int argc, char *argv[])
 
     /* write to disk and free data */
     write_to_disk(f.p, outfile);
+    free(part);
     free_acoustic_field(f);
 
     return EXIT_SUCCESS;

@@ -239,49 +239,27 @@ void leapfrog(struct field *f)
     for (i = 0; i < nx; ++i) {
         for (j = 0; j < ny; ++j) {
 
-            /*if (j == 1) { */
-            /*printf("i=%li:  dt=%e  f.u.dx=%e  f.v.dy=%e  ",i,dt,f->u.dx, f->v.dy); */
-            /*[>printf("U(i+1,j)=%e  U(i,j)=%e  \n",U(i + 1, j), U(i, j));<] */
-            /*printf("V(i,j+1)=%e  V(i,j)=%e  \n",V(i, j + 1), V(i, j)); */
-            /*} */
-
             P(i, j) +=
 #ifdef EXTRA_WORK
                 /* NOTE: the pow(exp(-pow(sin(dt),2)),3.2) factor is to make
                  * more operations per memory access. This is to test the
                  * parallel performance.  */
-                /*pow(exp(-pow(sin(dt), 2)), 3.2) * */
-                /*pow(exp(-pow(sin(dt), 4)), 1.2) * */
-                /*pow(exp(-pow(sin(dt), 2)), 4.2) * */
+                pow(exp(-pow(sin(dt), 2)), 3.2) *
+                pow(exp(-pow(sin(dt), 4)), 1.2) *
+                pow(exp(-pow(sin(dt), 2)), 4.2) *
 #endif
                 dt / f->u.dx * (U(i + 1, j) - U(i, j)) +
                 dt / f->v.dy * (V(i, j + 1) - V(i, j));
         }
     }
 
-    /*for (i = 1; i < nx - 1; ++i) { */
-    for (i = 1; i < nx; ++i) {
-        for (j = 0; j < ny; ++j) {
-            /*if (i == 3) { */
-            /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dx); */
-            /*printf("P(i,j)=%e  P(i - 1,j)=%e  \n",P(i, j), P(i - 1, j)); */
-            /*} */
+    for (i = 1; i < nx; ++i) 
+        for (j = 0; j < ny; ++j) 
             U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
-        }
-    }
 
-    for (i = 0; i < nx; ++i) {
-        for (j = 1; j < ny; ++j) {
-
-            /*printf("j=%li\n",j); */
-            /*if (j == 3) { */
-            /*printf("i=%li:  dt=%e  f.p.dy=%e  ",i,dt,f->p.dy); */
-            /*printf("P(i,j)=%e  P(i,j - 1)=%e  \n",P(i, j), P(i, j - 1)); */
-            /*} */
-
+    for (i = 0; i < nx; ++i) 
+        for (j = 1; j < ny; ++j) 
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
-        }
-    }
 }
 
 void timestep_leapfrog(struct field *f, double Nt)
@@ -325,11 +303,6 @@ void get_partition_coords(struct cell_partition part, struct field *f,
     long end = part.end + 1;
     y[0] = f->v.y[begin];
     y[1] = f->v.y[end];
-    /* Due to the staggered grid we need one half cell to the left (bottom) */
-    /*if (left != NONE) */
-    /*y[0] -= f->v.dy/2.0; */
-    /*if (right != NONE) */
-    /*y[1] += f->v.dy/2.0; */
 }
 
 void cellindex_to_nodeindex(long tid, struct cell_partition part,
@@ -402,7 +375,6 @@ double gauss(double x)
 double gauss2d(double x, double y)
 {
     double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);
-    /*double r_squared = pow(x - 0.5, 2) + pow(y - 0.5, 2); */
     return exp(-r_squared / pow(0.1, 2));
 }
 

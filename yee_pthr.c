@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
     write_to_disk(f.p, outfile);
     free(param);
     free(thr);
+    free(part);
     free_acoustic_field(f);
 
     pthread_attr_destroy(&attr);
