@@ -6,9 +6,9 @@ SAVEDIR = tests_$(HOSTNAME)
 
 # File dependencies
 yee_SRC = yee.c yee_common.c
-yee_pthr_SRC = yee_pthr.c yee_common.c
-yee_omp_SRC = yee_omp.c yee_common.c
-yee_mpi_SRC = yee_mpi.c yee_common.c
+yee_pthr_SRC = yee_pthr.c yee_common.c 
+yee_omp_SRC = yee_omp.c yee_common.c 
+yee_mpi_SRC = yee_mpi.c yee_common.c yee_common_mpi.c
 
 yee_OBJ = $(yee_SRC:.c=.o)
 yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
@@ -35,7 +35,7 @@ tests_SH = tests_scaling.sh tests_perf.sh
 tests_DATA = $(tests_SH:.sh=.tsv)
 tests_PNG = $(tests_DATA:.tsv=.png)
 
-unittests_SRC = unit_tests.c yee_common.c
+unittests_SRC = unit_tests.c yee_common.c yee_common_mpi.c
 unittests_OBJ = $(unittests_SRC:.c=.o)
 unittests_BIN = unit_tests
 
@@ -79,6 +79,9 @@ yee_omp.o: yee_omp.c
 	$(CC) $(CFLAGS) -c $< $(OPENMP)
 
 yee_mpi.o: yee_mpi.c
+	$(MPICC) $(MPICFLAGS) -c $<
+
+yee_common_mpi.o: yee_common_mpi.c yee_common_mpi.h
 	$(MPICC) $(MPICFLAGS) -c $<
 
 $(yee_DATA): $(yee_BIN)

@@ -23,8 +23,6 @@
 #ifndef YEE_COMMON_H
 #define YEE_COMMON_H
 
-#define MASTER 0                /* id of master process */
-#define NONE -1                 /* no neighbour */
 #define STR_SIZE 256
 
 #define P(x, y) (p[(x) + (y)*nx])
