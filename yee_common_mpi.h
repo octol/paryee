@@ -38,17 +38,20 @@
 /*
  * Sends the grid data from the master node to the worker nodes.
  */
-void send_grid_data(int taskid, long left, long right, long size, double y[2]);
+void send_grid_data(int taskid, long left, long right, long size,
+                    double y[2]);
 
 /*
  * Each worker node receives its local grid data from the master node.
  */
-void receive_grid_data(long *left, long *right, long *size, double *y, MPI_Status * status);
+void receive_grid_data(long *left, long *right, long *size, double *y,
+                       MPI_Status * status);
 
 /*
  * The actual field (pressure and velocity) is sent from master to worker node. 
  */
-void send_field_data(long taskid, struct field *f, struct cell_partition part);
+void send_field_data(long taskid, struct field *f,
+                     struct cell_partition part);
 
 /*
  * Each worker node receives its field (pressure and velocity) from the master
@@ -65,13 +68,21 @@ void return_data(struct field *f, long size);
 /*
  * The master collects all data into one unit.
  */
-void collect_data(long taskid, struct cell_partition part, struct field *f, MPI_Status * status);
+void collect_data(long taskid, struct cell_partition part, struct field *f,
+                  MPI_Status * status);
 
 /* 
  * Compute one time step for the pressure. This is the same expression as in
  * the shared memory implementations.
  */
-void leapfrog_master_p(double *restrict p, double *restrict u, double *restrict v, long nx, double dt, double dx, double dy, long size);
+void leapfrog_master_p(double *restrict p, double *restrict u,
+                       double *restrict v, long nx, double dt, double dx,
+                       double dy, long size);
+/* Non-blocking version */
+void leapfrog_master_p2(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size, long right,
+                        MPI_Request * recived);
 
 /*
  * Compute one time step for the pressure on the worker nodes. This differs
@@ -79,13 +90,22 @@ void leapfrog_master_p(double *restrict p, double *restrict u, double *restrict 
  * particular, grid indices for pressure needs to be shifter up by one along
  * the y-axis.
  */
-void leapfrog_worker_p(double *restrict p, double *restrict u, double *restrict v, long nx, double dt, double dx, double dy, long size);
+void leapfrog_worker_p(double *restrict p, double *restrict u,
+                       double *restrict v, long nx, double dt, double dx,
+                       double dy, long size);
+/* Non-blocking version */
+void leapfrog_worker_p2(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size, long right,
+                        MPI_Request * received);
 
 /* 
  * Compute one time step for the velocity field. This is the same expression as
  * in the shared memory implementations.
  */
-void leapfrog_master_uv(double *restrict p, double *restrict u, double *restrict v, long nx, double dt, double dx, double dy, long size);
+void leapfrog_master_uv(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size);
 
 /*
  * Compute one time step for the velocity field on the worker nodes. This
@@ -93,7 +113,14 @@ void leapfrog_master_uv(double *restrict p, double *restrict u, double *restrict
  * particular, grid indices for pressure needs to be shifter up by one along
  * the y-axis.
  */
-void leapfrog_worker_uv(double *restrict p, double *restrict u, double *restrict v, long nx, double dt, double dx, double dy, long size);
+void leapfrog_worker_uv(double *restrict p, double *restrict u,
+                        double *restrict v, long nx, double dt, double dx,
+                        double dy, long size);
+/* Non-blocking version */
+void leapfrog_worker_uv2(double *restrict p, double *restrict u,
+                         double *restrict v, long nx, double dt, double dx,
+                         double dy, long size, long left,
+                         MPI_Request * recieved);
 
 /*
  * Before/after each time step we need to send the boundary data between each
@@ -101,7 +128,11 @@ void leapfrog_worker_uv(double *restrict p, double *restrict u, double *restrict
  *  Send v to the left (bottom),
  *  Receive v from the right (top). 
  */
-void communicate_v(double *v, long left, long right, long nx, long size, MPI_Status * status);
+void communicate_v(double *v, long left, long right, long nx, long size,
+                   MPI_Status * status);
+/* Non-blocking version */
+void communicate_v2(double *v, long left, long right, long nx, long size,
+                    MPI_Request * sent, MPI_Request * received);
 
 /*
  * Before/after each time step we need to send the boundary data between each
@@ -109,17 +140,25 @@ void communicate_v(double *v, long left, long right, long nx, long size, MPI_Sta
  *  Receive p from the left (bottom)
  *  Send p to the right (top)
  */
-void communicate_p(double *p, long left, long right, long nx, long size, MPI_Status * status);
+void communicate_p(double *p, long left, long right, long nx, long size,
+                   MPI_Status * status);
+/* Non-blocking version */
+void communicate_p2(double *p, long left, long right, long nx, long size,
+                    MPI_Request * sent, MPI_Request * received);
 
 /*
  * The full update done in each time step. This includes sending/receiving data between the computational nodes
  * as well as performing the leapfrog update of the field.
  */
 void leapfrog_mpi(struct field *f, long left, long right, long size);
+/* Non-blocking version */
+void leapfrog_mpi2(struct field *f, long left, long right, long size);
 
 /*
  * Update the field data from the start time to the end time.
  */
-void timestep(struct field *f, long left, long right, long size);
+void timestep_mpi(struct field *f, long left, long right, long size);
+/* Non-blocking version */
+void timestep_mpi2(struct field *f, long left, long right, long size);
 
 #endif

@@ -5,7 +5,7 @@ N=64
 threads=4
 limit=1e-14
 
-yee_bin="yee_omp yee_pthr yee_mpi"
+yee_bin="yee_omp yee_pthr yee_mpi yee_mpi2"
 args="-n $N" 
 
 printf "\n  Integration tests:\n"
@@ -19,7 +19,7 @@ do
     printf "\nTest: ${yb}\n"
     # Compute solution
     outfile=/tmp/${yb}.tsv
-    if [ $yb == "yee_mpi" ]
+    if [ $yb == "yee_mpi" ] || [ $yb == "yee_mpi2" ]
     then
         mpirun -n $threads ./$yb -o $outfile $args 1> /dev/null
     else

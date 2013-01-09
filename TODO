@@ -1,7 +1,0 @@
-TODO
-====
-
- * Optimize MPI version.
- * Functions give error codes.
- * Change left/right -> top/bottom in MPI code.
-

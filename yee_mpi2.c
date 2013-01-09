@@ -18,7 +18,8 @@
  */
 
 /*
- * Basic MPI distributed memory parallelizaton
+ * Basic MPI distributed memory parallelizaton.
+ * This version tries to be non-blocking.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
         long right = (numtasks > 1) ? 1 : NONE;
 
         /* Time step on the leftmost partition.  */
-        timestep_mpi(&f, left, right, part[0].size);
+        timestep_mpi2(&f, left, right, part[0].size);
 
         /* Wait for returning data from the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid)
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
                 assign_to(f.v, i, j, 0);
         }
 
-        timestep_mpi(&f, left, right, size);
+        timestep_mpi2(&f, left, right, size);
         return_data(&f, size);  /* Send back data to master */
         free_acoustic_field(f);
         MPI_Finalize();
