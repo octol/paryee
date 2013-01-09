@@ -13,10 +13,11 @@ This formulation is sometimes used in acoustics, where p is the pressure and
 
 A number of different implementations are included, of varying complexity.
 
-- yee      - Single thread reference implementation to compare against.
+- yee_mpi  - Distributed memory parallelization using MPI.
+- yee_mpi2 - Distributed memory parallelization using MPI (Non-blocking).
 - yee_omp  - Shared memory parallelization using OpenMP.
 - yee_pthr - Shared memory parallelization using POSIX threads.
-- yee_mpi  - Distributed memory parallelization using MPI.
+- yee      - Single thread reference implementation to compare against.
 
 Visualizations
 --------------
