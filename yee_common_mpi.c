@@ -361,8 +361,8 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
         leapfrog_master_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, &received);
     else 
         leapfrog_worker_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, &received);
-    /*if (left != NONE)*/
-        /*MPI_Wait(&sent, &status);*/
+    if (left != NONE)
+        MPI_Wait(&sent, MPI_STATUS_IGNORE);
 
     /* Communicate: */
     /* send p to the right (top), receive p from the left (bottom) */
@@ -373,8 +373,8 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
         leapfrog_master_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
     else
         leapfrog_worker_uv2(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size, left, &received);
-    /*if (right != NONE)*/
-        /*MPI_Wait(&sent, &status);*/
+    if (right != NONE)
+        MPI_Wait(&sent, MPI_STATUS_IGNORE);
 }
 
 void timestep_mpi(struct field *f, long left, long right, long size)
