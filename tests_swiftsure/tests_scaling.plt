@@ -8,4 +8,5 @@ set title "512 x 512 cells"
 plot \
     "tests_scaling.tsv" using 1:3 title "OpenMP" with linespoints lw 2, \
     "tests_scaling.tsv" using 1:4 title "Pthread" with linespoints lw 2, \
-    "tests_scaling.tsv" using 1:5 title "MPI" with linespoints lw 2
+    "tests_scaling.tsv" using 1:5 title "MPI" with linespoints lw 2, \
+    "tests_scaling.tsv" using 1:6 title "MPI (Non-blocking)" with linespoints lw 2
