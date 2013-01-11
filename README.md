@@ -29,8 +29,8 @@ Performance tests
 -----------------
 
 ### Intel Core i7 920, 4 cores (8 threads) @ 2.80 GHz
-![Performance tests](https://raw.github.com/octol/paryee/master/figures/tests_perf.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/figures/tests_scaling.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_perf.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
 
 ### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf.png)
