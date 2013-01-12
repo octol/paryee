@@ -33,7 +33,7 @@ Performance tests
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
 
 ### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_6.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
