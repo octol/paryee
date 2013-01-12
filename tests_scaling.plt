@@ -1,7 +1,7 @@
 set terminal png truecolor size 400,300 font "Helvetica" 10
 set out "tests_scaling.png"
 set key top right
-set xlabel "Nodes"
+set xlabel "Threads"
 set ylabel "Time [s]"
 set title "1000 x 1000 cells"
 plot \

@@ -3,7 +3,7 @@
 
 #NODES=$(seq 8)
 NODES=$(nawk 'BEGIN{ for(i=1;i<=8;i++) print i}')
-N=1000
+N=500
 OUTPUTFILE="tests_scaling1 tests_scaling2 tests_scaling3 tests_scaling4"
 
 for OUTFILE in $OUTPUTFILE
