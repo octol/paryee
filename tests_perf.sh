@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run performance tests to compare the different implementations
 
-NNODES="8"
+NNODES="4 8"
 #N=$(seq 64 4 512)
 #N=$(nawk 'BEGIN{ for(i=64;i<=512;i=i+4) print i}')
 N=$(nawk 'BEGIN{ for(i=100;i<=1000;i=i+1) print i}')
