@@ -35,8 +35,7 @@ DATA = $(BIN:=.tsv)
 GNUPLOT = $(DATA:.tsv=.plt) 
 PNG = $(GNUPLOT:.plt=.png) 
 
-tests_SH = tests_scaling.sh tests_perf.sh
-tests_DATA = $(tests_SH:.sh=.tsv)
+tests_DATA = tests_perf_4.tsv tests_perf_8.tsv
 tests_PNG = $(tests_DATA:.tsv=.png)
 
 unittests_SRC = unit_tests.c yee_common.c
@@ -108,7 +107,7 @@ $(yee_mpi_DATA): $(yee_mpi_BIN)
 
 $(GNUPLOT): template.gnuplot
 	sed 's/file/$(@:.plt=)/g' $< > $@
-	
+
 %.png: %.plt %.tsv
 	if [ -f /usr/bin/gnuplot ]; then gnuplot $<; else touch $<; fi
 
@@ -116,4 +115,4 @@ $(GNUPLOT): template.gnuplot
 	./$<
 
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(tests_DATA) $(tests_PNG) $(unittests_BIN) $(unittests_OBJ) yee0.tsv
+	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(unittests_BIN) $(unittests_OBJ) yee0.tsv
