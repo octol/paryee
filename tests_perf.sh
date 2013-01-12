@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Run performance tests to compare the different implementations
 
-NNODES="4 8"
+NNODES="8"
 #N=$(seq 64 4 512)
 #N=$(nawk 'BEGIN{ for(i=64;i<=512;i=i+4) print i}')
-#N=$(nawk 'BEGIN{ for(i=100;i<=1000;i=i+1) print i}')
-N=$(nawk 'BEGIN{ for(i=64;i<=128;i=i+64) print i}')
+N=$(nawk 'BEGIN{ for(i=100;i<=1000;i=i+1) print i}')
+#N=$(nawk 'BEGIN{ for(i=64;i<=128;i=i+64) print i}')
 OUTPUTFILE="tests_perf1 tests_perf2 tests_perf3 tests_perf4"
 
 for NODES in $NNODES
