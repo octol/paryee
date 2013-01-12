@@ -3,7 +3,7 @@ set out "tests_scaling.png"
 set key top right
 set xlabel "Threads"
 set ylabel "Time [s]"
-set title "500 x 500 cells"
+set title "1000 x 1000 cells"
 plot \
     "tests_scaling.tsv" using 1:2 title "OpenMP" with linespoints lw 2, \
     "tests_scaling.tsv" using 1:3 title "Pthread" with linespoints lw 2, \
