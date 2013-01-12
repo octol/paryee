@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
     long ny = 32;
     struct field f;
     char outfile[STR_SIZE] = "yee_pthr.tsv";
+    int write = 0;
     long threads = 4;
     struct cell_partition *part;
     pthread_t *thr;
@@ -118,7 +119,7 @@ int main(int argc, char *argv[])
     struct thread_param *param;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, argc, argv);
+    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
     printf("Pthreads: %li\n", threads);
@@ -179,7 +180,8 @@ int main(int argc, char *argv[])
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
-    write_to_disk(f.p, outfile);
+    if (write)
+        write_to_disk(f.p, outfile);
     free(param);
     free(thr);
     free(part);

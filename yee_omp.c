@@ -44,11 +44,12 @@ int main(int argc, char *argv[])
     long ny = 32;
     struct field f;
     char outfile[STR_SIZE] = "yee_omp.tsv";
+    int write = 1;
     long threads = 4;
     struct cell_partition *part;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, argc, argv);
+    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     omp_set_num_threads(threads);
     printf("Domain: %li x %li\n", nx, ny);
@@ -122,7 +123,8 @@ int main(int argc, char *argv[])
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
-    write_to_disk(f.p, outfile);
+    if (write)
+        write_to_disk(f.p, outfile);
     free(part);
     free_acoustic_field(f);
 

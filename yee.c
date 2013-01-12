@@ -43,9 +43,10 @@ int main(int argc, char *argv[])
     struct field f;
     char outfile[STR_SIZE] = "yee.tsv";
     char outfile0[STR_SIZE] = "yee0.tsv";       /* initial field */
+    int write = 1; 
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile, argc, argv);
+    parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
 
@@ -53,7 +54,8 @@ int main(int argc, char *argv[])
     f = init_acoustic_field(nx, ny, x, y);
     apply_func(&f.p, gauss2d);  /* initial data */
     set_boundary(&f);
-    write_to_disk(f.p, outfile0);
+    if (write)
+        write_to_disk(f.p, outfile0);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
@@ -67,8 +69,9 @@ int main(int argc, char *argv[])
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
-    write_to_disk(f.p, outfile);
-    free_acoustic_field(f);
+    if (write)
+        write_to_disk(f.p, outfile);
 
+    free_acoustic_field(f);
     return EXIT_SUCCESS;
 }

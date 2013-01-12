@@ -320,11 +320,10 @@ void cellindex_to_nodeindex(long tid, struct cell_partition part,
     }
 }
 
-void parse_cmdline(long *nx,
-                   long *threads, char *outfile, int argc, char *argv[])
+void parse_cmdline(long *nx, long *threads, char *outfile, int *write, int argc, char *argv[])
 {
     int opt;
-    while ((opt = getopt(argc, argv, "t:n:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "t:n:o:wq")) != -1) {
         switch (opt) {
         case 't':
             *threads = atoi(optarg);
@@ -336,12 +335,16 @@ void parse_cmdline(long *nx,
             strncpy(outfile, optarg, STR_SIZE);
             outfile[STR_SIZE - 1] = '\0';       /* force null termination */
             break;
+        case 'q':
+            *write = 0;
+            break;
         default:               /* '?' */
             fprintf(stderr, "Usage: %s ", argv[0]);
             if (threads != NULL)
                 fprintf(stderr, "[-t threads] ");
             fprintf(stderr, "[-n intervals] ");
-            fprintf(stderr, "[-o outfile]\n");
+            fprintf(stderr, "[-o outfile]");
+            fprintf(stderr, "[-q]\n");
             exit(EXIT_FAILURE);
         }
     }

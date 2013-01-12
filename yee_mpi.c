@@ -44,9 +44,10 @@ int main(int argc, char *argv[])
     long nx = 32;
     long ny = 32;
     char outfile[STR_SIZE] = "yee_mpi.tsv";
+    int write = 1;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile, argc, argv);
+    parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
 
     /* Setup MPI and initialize variables */
@@ -120,7 +121,8 @@ int main(int argc, char *argv[])
         toc = gettime();
         printf("Elapsed: %f seconds\n", toc - tic);
 
-        write_to_disk(f.p, outfile);
+        if (write)
+            write_to_disk(f.p, outfile);
         free(part);
         free_acoustic_field(f);
         MPI_Finalize();
