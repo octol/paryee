@@ -3,16 +3,14 @@
 
 NNODES="4 8"
 #N=$(seq 64 4 512)
-#N=$(nawk 'BEGIN{ for(i=64;i<=512;i=i+4) print i}')
 N=$(nawk 'BEGIN{ for(i=100;i<=1000;i=i+1) print i}')
-#N=$(nawk 'BEGIN{ for(i=64;i<=128;i=i+64) print i}')
 OUTPUTFILE="tests_perf1 tests_perf2 tests_perf3 tests_perf4"
 
 for NODES in $NNODES
 do
     for OUTFILE in $OUTPUTFILE
     do
-        OUTFILE=$OUTFILE_$NODES.tsv
+        OUTFILE=${OUTFILE}_${NODES}.tsv
 
         # Sanity checks
         [ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
@@ -30,9 +28,9 @@ do
     done
 
     # Now merge computed data and write to tests_perf.tsv
-    OUTFILE_M=tests_perf_$NODES.tsv
+    OUTFILE_M=tests_perf_${NODES}.tsv
     [ -f $OUTFILE_M ] && echo "$OUTFILE_M file already exists, not overwriting (to be safe)!" && exit 1;
-    octave -qf --eval "nodes=$NODES; gather_data" > $OUTFILE_M
+    octave -qf --eval "nodes=${NODES}; gather_data" > ${OUTFILE_M}
 done
 
 
