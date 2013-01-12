@@ -1,12 +1,10 @@
 % Read and suitably filter the computed results.
+function gather_perf_data(nodes)
 
-%clear all
-assert(exist('nodes'));
-
-samples = 3;
+samples = 4;
 
 for ii = 1:samples
-    A{ii} = dlmread(['tests_perf' num2str(ii) '-' num2str(nodes) '.tsv'],' ');
+    A{ii} = dlmread(['tests_perf' num2str(ii) '_' num2str(nodes) '.tsv'],' ');
 end
 
 % Decompose data into more manageable form
@@ -27,6 +25,5 @@ yee_min(:,3) = min(yee_pthr,[],2);
 yee_min(:,4) = min(yee_mpi,[],2);
 yee_min(:,5) = min(yee_mpi2,[],2);
 
-%dlmwrite('tests_perf-4.tsv',yee_min,' ');
 dlmwrite('/dev/stdout',yee_min,' ');
 

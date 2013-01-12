@@ -1,7 +1,7 @@
 set terminal png truecolor size 400,300 font "Helvetica" 10
 set out "tests_perf_8.png"
 set key top left
-set xlabel "Cells"
+set xlabel "Cells per axis"
 set ylabel "Time [s]"
 set title "8 threads"
 plot \

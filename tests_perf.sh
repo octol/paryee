@@ -15,7 +15,7 @@ do
         # Sanity checks
         [ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
 
-        echo "Performance tests:"
+        echo "Performance tests (${NODES} nodes):"
         for n in $N
         do
             echo "Running for $n"
@@ -30,7 +30,7 @@ do
     # Now merge computed data and write to tests_perf.tsv
     OUTFILE_M=tests_perf_${NODES}.tsv
     [ -f $OUTFILE_M ] && echo "$OUTFILE_M file already exists, not overwriting (to be safe)!" && exit 1;
-    octave -qf --eval "nodes=${NODES}; gather_data" > ${OUTFILE_M}
+    octave -qf --eval "gather_perf_data(${NODES})" > ${OUTFILE_M}
 done
 
 
