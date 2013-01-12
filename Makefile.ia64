@@ -1,0 +1,9 @@
+CC = opencc
+CFLAGS = -64 -Ofast
+MPICC = mpicc
+MPICFLAGS = -64 -Ofast
+LDFLAGS = -64 -lm -Ofast
+MPILDFLAGS = -64 -lm -Ofast -lmpi
+OPENMP = -mp
+
+include Makefile.common
