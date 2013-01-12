@@ -14,10 +14,10 @@ echo "Scaling tests:"
 for M in $NODES
 do
     echo "Running for $M threads"
-    S1=$(./yee -n $N                    | grep 'Elapsed' | awk '{print $2}')
+    #S1=$(./yee -n $N                    | grep 'Elapsed' | awk '{print $2}')
     S2=$(./yee_omp -n $N -t $M          | grep 'Elapsed' | awk '{print $2}')
     S3=$(./yee_pthr -n $N -t $M         | grep 'Elapsed' | awk '{print $2}')
     S4=$(mpirun -np $M ./yee_mpi -n $N  | grep 'Elapsed' | awk '{print $2}')
     S5=$(mpirun -np $M ./yee_mpi2 -n $N | grep 'Elapsed' | awk '{print $2}')
-    echo $M $S1 $S2 $S3 $S4 $S5 >> $OUTFILE
+    echo $M $S2 $S3 $S4 $S5 >> $OUTFILE
 done
