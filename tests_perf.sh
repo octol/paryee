@@ -1,28 +1,38 @@
 #!/usr/bin/env bash
 # Run performance tests to compare the different implementations
 
-NODES=4
-#N="64 128 256 512"
+NNODES="4 8"
 #N=$(seq 64 4 512)
 #N=$(nawk 'BEGIN{ for(i=64;i<=512;i=i+4) print i}')
-N=$(nawk 'BEGIN{ for(i=64;i<=1024;i=i+1) print i}')
-OUTPUTFILE="tests_perf.tsv tests_perf2.tsv tests_perf3.tsv tests_perf4.tsv"
+#N=$(nawk 'BEGIN{ for(i=100;i<=1000;i=i+1) print i}')
+N=$(nawk 'BEGIN{ for(i=64;i<=128;i=i+64) print i}')
+OUTPUTFILE="tests_perf1 tests_perf2 tests_perf3 tests_perf4"
 
-for OUTFILE in $OUTPUTFILE
+for NODES in $NNODES
 do
-    # Sanity checks
-    [ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
-
-    echo "Performance tests:"
-    for n in $N
+    for OUTFILE in $OUTPUTFILE
     do
-        echo "Running for $n"
-        #S1=$(./yee -n $n                        | grep 'Elapsed' | awk '{print $2}')
-        S2=$(./yee_omp -n $n -t $NODES          | grep 'Elapsed' | awk '{print $2}')
-        S3=$(./yee_pthr -n $n -t $NODES         | grep 'Elapsed' | awk '{print $2}')
-        S4=$(mpirun -np $NODES ./yee_mpi -n $n  | grep 'Elapsed' | awk '{print $2}')
-        S5=$(mpirun -np $NODES ./yee_mpi2 -n $n | grep 'Elapsed' | awk '{print $2}')
-        echo $n $S2 $S3 $S4 $S5 >> $OUTFILE
+        OUTFILE=$OUTFILE_$NODES.tsv
+
+        # Sanity checks
+        [ -f $OUTFILE ] && echo "$OUTFILE file already exists, not overwriting (to be safe)!" && exit 1;
+
+        echo "Performance tests:"
+        for n in $N
+        do
+            echo "Running for $n"
+            S1=$(./yee_omp -q -n $n -t $NODES          | grep 'Elapsed' | awk '{print $2}')
+            S2=$(./yee_pthr -q -n $n -t $NODES         | grep 'Elapsed' | awk '{print $2}')
+            S3=$(mpirun -np $NODES ./yee_mpi -q -n $n  | grep 'Elapsed' | awk '{print $2}')
+            S4=$(mpirun -np $NODES ./yee_mpi2 -q -n $n | grep 'Elapsed' | awk '{print $2}')
+            echo $n $S1 $S2 $S3 $S4 >> $OUTFILE
+        done
     done
+
+    # Now merge computed data and write to tests_perf.tsv
+    OUTFILE_M=tests_perf_$NODES.tsv
+    [ -f $OUTFILE_M ] && echo "$OUTFILE_M file already exists, not overwriting (to be safe)!" && exit 1;
+    octave -qf --eval "nodes=$NODES; gather_data" > $OUTFILE_M
 done
+
 
