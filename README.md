@@ -29,28 +29,24 @@ Performance tests
 -----------------
 
 ### Intel Core i7 920, 4 cores (8 threads) @ 2.80 GHz
-<pre><code>
-Linux swiftsure 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
-gcc (Ubuntu/Linaro 4.7.2-2ubuntu1) 4.7.2
-</code></pre>
+
+    Linux 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
+    gcc (Ubuntu/Linaro 4.7.2-2ubuntu1) 4.7.2
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
 
 ### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
-<pre><code>
-IRIX64 6.5 07202013 IP35, 
-MIPSpro Compilers: Version 7.4.4m
-</code></pre>
+
+    IRIX64 6.5 IP35, MIPSpro Compilers: Version 7.4.4m
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_4.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
-<pre><code>
-SunOS 5.10 Generic_142901-07 i86pc i386 i86pc,
-Sun Studio 12 Update 1
-</pre></code>
+
+SunOS 5.10 i86pc i386 i86pc, Sun Studio 12 Update 1
+
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_scaling.png)
 
