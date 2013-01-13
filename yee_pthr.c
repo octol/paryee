@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     long ny = 32;
     struct field f;
     char outfile[STR_SIZE] = "yee_pthr.tsv";
-    int write = 0;
+    int write = 1;
     long threads = 4;
     struct cell_partition *part;
     pthread_t *thr;
