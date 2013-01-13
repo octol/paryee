@@ -6,6 +6,8 @@ MPICFLAGS = -Wall -pedantic -Wextra -std=c99 -Ofast
 #MPICFLAGS = -Wall -pedantic -Wextra -std=c99 -g -DDEBUG
 LDFLAGS = -lm
 #LDFLAGS = -lm -g
+MPILDFLAGS = 
+#MPILDFLAGS = -lm -g
 OPENMP = -fopenmp
 
 include Makefile.common
