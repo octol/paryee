@@ -32,7 +32,7 @@ Performance tests
 <pre><code>
 Linux swiftsure 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
 gcc (Ubuntu/Linaro 4.7.2-2ubuntu1) 4.7.2
-</code><pre>
+</code></pre>
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
