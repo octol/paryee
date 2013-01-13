@@ -12,6 +12,6 @@ plot \
     "tests_perf_4.tsv" using 1:5 title "MPI (Non-blocking)" with lines lw 1
 
 set logscale xy
-set xrange [100:1000]
+set xrange [*:*]
 set out "tests_perf2_4.png"
 replot
