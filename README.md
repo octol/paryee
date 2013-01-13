@@ -38,16 +38,19 @@ gcc (Ubuntu/Linaro 4.7.2-2ubuntu1) 4.7.2
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
 
 ### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
-<p>IRIX64 6.5 07202013 IP35, 
+<pre><code>
+IRIX64 6.5 07202013 IP35, 
 MIPSpro Compilers: Version 7.4.4m
-</p>
+</code></pre>
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_4.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
-* SunOS 5.10 Generic_142901-07 i86pc i386 i86pc
-* Sun Studio 12 Update 1
+<pre><code>
+SunOS 5.10 Generic_142901-07 i86pc i386 i86pc,
+Sun Studio 12 Update 1
+</pre></code>
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_scaling.png)
 
