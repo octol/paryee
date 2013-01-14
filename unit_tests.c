@@ -576,9 +576,10 @@ void test_parse_cmdline(void)
     long nx = 0;
     long threads = 0;
     char outfile[STR_SIZE];
-    int argc = 5;
-    char *argv[] = { "/usr/bin/yee", "-n", "8", "-t", "4" };
-    parse_cmdline(&nx, &threads, outfile, argc, argv);
+    int argc = 6;
+    char *argv[] = { "/usr/bin/yee", "-n", "8", "-t", "4", "-q" };
+    int write = 1;
+    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     CU_ASSERT(nx == 8);
     CU_ASSERT(threads == 4);
 }
