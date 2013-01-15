@@ -41,7 +41,7 @@ Performance tests
     IRIX64 6.5 IP35
     MIPSpro Compilers: Version 7.4.4m
 
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_4.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_6.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
