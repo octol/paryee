@@ -52,6 +52,11 @@ Performance tests
 ![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_scaling.png)
 
+    SunOS 5.10 i86pc i386 i86pc
+    gcc 4.3.3
+
+![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa_gcc/tests_scaling.png)
+
 ### Comparison
 ![Comparison](https://raw.github.com/octol/paryee/master/comparisons/tests_perf_comparison.png)
 
