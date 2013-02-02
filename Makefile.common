@@ -51,10 +51,6 @@ data: $(DATA)
 
 plot: $(PNG)
 
-savetests: $(tests_PNG)
-	[ ! -e $(SAVEDIR) ] && mkdir $(SAVEDIR) && echo "Create $(SAVEDIR)" || echo "Saving to $(SAVEDIR)"
-	[ -d $(SAVEDIR) ] && cp $(tests_PNG) $(tests_DATA) $(SAVEDIR)
-
 integrationtests: $(BIN)
 	./integration_tests.sh
 
