@@ -26,8 +26,3 @@ do
     done
 done
 
-# Now merge computed data and write to tests_perf.tsv
-OUTFILE_M=tests_scaling.tsv
-[ -f $OUTFILE_M ] && echo "$OUTFILE_M file already exists, not overwriting (to be safe)!" && exit 1;
-octave -qf gather_scaling_data.m > ${OUTFILE_M}
-

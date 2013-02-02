@@ -26,11 +26,6 @@ do
             echo $n $S1 $S2 $S3 $S4 >> $OUTFILE
         done
     done
-
-    # Now merge computed data and write to tests_perf.tsv
-    OUTFILE_M=tests_perf_${NODES}.tsv
-    [ -f $OUTFILE_M ] && echo "$OUTFILE_M file already exists, not overwriting (to be safe)!" && exit 1;
-    octave -qf --eval "gather_perf_data(${NODES})" > ${OUTFILE_M}
 done
 
 
