@@ -11,13 +11,16 @@ method applied to the 2D wave equation on system form.
 This formulation is sometimes used in acoustics, where p is the pressure and
 (u,v) are the x- and y-components of the velocity field.
 
-A number of different implementations are included, of varying complexity.
+The purpose of ParYee is to demonstrate how high performance data-parallelism
+can done in C for typical numerical codes.  A number of different
+implementations are included, of varying complexity.
 
 - yee_mpi  - Distributed memory parallelization using MPI.
 - yee_mpi2 - Distributed memory parallelization using MPI (Non-blocking).
 - yee_omp  - Shared memory parallelization using OpenMP.
 - yee_pthr - Shared memory parallelization using POSIX threads.
 - yee      - Single thread reference implementation to compare against.
+
 
 Visualizations
 --------------
