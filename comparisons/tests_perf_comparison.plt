@@ -1,5 +1,5 @@
 #set terminal png truecolor size 400,300 font "Helvetica" 10
-set terminal png truecolor size 600,450 font "Helvetica" 10
+set terminal png truecolor size 800,450 font "Helvetica" 10
 set out "tests_perf_comparison.png"
 set key top left
 set xlabel "Cells per axis"

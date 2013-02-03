@@ -62,9 +62,7 @@ Performance tests
 ![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa_gcc/tests_scaling.png)
 
 ### Comparison
-<p align="center">
-    <img src="https://raw.github.com/octol/paryee/master/comparisons/tests_perf_comparison.png" alt="Comparison"/>
-</p>
+![Comparison](https://raw.github.com/octol/paryee/master/comparisons/tests_perf_comparison.png)
 
 
 Grid and simulation information
