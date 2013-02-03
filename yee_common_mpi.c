@@ -256,7 +256,8 @@ void communicate_v(double *v, long left, long right, long nx, long size, MPI_Sta
     }
 }
 
-void communicate_v2(double *v, long left, long right, long nx, long size, MPI_Request *sent, MPI_Request *received)
+void communicate_v2(double *v, long left, long right, long nx, long size, 
+                    MPI_Request *sent, MPI_Request *received)
 {
     if (left != NONE) {
         long begin_v = 0 + 0 * nx;
@@ -272,7 +273,8 @@ void communicate_v2(double *v, long left, long right, long nx, long size, MPI_Re
     }
 }
 
-void communicate_p(double *p, long left, long right, long nx, long size, MPI_Status *status)
+void communicate_p(double *p, long left, long right, long nx, long size, 
+                   MPI_Status *status)
 {
     if (left != NONE) {
         long begin_p = 0 + 0 * nx;
@@ -291,7 +293,8 @@ void communicate_p(double *p, long left, long right, long nx, long size, MPI_Sta
     }
 }
 
-void communicate_p2(double *p, long left, long right, long nx, long size, MPI_Request *sent, MPI_Request *received)
+void communicate_p2(double *p, long left, long right, long nx, long size, 
+                    MPI_Request *sent, MPI_Request *received)
 {
     if (left != NONE) {
         long begin_p = 0 + 0 * nx;
@@ -358,9 +361,11 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
 
     /* Update the pressure (p) */
     if (left == NONE)
-        leapfrog_master_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, &received);
+        leapfrog_master_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, 
+                           &received);
     else 
-        leapfrog_worker_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, &received);
+        leapfrog_worker_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right,   
+                           &received);
     if (left != NONE)
         MPI_Wait(&sent, MPI_STATUS_IGNORE);
 
@@ -372,7 +377,8 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
     if (left == NONE)
         leapfrog_master_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
     else
-        leapfrog_worker_uv2(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size, left, &received);
+        leapfrog_worker_uv2(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size, left, 
+                            &received);
     if (right != NONE)
         MPI_Wait(&sent, MPI_STATUS_IGNORE);
 }

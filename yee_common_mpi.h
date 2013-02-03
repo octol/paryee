@@ -147,8 +147,9 @@ void communicate_p2(double *p, long left, long right, long nx, long size,
                     MPI_Request * sent, MPI_Request * received);
 
 /*
- * The full update done in each time step. This includes sending/receiving data between the computational nodes
- * as well as performing the leapfrog update of the field.
+ * The full update done in each time step. This includes sending/receiving
+ * data between the computational nodes as well as performing the leapfrog
+ * update of the field.
  */
 void leapfrog_mpi(struct field *f, long left, long right, long size);
 /* Non-blocking version */

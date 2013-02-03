@@ -35,7 +35,8 @@ int main(int argc, char *argv[])
     /* Parameters */
     double x[] = { 0, 1 };
     double y[] = { 0, 1 };
-    double cfl = 0.99 / sqrt(2);        /* CFL condition: c*dt/dx = cfl <= 1/sqrt(2) */
+    double cfl = 0.99 / sqrt(2);        /* CFL condition: 
+                                           c*dt/dx = cfl <= 1/sqrt(2) */
     double T = 0.3;
     double c = 1;
     long nx = 32;
