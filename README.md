@@ -31,7 +31,7 @@ Visualizations
 Performance tests
 -----------------
 
-### Intel Core i7 920, 4 cores (8 threads) @ 2.80 GHz
+### Intel Core i7 930, 4 cores (8 threads) @ 2.80 GHz
 
     Linux 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
     gcc 4.7.2
