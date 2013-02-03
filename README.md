@@ -1,7 +1,7 @@
 README - ParYee
 ===============
 
-Basic parallel implementation of the finite-difference time-domain (FDTD)
+Parallel implementations of the finite-difference time-domain (FDTD)
 method applied to the 2D wave equation on system form. 
 
         p_t = a u_x,
