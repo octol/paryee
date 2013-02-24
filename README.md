@@ -1,4 +1,4 @@
-README - ParYee
+README (paryee)
 ===============
 
 Parallel implementations of the finite-difference time-domain (FDTD)
