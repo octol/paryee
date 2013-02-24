@@ -1,19 +1,20 @@
 README (paryee)
 ===============
 
-Parallel implementations of the finite-difference time-domain (FDTD)
-method applied to the 2D wave equation on system form. 
+Parallel implementations of the finite-difference time-domain (FDTD) method
+applied to the 2D wave equation on system form. This method is sometimes
+referred to as the Yee scheme. The system of equations under consideration is:
 
         p_t = a u_x,
         u_t = b p_x,
         v_t = b p_y.
 
 This formulation is sometimes used in acoustics, where p is the pressure and
-(u,v) are the x- and y-components of the velocity field.
+(u,v) are the x- and y-components of the velocity field. 
 
-The purpose of ParYee is to demonstrate how high performance data-parallelism
+The purpose of paryee is to demonstrate how high performance data-parallelism
 can done in C for typical numerical codes.  A number of different
-implementations are included, of varying complexity.
+implementations (of varying complexity) are included.
 
 - yee_mpi  - Distributed memory parallelization using MPI.
 - yee_mpi2 - Distributed memory parallelization using MPI (Non-blocking).
