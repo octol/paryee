@@ -12,9 +12,9 @@ referred to as the Yee scheme. The system of equations under consideration is:
 This formulation is sometimes used in acoustics, where p is the pressure and
 (u,v) are the x- and y-components of the velocity field. 
 
-The purpose of paryee is to demonstrate how high performance data-parallelism
-can done in C for typical numerical codes.  A number of different
-implementations (of varying complexity) are included.
+This is a very simple example of how high performance data-parallelism can done
+in C for typical numerical codes.  A number of different implementations (of
+varying complexity) are included.
 
 - yee_mpi  - Distributed memory parallelization using MPI.
 - yee_mpi2 - Distributed memory parallelization using MPI (Non-blocking).
