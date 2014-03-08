@@ -1,9 +1,11 @@
 README (paryee)
 ===============
 
-Parallel implementations of the finite-difference time-domain (FDTD) method
-applied to the 2D wave equation on system form. This method is sometimes
-referred to as the Yee scheme. The system of equations under consideration is:
+Toy implementation of the finite-difference time-domain (FDTD) method to
+illustrate different parallel implementations. The FDTD is sometimes referred
+to as the Yee scheme, and is used to simulate wave propagation.
+
+The system of equations under consideration is:
 
         p_t = a u_x,
         u_t = b p_x,
@@ -22,6 +24,10 @@ varying complexity) are included.
 - yee_pthr - Shared memory parallelization using POSIX threads.
 - yee      - Single thread reference implementation to compare against.
 
+Installation
+------------
+
+Requires GNU Make to build. CUnit is required to build the unittests.
 
 Visualizations
 --------------
