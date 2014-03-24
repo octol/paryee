@@ -1,9 +1,0 @@
-CC = c99
-CFLAGS = -64 -Ofast
-MPICC = c99
-MPICFLAGS = -64 -Ofast
-LDFLAGS = -64 -lm -Ofast
-MPILDFLAGS = -64 -lm -Ofast -lmpi
-OPENMP = -mp
-
-include Makefile.common

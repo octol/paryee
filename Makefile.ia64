@@ -1,9 +1,0 @@
-CC = opencc
-CFLAGS = -std=gnu99 -Ofast
-MPICC = mpicc
-MPICFLAGS = -std=gnu99 -Ofast
-LDFLAGS = -lm -Ofast
-MPILDFLAGS = -lm -Ofast
-OPENMP = -mp
-
-include Makefile.common
