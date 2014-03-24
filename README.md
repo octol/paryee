@@ -27,7 +27,7 @@ varying complexity) are included.
 Installation
 ------------
 
-Requires GNU Make to build. CUnit is required to build the unittests.
+Requires GNU Make to build. CUnit is required to build the unittests. numdiff is required for the integration tests.
 
 Visualizations
 --------------
@@ -43,33 +43,33 @@ Performance tests
     Linux 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
     gcc 4.7.2
 
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_perf_8.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/tests_swiftsure/tests_scaling.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/swiftsure/tests_perf_8.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/swiftsure/tests_scaling.png)
 
 ### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
 
     IRIX64 6.5 IP35
     MIPSpro Compilers: Version 7.4.4m
 
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_perf_6.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/tests_asuka/tests_scaling.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/asuka/tests_perf_6.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/asuka/tests_scaling.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
 
     SunOS 5.10 i86pc i386 i86pc
     Sun Studio 12 Update 1
 
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_perf_8.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa/tests_scaling.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/europa/tests_perf_8.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/europa/tests_scaling.png)
 
     SunOS 5.10 i86pc i386 i86pc
     gcc 4.3.3
 
-![Performance tests](https://raw.github.com/octol/paryee/master/tests_europa_gcc/tests_perf_8.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/tests_europa_gcc/tests_scaling.png)
+![Performance tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/europa-gcc/tests_perf_8.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/performance-testing/saved/europa-gcc/tests_scaling.png)
 
 ### Comparison
-![Comparison](https://raw.github.com/octol/paryee/master/comparisons/tests_perf_comparison.png)
+![Comparison](https://raw.github.com/octol/paryee/master/figures/tests_perf_comparison.png)
 
 
 Grid and simulation information

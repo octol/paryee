@@ -8,11 +8,13 @@ limit=1e-14
 yee_bin="yee_omp yee_pthr yee_mpi yee_mpi2"
 args="-n $N" 
 
+bindir=bin
+
 printf "\n  Integration tests:\n"
 printf "  Testing that all implementations produce the same output.\n"
 
 # Generate reference solution to compare against
-./yee -o /tmp/yee.tsv $args 1> /dev/null
+./$bindir/yee -o /tmp/yee.tsv $args 1> /dev/null
 
 for yb in $yee_bin
 do
@@ -21,9 +23,9 @@ do
     outfile=/tmp/${yb}.tsv
     if [ $yb == "yee_mpi" ] || [ $yb == "yee_mpi2" ]
     then
-        mpirun -n $threads ./$yb -o $outfile $args 1> /dev/null
+        mpirun -n $threads ./$bindir/$yb -o $outfile $args 1> /dev/null
     else
-        ./$yb -t $threads -o $outfile $args 1> /dev/null
+        ./$bindir/$yb -t $threads -o $outfile $args 1> /dev/null
     fi
 
     # Compare

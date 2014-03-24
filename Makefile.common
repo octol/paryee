@@ -6,139 +6,180 @@ threads=4
 HOSTNAME = $(shell hostname)
 SAVEDIR = tests_$(HOSTNAME)
 SRCDIR = src
+OBJDIR = obj
 BINDIR = bin
-OUTPUTDIR = output
+OUTDIR = output
 
-## Source file dependencies
+OBJ =
+BIN =
+DATA =
+
+## Serial Yee
 yee_SRC = $(SRCDIR)/yee.c \
 	  $(SRCDIR)/yee_common.c
+yee_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_SRC))
+yee_BIN = $(BINDIR)/yee
+yee_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_BIN))
+OBJ += $(yee_OBJ)
+BIN += $(yee_BIN)
+DATA += $(yee_DATA)
+
+## Pthread
 yee_pthr_SRC = $(SRCDIR)/yee_pthr.c \
 	       $(SRCDIR)/yee_common.c 
+yee_pthr_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_pthr_SRC))
+yee_pthr_BIN = $(BINDIR)/yee_pthr
+yee_pthr_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_pthr_BIN))
+OBJ += $(yee_pthr_OBJ)
+BIN += $(yee_pthr_BIN)
+DATA += $(yee_pthr_DATA)
+
+## OpenMP
 yee_omp_SRC = $(SRCDIR)/yee_omp.c \
 	      $(SRCDIR)/yee_common.c 
+yee_omp_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_omp_SRC))
+yee_omp_BIN = $(BINDIR)/yee_omp
+yee_omp_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_omp_BIN))
+OBJ += $(yee_omp_OBJ)
+BIN += $(yee_omp_BIN)
+DATA += $(yee_omp_DATA)
+
+## MPI
 yee_mpi_SRC = $(SRCDIR)/yee_mpi.c \
 	      $(SRCDIR)/yee_common.c \
 	      $(SRCDIR)/yee_common_mpi.c
+yee_mpi_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_mpi_SRC))
+yee_mpi_BIN = $(BINDIR)/yee_mpi
+yee_mpi_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_mpi_BIN))
+OBJ += $(yee_mpi_OBJ)
+BIN += $(yee_mpi_BIN)
+DATA += $(yee_mpi_DATA)
+
+## MPI (Non-blocking)
 yee_mpi2_SRC = $(SRCDIR)/yee_mpi2.c \
 	       $(SRCDIR)/yee_common.c \
 	       $(SRCDIR)/yee_common_mpi.c
+yee_mpi2_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_mpi2_SRC))
+yee_mpi2_BIN = $(BINDIR)/yee_mpi2
+yee_mpi2_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_mpi2_BIN))
+OBJ += $(yee_mpi2_OBJ)
+BIN += $(yee_mpi2_BIN)
+DATA += $(yee_mpi2_DATA)
 
-## Object files
-yee_OBJ = $(yee_SRC:.c=.o)
-yee_pthr_OBJ = $(yee_pthr_SRC:.c=.o)
-yee_omp_OBJ = $(yee_omp_SRC:.c=.o)
-yee_mpi_OBJ = $(yee_mpi_SRC:.c=.o)
-yee_mpi2_OBJ = $(yee_mpi2_SRC:.c=.o)
-OBJ = $(yee_OBJ) $(yee_pthr_OBJ) $(yee_omp_OBJ) $(yee_mpi_OBJ) $(yee_mpi2_OBJ)
-
-## Target binaries
-yee_BIN = yee
-yee_pthr_BIN = yee_pthr
-yee_omp_BIN = yee_omp
-yee_mpi_BIN = yee_mpi
-yee_mpi2_BIN = yee_mpi2
-BIN = $(BINDIR)/$(yee_BIN) \
-      $(BINDIR)/$(yee_pthr_BIN) \
-      $(BINDIR)/$(yee_omp_BIN) \
-      $(BINDIR)/$(yee_mpi_BIN) \
-      $(BINDIR)/$(yee_mpi2_BIN)
-
-## Generated data output
-yee_DATA = $(yee_BIN:=.tsv)
-yee_pthr_DATA = $(yee_pthr_BIN:=.tsv)
-yee_omp_DATA = $(yee_omp_BIN:=.tsv) 
-yee_mpi_DATA = $(yee_mpi_BIN:=.tsv)
-yee_mpi2_DATA = $(yee_mpi2_BIN:=.tsv)
-DATA = $(OUTPUTDIR)/$(yee_DATA) \
-       $(OUTPUTDIR)/$(yee_pthr_DATA) \
-       $(OUTPUTDIR)/$(yee_omp_DATA) \
-       $(OUTPUTDIR)/$(yee_mpi_DATA) \
-       $(OUTPUTDIR)/$(yee_mpi2_DATA)
+## Output data
+tests_DATA = $(OUTDIR)/tests_perf_4.tsv \
+	     $(OUTDIR)/tests_perf_8.tsv
+tests_PNG = $(tests_DATA:.tsv=.png)
 
 GNUPLOT = $(DATA:.tsv=.plt) 
 PNG = $(GNUPLOT:.plt=.png) 
 
-tests_DATA = tests_perf_4.tsv tests_perf_8.tsv
-tests_PNG = $(tests_DATA:.tsv=.png)
-
 ## Tests
-unittests_SRC = $(SRCDIR)/yee_common_tests.c $(SRCDIR)/yee_common.c
-unittests_OBJ = $(unittests_SRC:.c=.o)
+unittests_SRC = $(SRCDIR)/yee_common_tests.c \
+		$(SRCDIR)/yee_common.c
+unittests_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(unittests_SRC))
 unittests_BIN = $(BINDIR)/unit_tests
 
 .PHONY: clean
 .PRECIOUS: $(tests_DATA)
 
-all: $(BINDIR) $(BIN) 
+## Meta targets 
 
-data: $(OUTPUTDIR) $(DATA)
+all: $(OBJDIR) $(BINDIR) $(BIN) 
 
-plot: $(PNG)
+data: all $(OUTDIR) $(DATA)
 
-integration-test: $(BIN)
-	./integration-tests.sh
+plot: data $(PNG)
 
-test: $(BINDIR)/$(unittests_BIN)
+integration-test: all
+	./test/integration-tests.sh
+
+test: $(unittests_BIN)
 	./$<
 
-$(BINDIR)/$(yee_BIN): $(yee_OBJ)
+## General targets
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+## Specific targets
+
+# Serial
+$(yee_BIN): $(yee_OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@ 
 
-$(BINDIR)/$(yee_pthr_BIN): $(yee_pthr_OBJ)
-	$(CC) $^ $(LDFLAGS) -lpthread -o $@ 
-
-$(BINDIR)/$(yee_omp_BIN): $(yee_omp_OBJ)
-	$(CC) $^ $(LDFLAGS) $(OPENMP_FLAG) -o $@ 
-
-$(BINDIR)/$(yee_mpi_BIN): $(yee_mpi_OBJ)
-	$(MPICC) $^ $(MPILDFLAGS) -o $@
-
-$(BINDIR)/$(yee_mpi2_BIN): $(yee_mpi2_OBJ)
-	$(MPICC) $^ $(MPILDFLAGS) -o $@
-
-$(BINDIR)/$(unittests_BIN): $(unittests_OBJ)
-	$(CC) $^ $(LDFLAGS) -lcunit -o $@ 
-
-$(SRCDIR)/yee_omp.o: $(SRCDIR)/yee_omp.c
-	$(CC) $(CFLAGS) -c $< $(OPENMP_FLAG) -o $@
-
-$(SRCDIR)/yee_mpi.o: $(SRCDIR)/yee_mpi.c
-	$(MPICC) $(MPICFLAGS) -c $< -o $@
-
-$(SRCDIR)/yee_mpi2.o: $(SRCDIR)/yee_mpi2.c
-	$(MPICC) $(MPICFLAGS) -c $< -o $@
-
-$(SRCDIR)/yee_common_mpi.o: $(SRCDIR)/yee_common_mpi.c $(SRCDIR)/yee_common.c
-	$(MPICC) $(MPICFLAGS) -c $< -o $@
-
-$(OUTPUTDIR)/$(yee_DATA): $(BINDIR)/$(yee_BIN)
+$(yee_DATA): $(yee_BIN)
 	$< -n $N -o $@
 
-$(OUTPUTDIR)/$(yee_pthr_DATA): $(BINDIR)/$(yee_pthr_BIN)
+# Pthread
+$(yee_pthr_BIN): $(yee_pthr_OBJ)
+	$(CC) $^ $(LDFLAGS) -lpthread -o $@ 
+
+$(yee_pthr_DATA): $(yee_pthr_BIN)
 	$< -n $N -t $(threads) -o $@
 
-$(OUTPUTDIR)/$(yee_omp_DATA): $(BINDIR)/$(yee_omp_BIN)
+# OpenMP
+$(yee_omp_BIN): $(yee_omp_OBJ)
+	$(CC) $^ $(LDFLAGS) $(OPENMP_FLAG) -o $@ 
+
+$(OBJDIR)/yee_omp.o: $(SRCDIR)/yee_omp.c
+	$(CC) $(CFLAGS) -c $< $(OPENMP_FLAG) -o $@
+
+$(yee_omp_DATA): $(yee_omp_BIN)
 	$< -n $N -t $(threads) -o $@
 
-$(OUTPUTDIR)/$(yee_mpi_DATA): $(BINDIR)/$(yee_mpi_BIN)
+# MPI Common
+
+$(OBJDIR)/yee_common_mpi.o: $(SRCDIR)/yee_common_mpi.c $(SRCDIR)/yee_common.c
+	$(MPICC) $(MPICFLAGS) -c $< -o $@
+
+# MPI
+$(yee_mpi_BIN): $(yee_mpi_OBJ)
+	$(MPICC) $^ $(MPILDFLAGS) -o $@
+
+$(OBJDIR)/yee_mpi.o: $(SRCDIR)/yee_mpi.c
+	$(MPICC) $(MPICFLAGS) -c $< -o $@
+
+$(yee_mpi_DATA): $(yee_mpi_BIN)
 	mpirun -n $(threads) $< -n $N -o $@
 
-$(OUTPUTDIR)/$(yee_mpi2_DATA): $(BINDIR)/$(yee_mpi_BIN)
+# MPI (Non-blocking)
+$(yee_mpi2_BIN): $(yee_mpi2_OBJ)
+	$(MPICC) $^ $(MPILDFLAGS) -o $@
+
+$(OBJDIR)/yee_mpi2.o: $(SRCDIR)/yee_mpi2.c
+	$(MPICC) $(MPICFLAGS) -c $< -o $@
+
+$(yee_mpi2_DATA): $(yee_mpi_BIN)
 	mpirun -n $(threads) $< -n $N -o $@
 
-$(GNUPLOT): template.gnuplot
-	sed 's/file/$(@:.plt=)/g' $< > $@
+## Unit tests
+
+$(unittests_BIN): $(unittests_OBJ)
+	$(CC) $^ $(LDFLAGS) -lcunit -o $@ 
+
+## Generate plots
+
+$(GNUPLOT): $(SRCDIR)/template.gnuplot
+	sed 's:file:$(@:.plt=):g' $< > $@
 
 %.png: %.plt %.tsv
 	if [ -f /usr/bin/gnuplot ]; then gnuplot $<; else touch $<; fi
-
+ 
 %.tsv: %.sh $(BIN)
 	./$<
 
 $(BINDIR):
-	mkdir -p $(BINDIR)
+	mkdir -p $@
 
-$(OUTPUTDIR):
-	mkdir -p $(OUTPUTDIR)
+$(OBJDIR):
+	mkdir -p $@
+
+$(OUTDIR):
+	mkdir -p $@
+
 clean:
-	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(unittests_BIN) $(unittests_OBJ) yee0.tsv
+	$(RM) $(BIN) $(OBJ) $(DATA) $(PNG) $(GNUPLOT) $(unittests_BIN) $(unittests_OBJ)
+	if [ -d $(OBJDIR) ]; then rmdir $(OBJDIR); fi
+	if [ -d $(BINDIR) ]; then rmdir $(BINDIR); fi
+	if [ -d $(OUTDIR) ]; then rmdir $(OUTDIR); fi

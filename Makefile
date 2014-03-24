@@ -1,7 +1,7 @@
 CC = gcc 
 MPICC = mpicc 
 
-CFLAGS_BASIC = -Wall -pedantic -Wextra -std=gnu99 
+CFLAGS_BASIC = -Wall -Wextra -Wpedantic -std=gnu99 
 LDFLAGS_BASIC = -lm
 
 CFLAGS = $(CFLAGS_BASIC) -Ofast
