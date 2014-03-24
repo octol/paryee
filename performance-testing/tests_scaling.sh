@@ -6,8 +6,7 @@ outdir=output-tests
 
 #nodes=$(seq 8)
 nodes=$(nawk 'BEGIN{ for(i=1;i<=8;i++) print i}')
-#N=1000
-N=32
+N=1000
 outputfile="tests_scaling1 tests_scaling2 tests_scaling3 tests_scaling4"
 
 if [ ! -f README.md ]; then
