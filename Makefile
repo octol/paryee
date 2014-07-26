@@ -1,29 +1,35 @@
 ARCH ?= gcc
 
-### Setup environment
+# -----------------------------------------------------------------------------
+# Setup environment
+# -----------------------------------------------------------------------------
 
-## Default GCC environment
+#
+# Default GCC environment
+# 
 ifeq ($(ARCH), gcc)
 CC = gcc 
 MPICC = mpicc 
-
-CFLAGS_BASIC = -Wall -Wextra -Wpedantic -std=gnu99 
-LDFLAGS_BASIC = -lm
-
-CFLAGS = $(CFLAGS_BASIC) -Ofast
-MPICFLAGS = $(CFLAGS_BASIC) -Ofast
-LDFLAGS = $(LDFLAGS_BASIC)
-MPILDFLAGS = $(LDFLAGS_BASIC)
-
-#CFLAGS = $(CFLAGS_BASIC) -g -DDEBUG
-#MPICFLAGS = $(CFLAGS_BASIC) -g -DDEBUG
-#LDFLAGS = $(LDFLAGS_BASIC) -g
-#MPILDFLAGS = $(LDFLAGS_BASIC) -g
-
+CFLAGS = -Wall -Wextra -Wpedantic -std=gnu99 
+LDFLAGS = -lm
+MPICFLAGS = $(CFLAGS)
+MPILDFLAGS = $(LDFLAGS)
 OPENMP_FLAG = -fopenmp
+
+ifneq (,$(DEBUG))
+CFLAGS += -g -DDEBUG
+MPICFLAGS += -g -DDEBUG
+LDFLAGS += -g
+MPILDFLAGS += -g
+else
+CFLAGS += -Ofast
+MPICFLAGS += -Ofast
+endif
 endif
 
-## Solaris environment
+#
+# Solaris environment
+#
 ifeq ($(ARCH), solaris)
 CC = cc
 MPICC = mpicc 
@@ -34,8 +40,10 @@ MPILDFLAGS = -m64 -fast
 OPENMP = -xopenmp
 endif
 
-## SGI environment
-ifeq ($(ARCH), sgi)
+#
+# SGI environment
+#
+ifeq ($(ARCH), irix)
 CC = c99
 MPICC = c99
 CFLAGS = -64 -Ofast
@@ -45,7 +53,9 @@ MPILDFLAGS = -64 -lm -Ofast -lmpi
 OPENMP = -mp
 endif
 
-## IA64 (Itanium) environment
+#
+# IA-64 (Itanium) environment
+#
 ifeq ($(ARCH), ia64)
 CC = opencc
 MPICC = mpicc
@@ -56,25 +66,40 @@ MPILDFLAGS = -lm -Ofast
 OPENMP = -mp
 endif
 
-### Start build config
+# -----------------------------------------------------------------------------
+# Start build config
+# -----------------------------------------------------------------------------
 
-## Simulation parameters
+#
+# Simulation parameters
+#
 N=128
 threads=4
 
-## Environment
+#
+# Environment
+#
 HOSTNAME = $(shell hostname)
+ARCHNAME = $(shell uname -s)_$(shell uname -m)
 SAVEDIR = tests_$(HOSTNAME)
 SRCDIR = src
-OBJDIR = obj
-BINDIR = bin
-OUTDIR = output
+ifneq (,$(DESTDIR))
+OBJDIR = $(DESTDIR)/$(ARCHNAME)/obj
+BINDIR = $(DESTDIR)/$(ARCHNAME)/bin
+OUTDIR = $(DESTDIR)/$(ARCHNAME)/output
+else
+OBJDIR = $(ARCHNAME)/obj
+BINDIR = $(ARCHNAME)/bin
+OUTDIR = $(ARCHNAME)/output
+endif
 
 OBJ =
 BIN =
 DATA =
 
-## Serial Yee
+#
+# Serial Yee
+#
 yee_SRC = $(SRCDIR)/yee.c \
 	  $(SRCDIR)/yee_common.c
 yee_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_SRC))
@@ -84,7 +109,9 @@ OBJ += $(yee_OBJ)
 BIN += $(yee_BIN)
 DATA += $(yee_DATA)
 
-## Pthread
+#
+# Pthread
+#
 yee_pthr_SRC = $(SRCDIR)/yee_pthr.c \
 	       $(SRCDIR)/yee_common.c 
 yee_pthr_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_pthr_SRC))
@@ -94,7 +121,9 @@ OBJ += $(yee_pthr_OBJ)
 BIN += $(yee_pthr_BIN)
 DATA += $(yee_pthr_DATA)
 
-## OpenMP
+#
+# OpenMP
+#
 yee_omp_SRC = $(SRCDIR)/yee_omp.c \
 	      $(SRCDIR)/yee_common.c 
 yee_omp_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_omp_SRC))
@@ -104,7 +133,9 @@ OBJ += $(yee_omp_OBJ)
 BIN += $(yee_omp_BIN)
 DATA += $(yee_omp_DATA)
 
-## MPI
+#
+# MPI
+#
 yee_mpi_SRC = $(SRCDIR)/yee_mpi.c \
 	      $(SRCDIR)/yee_common.c \
 	      $(SRCDIR)/yee_common_mpi.c
@@ -115,7 +146,9 @@ OBJ += $(yee_mpi_OBJ)
 BIN += $(yee_mpi_BIN)
 DATA += $(yee_mpi_DATA)
 
-## MPI (Non-blocking)
+#
+# MPI (Non-blocking)
+#
 yee_mpi2_SRC = $(SRCDIR)/yee_mpi2.c \
 	       $(SRCDIR)/yee_common.c \
 	       $(SRCDIR)/yee_common_mpi.c
@@ -126,7 +159,9 @@ OBJ += $(yee_mpi2_OBJ)
 BIN += $(yee_mpi2_BIN)
 DATA += $(yee_mpi2_DATA)
 
-## Output data
+#
+# Output data
+#
 tests_DATA = $(OUTDIR)/tests_perf_4.tsv \
 	     $(OUTDIR)/tests_perf_8.tsv
 tests_PNG = $(tests_DATA:.tsv=.png)
@@ -134,7 +169,9 @@ tests_PNG = $(tests_DATA:.tsv=.png)
 GNUPLOT = $(DATA:.tsv=.plt) 
 PNG = $(GNUPLOT:.plt=.png) 
 
-## Tests
+#
+# Tests
+# 
 unittests_SRC = $(SRCDIR)/yee_common_tests.c \
 		$(SRCDIR)/yee_common.c
 unittests_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(unittests_SRC))
@@ -143,7 +180,9 @@ unittests_BIN = $(BINDIR)/unit_tests
 .PHONY: clean
 .PRECIOUS: $(tests_DATA)
 
-## Meta targets 
+#
+# Meta targets 
+#
 
 all: $(OBJDIR) $(BINDIR) $(BIN) 
 
@@ -157,12 +196,16 @@ integration-test: all
 test: $(unittests_BIN)
 	./$<
 
-## General targets
+#
+# General targets
+#
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-## Specific targets
+#
+# Specific targets
+#
 
 # Serial
 $(yee_BIN): $(yee_OBJ)
@@ -213,12 +256,16 @@ $(OBJDIR)/yee_mpi2.o: $(SRCDIR)/yee_mpi2.c
 $(yee_mpi2_DATA): $(yee_mpi_BIN)
 	mpirun -n $(threads) $< -n $N -o $@
 
-## Unit tests
+#
+# Unit tests
+#
 
 $(unittests_BIN): $(unittests_OBJ)
 	$(CC) $^ $(LDFLAGS) -lcunit -o $@ 
 
-## Generate plots
+#
+# Generate plots
+#
 
 $(GNUPLOT): $(SRCDIR)/template.gnuplot
 	sed 's:file:$(@:.plt=):g' $< > $@
@@ -243,3 +290,4 @@ clean:
 	if [ -d $(OBJDIR) ]; then rmdir $(OBJDIR); fi
 	if [ -d $(BINDIR) ]; then rmdir $(BINDIR); fi
 	if [ -d $(OUTDIR) ]; then rmdir $(OUTDIR); fi
+	if [ -d $(ARCH) ]; then rmdir $(ARCH); fi
