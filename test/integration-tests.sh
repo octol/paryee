@@ -16,13 +16,11 @@ printf "  Testing that all implementations produce the same output.\n"
 # Generate reference solution to compare against
 ./$bindir/yee -o /tmp/yee.tsv $args 1> /dev/null
 
-for yb in $yee_bin
-do
+for yb in $yee_bin; do
     printf "\nTest: ${yb}\n"
     # Compute solution
     outfile=/tmp/${yb}.tsv
-    if [ $yb == "yee_mpi" ] || [ $yb == "yee_mpi2" ]
-    then
+    if [ $yb == "yee_mpi" ] || [ $yb == "yee_mpi2" ]; then
         mpirun -n $threads ./$bindir/$yb -o $outfile $args 1> /dev/null
     else
         ./$bindir/$yb -t $threads -o $outfile $args 1> /dev/null
@@ -36,12 +34,10 @@ do
     cat $errlog | grep -A 1 "Sum of all absolute errors"
 
     # Eval results
-    if [ $success == 0 ]
-    then
+    if [ $success == 0 ]; then
         echo "OK: $yb passed test."
         diff /tmp/yee.tsv $outfile > $errlog
-        if [ $? == 0 ]
-        then
+        if [ $? == 0 ]; then
             echo "Results exactly identical."
         fi
     else

@@ -1,7 +1,7 @@
 ARCH ?= gcc
 
 # -----------------------------------------------------------------------------
-# Setup environment
+#  Environment
 # -----------------------------------------------------------------------------
 
 #
@@ -67,7 +67,7 @@ OPENMP = -mp
 endif
 
 # -----------------------------------------------------------------------------
-# Start build config
+# Build config
 # -----------------------------------------------------------------------------
 
 #
@@ -82,6 +82,7 @@ threads=4
 HOSTNAME = $(shell hostname)
 ARCHNAME = $(shell uname -s)_$(shell uname -m)
 SAVEDIR = tests_$(HOSTNAME)
+TESTDIR = test
 SRCDIR = src
 ifneq (,$(DESTDIR))
 OBJDIR = $(DESTDIR)/$(ARCHNAME)/obj
@@ -96,6 +97,10 @@ endif
 OBJ =
 BIN =
 DATA =
+
+# -----------------------------------------------------------------------------
+#  Targets
+# -----------------------------------------------------------------------------
 
 #
 # Serial Yee
@@ -160,6 +165,14 @@ BIN += $(yee_mpi2_BIN)
 DATA += $(yee_mpi2_DATA)
 
 #
+# Tests
+# 
+unittests_SRC = $(SRCDIR)/yee_common_tests.c \
+		$(SRCDIR)/yee_common.c
+unittests_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(unittests_SRC))
+unittests_BIN = $(BINDIR)/unit_tests
+
+#
 # Output data
 #
 tests_DATA = $(OUTDIR)/tests_perf_4.tsv \
@@ -169,16 +182,12 @@ tests_PNG = $(tests_DATA:.tsv=.png)
 GNUPLOT = $(DATA:.tsv=.plt) 
 PNG = $(GNUPLOT:.plt=.png) 
 
-#
-# Tests
-# 
-unittests_SRC = $(SRCDIR)/yee_common_tests.c \
-		$(SRCDIR)/yee_common.c
-unittests_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(unittests_SRC))
-unittests_BIN = $(BINDIR)/unit_tests
-
 .PHONY: clean
 .PRECIOUS: $(tests_DATA)
+
+# -----------------------------------------------------------------------------
+#  Rules
+# -----------------------------------------------------------------------------
 
 #
 # Meta targets 
@@ -191,7 +200,7 @@ data: all $(OUTDIR) $(DATA)
 plot: data $(PNG)
 
 integration-test: all
-	./test/integration-tests.sh
+	$(TESTDIR)/integration-tests.sh
 
 test: $(unittests_BIN)
 	./$<
@@ -290,4 +299,4 @@ clean:
 	if [ -d $(OBJDIR) ]; then rmdir $(OBJDIR); fi
 	if [ -d $(BINDIR) ]; then rmdir $(BINDIR); fi
 	if [ -d $(OUTDIR) ]; then rmdir $(OUTDIR); fi
-	if [ -d $(ARCH) ]; then rmdir $(ARCH); fi
+	if [ -d $(ARCHNAME) ]; then rmdir $(ARCHNAME); fi
