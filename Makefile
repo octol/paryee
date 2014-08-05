@@ -99,20 +99,46 @@ BIN =
 DATA =
 
 # -----------------------------------------------------------------------------
+#  Macros
+# -----------------------------------------------------------------------------
+
+# Macro to create linking target
+# $(1) Target bin, $(2) Sources
+define LINKER_TARGET
+OBJ += $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(2))
+BIN += $(1)
+
+$(1): $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(2))
+	$(CC) $$^ $(LDFLAGS) -o $$@ 
+
+$(1)_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(BINDIR)/$(1))
+$(1)_DATA: $(1)
+	$$< -n $N -o $$@
+endef
+
+# -----------------------------------------------------------------------------
 #  Targets
 # -----------------------------------------------------------------------------
+
+#
+# Meta
+#
+
+all: $(OBJDIR) $(BINDIR) bin
 
 #
 # Serial Yee
 #
 yee_SRC = $(SRCDIR)/yee.c \
 	  $(SRCDIR)/yee_common.c
-yee_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_SRC))
-yee_BIN = $(BINDIR)/yee
-yee_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_BIN))
-OBJ += $(yee_OBJ)
-BIN += $(yee_BIN)
-DATA += $(yee_DATA)
+#yee_OBJ = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(yee_SRC))
+#yee_BIN = $(BINDIR)/yee
+#yee_DATA = $(patsubst $(BINDIR)/%,$(OUTDIR)/%.tsv,$(yee_BIN))
+#OBJ += $(yee_OBJ)
+#BIN += $(yee_BIN)
+#DATA += $(yee_DATA)
+
+$(eval $(call LINKER_TARGET, $(BINDIR)/yee, $(yee_SRC))) 
 
 #
 # Pthread
@@ -193,7 +219,7 @@ PNG = $(GNUPLOT:.plt=.png)
 # Meta targets 
 #
 
-all: $(OBJDIR) $(BINDIR) $(BIN) 
+bin: $(BIN)
 
 data: all $(OUTDIR) $(DATA)
 
@@ -217,11 +243,11 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 #
 
 # Serial
-$(yee_BIN): $(yee_OBJ)
-	$(CC) $^ $(LDFLAGS) -o $@ 
+#$(yee_BIN): $(yee_OBJ)
+#	$(CC) $^ $(LDFLAGS) -o $@ 
 
-$(yee_DATA): $(yee_BIN)
-	$< -n $N -o $@
+#$(yee_DATA): $(yee_BIN)
+#	$< -n $N -o $@
 
 # Pthread
 $(yee_pthr_BIN): $(yee_pthr_OBJ)
