@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 # Run integration tests by comparing to single thread reference solution.
 
+# Environment
+: bindir = bin
+
+# Numerical parameters
 N=64
 threads=4
 limit=1e-14
 
-yee_bin="yee_omp yee_pthr yee_mpi yee_mpi2"
+# Binaries to test
+yee_bin="yee_omp yee_pthr yee_mpi yee_nonblock_mpi"
 args="-n $N" 
 
-bindir=bin
+if [[ ! -f $bindir/yee ]]; then
+    printf "$bindir/yee: not found!\n"
+    exit 1;
+fi
 
 printf "\n  Integration tests:\n"
 printf "  Testing that all implementations produce the same output.\n"
@@ -17,10 +25,15 @@ printf "  Testing that all implementations produce the same output.\n"
 ./$bindir/yee -o /tmp/yee.tsv $args 1> /dev/null
 
 for yb in $yee_bin; do
+    if [[ ! -f $bindir/$yb ]]; then 
+        printf "$bindir/$yb: not found!\n" 
+        exit 1 
+    fi
+
     printf "\nTest: ${yb}\n"
     # Compute solution
     outfile=/tmp/${yb}.tsv
-    if [ $yb == "yee_mpi" ] || [ $yb == "yee_mpi2" ]; then
+    if [ $yb == "yee_mpi" ] || [ $yb == "yee_nonblock_mpi" ]; then
         mpirun -n $threads ./$bindir/$yb -o $outfile $args 1> /dev/null
     else
         ./$bindir/$yb -t $threads -o $outfile $args 1> /dev/null
