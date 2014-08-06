@@ -14,8 +14,7 @@ if [ ! -f README.md ]; then
     exit 1;
 fi
 
-for outfile in ${outputfile}
-do
+for outfile in ${outputfile}; do
     outfile=${outdir}/${outfile}.tsv
 
     # Sanity checks
@@ -25,8 +24,7 @@ do
     fi
 
     echo "Scaling tests: ${outfile}"
-    for M in ${nodes}
-    do
+    for M in ${nodes}; do
         echo "Running for $M threads"
         #S1=$(./${bindir}/yee -n $N                       | grep 'Elapsed' | awk '{print $2}')
         S2=$(./${bindir}/yee_omp -n $N -t $M -q          | grep 'Elapsed' | awk '{print $2}')
