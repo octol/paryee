@@ -4,29 +4,21 @@
 #
 # Usage:
 #
-#   python3 gather_data.py tests_scaling > tests_scaling.tsv
-#   python3 gather_data.py tests_perf 8 > tests_perf_8.tsv
+#   python3 gather_data.py tests_scaling1.tsv tests_scaling2.tsv > tests_scaling.tsv
 #
 import sys
-from numpy import *
+import numpy
 
-samples = 4
+first_file = True
 
-assert len(sys.argv) >= 2, 'Please specify: basename!'
-basename = sys.argv[1]
-if len(sys.argv) >= 3:
-    nodes = sys.argv[2]
+for f in sys.argv[1:]:
+    data = numpy.genfromtxt(f, delimiter=' ')
 
-for i in range(1,samples+1):
-    filename = basename + str(i)
-    if len(sys.argv) >= 3:
-        filename += '_' + str(nodes)
-    filename += '.tsv'
-
-    data = genfromtxt(filename, delimiter=' ')
-    if i == 1:
+    if first_file:
         data_min = data
+        first_file = False
     else:
-        data_min = minimum(data_min,data)
+        data_min = numpy.minimum(data_min, data)
 
-savetxt('/dev/stdout', data_min, delimiter=' ') 
+numpy.savetxt('/dev/stdout', data_min, delimiter=' ')
+

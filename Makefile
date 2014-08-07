@@ -79,9 +79,13 @@ threads=4
 #
 # Environment
 #
+SHELL := /bin/bash
 HOSTNAME = $(shell hostname)
 ARCHNAME = $(shell uname -s)_$(shell uname -m)
 TESTDIR = test
+TESTDIR_PERF = performance-testing
+TESTDIR_PERF_OUT = performance-testing-output/$(HOSTNAME)
+SCRIPTDIR = helper-scripts
 MPIRUN = mpirun
 SRCDIR = src
 ifneq (,$(DESTDIR))
@@ -223,7 +227,7 @@ bin: $(BIN)
 test: $(BIN_TESTS)
 	./$<
 
-integration-test: all
+test-integration: all
 	bindir=$(BINDIR) $(TESTDIR)/integration-tests.sh
 
 data: all $(OUTDIR) $(DATA) 
@@ -252,6 +256,14 @@ $(GNUPLOT): $(SRCDIR)/template.gnuplot
 
 %.png: %.plt %.tsv
 	gnuplot $<
+
+#
+# Scaling testing
+#
+test-scaling: all
+	#./$(TESTDIR_PERF)/test_scaling.sh -n 8 -N 256 -s 4
+	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_scaling_*.tsv > $(TESTDIR_PERF_OUT)/test_scaling.tsv
+	pushd $(TESTDIR_PERF_OUT) && gnuplot ../../$(TESTDIR_PERF)/test_scaling.plt 
 
 #
 # Environment
