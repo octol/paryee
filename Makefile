@@ -201,13 +201,6 @@ unittests_SRC = $(SRCDIR)/yee_common_tests.c \
 		$(SRCDIR)/yee_common.c
 $(eval $(call DEF_TEST, $(BINDIR)/unit_tests, $(unittests_SRC)))
 
-# #
-# # Output data
-# #
-# tests_DATA = $(OUTDIR)/tests_perf_4.tsv \
-# 	     $(OUTDIR)/tests_perf_8.tsv
-# tests_PNG = $(tests_DATA:.tsv=.png)
- 
 GNUPLOT = $(DATA:.tsv=.plt) 
 PNG = $(GNUPLOT:.plt=.png) 
 
@@ -268,18 +261,22 @@ test-scaling-compute: all
 test-scaling: 
 	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_scaling_*.tsv \
 	    > $(TESTDIR_PERF_OUT)/test_scaling.tsv
+	cp $(TESTDIR_PERF)/test_scaling.plt $(TESTDIR_PERF_OUT)
 	pushd $(TESTDIR_PERF_OUT) && \
-	    gnuplot ../../$(TESTDIR_PERF)/test_scaling.plt 
+	    gnuplot test_scaling.plt 
 
 test-perf-compute: all
 	#./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 128 -s 4
 	./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 110 -s 2
 
-test-perf: test-perf-compute
+#test-perf: test-perf-compute
+test-perf: 
 	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_perf_4_*.tsv \
 	    > $(TESTDIR_PERF_OUT)/test_perf_4.tsv
+	cp $(TESTDIR_PERF)/test_perf_4.plt $(TESTDIR_PERF_OUT)
+	cp $(TESTDIR_PERF)/test_perf_8.plt $(TESTDIR_PERF_OUT)
 	pushd $(TESTDIR_PERF_OUT) && \
-	    gnuplot ../../$(TESTDIR_PERF)/test_perf_4.plt 
+	    gnuplot test_perf_4.plt 
 
 #
 # Environment
