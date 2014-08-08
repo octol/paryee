@@ -13,7 +13,7 @@ readonly ARGS="$@"
 readonly HOSTNAME=$(hostname)
 readonly ARCHNAME=$(uname -s)_$(uname -m)
 readonly BINDIR="$ARCHNAME/bin"
-readonly OUTDIR="performance-testing-output/$HOSTNAME"
+readonly OUTDIR="perf-test-out/$HOSTNAME"
 
 # Default arguments
 NUM_NODES=8

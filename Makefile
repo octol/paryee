@@ -83,8 +83,8 @@ SHELL := /bin/bash
 HOSTNAME = $(shell hostname)
 ARCHNAME = $(shell uname -s)_$(shell uname -m)
 TESTDIR = test
-TESTDIR_PERF = performance-testing
-TESTDIR_PERF_OUT = performance-testing-output/$(HOSTNAME)
+TESTDIR_PERF = perf-test
+TESTDIR_PERF_OUT = perf-test-out/$(HOSTNAME)
 SCRIPTDIR = helper-scripts
 MPIRUN = mpirun
 SRCDIR = src
@@ -258,12 +258,28 @@ $(GNUPLOT): $(SRCDIR)/template.gnuplot
 	gnuplot $<
 
 #
-# Scaling testing
+# Performance testing
 #
-test-scaling: all
-	#./$(TESTDIR_PERF)/test_scaling.sh -n 8 -N 256 -s 4
-	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_scaling_*.tsv > $(TESTDIR_PERF_OUT)/test_scaling.tsv
-	pushd $(TESTDIR_PERF_OUT) && gnuplot ../../$(TESTDIR_PERF)/test_scaling.plt 
+
+test-scaling-compute: all
+	./$(TESTDIR_PERF)/test_scaling.sh -n 8 -N 256 -s 4
+
+#test-scaling: test-scaling-compute
+test-scaling: 
+	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_scaling_*.tsv \
+	    > $(TESTDIR_PERF_OUT)/test_scaling.tsv
+	pushd $(TESTDIR_PERF_OUT) && \
+	    gnuplot ../../$(TESTDIR_PERF)/test_scaling.plt 
+
+test-perf-compute: all
+	#./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 128 -s 4
+	./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 110 -s 2
+
+test-perf: test-perf-compute
+	python3 $(SCRIPTDIR)/gather_data.py $(TESTDIR_PERF_OUT)/test_perf_4_*.tsv \
+	    > $(TESTDIR_PERF_OUT)/test_perf_4.tsv
+	pushd $(TESTDIR_PERF_OUT) && \
+	    gnuplot ../../$(TESTDIR_PERF)/test_perf_4.plt 
 
 #
 # Environment
