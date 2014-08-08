@@ -38,6 +38,9 @@ Visualizations
 Performance tests
 -----------------
 
+### Comparison
+![Comparison](https://raw.github.com/octol/paryee/master/figures/tests_perf_comparison.png)
+
 ### Intel Core i7 930, 4 cores (8 threads) @ 2.80 GHz
 
     Linux 3.5.0-22-generic #34-Ubuntu SMP Tue Jan 8 21:47:00 UTC 2013 x86_64 x86_64 x86_64 GNU/Linux.
@@ -71,9 +74,6 @@ Performance tests
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_scaling.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_scaling2.png)
-
-### Comparison
-![Comparison](https://raw.github.com/octol/paryee/master/figures/tests_perf_comparison.png)
 
 
 Grid and simulation information
