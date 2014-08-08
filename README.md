@@ -59,7 +59,7 @@ Performance tests
     SunOS 5.10 i86pc i386 i86pc
     Sun Studio 12 Update 1
 
-![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa/tests_perf_8.png)
+![Performance tests](https://raw.githubusercontent.com/octol/paryee/master/perf-test-saved/europa/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa/tests_scaling.png)
 
     SunOS 5.10 i86pc i386 i86pc
