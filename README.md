@@ -18,11 +18,11 @@ This is a very simple example of how high performance data-parallelism can done
 in C for typical numerical codes.  A number of different implementations (of
 varying complexity) are included.
 
-- yee_mpi  - Distributed memory parallelization using MPI.
-- yee_mpi2 - Distributed memory parallelization using MPI (Non-blocking).
-- yee_omp  - Shared memory parallelization using OpenMP.
-- yee_pthr - Shared memory parallelization using POSIX threads.
-- yee      - Single thread reference implementation to compare against.
+- yee_mpi           - Distributed memory parallelization using MPI.
+- yee_nonblock_mpi  - Distributed memory parallelization using MPI (Non-blocking).
+- yee_omp           - Shared memory parallelization using OpenMP.
+- yee_pthr          - Shared memory parallelization using POSIX threads.
+- yee               - Single thread reference implementation to compare against.
 
 Installation
 ------------
@@ -46,7 +46,7 @@ Performance tests
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_scaling.png)
 
-### 4 x SGI Origin, MIPS R14000, 4+2+2+2 CPUs @ 600 MHz
+### 4 x SGI Origin, 4+2+2 x MIPS R14000 + 2 x MIPS R16000 CPUs @ 600 MHz
 
     IRIX64 6.5 IP35
     MIPSpro Compilers: Version 7.4.4m
