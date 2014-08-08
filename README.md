@@ -45,6 +45,7 @@ Performance tests
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_scaling.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_scaling2.png)
 
 ### 4 x SGI Origin, 4+2+2 x MIPS R14000 + 2 x MIPS R16000 CPUs @ 600 MHz
 
@@ -53,6 +54,7 @@ Performance tests
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka2/tests_perf_10.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka2/tests_scaling.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka2/tests_scaling2.png)
 
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
 
@@ -61,12 +63,14 @@ Performance tests
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa/tests_scaling.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa/tests_scaling2.png)
 
     SunOS 5.10 i86pc i386 i86pc
     gcc 4.3.3
 
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_scaling.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/europa-gcc/tests_scaling2.png)
 
 ### Comparison
 ![Comparison](https://raw.github.com/octol/paryee/master/figures/tests_perf_comparison.png)
