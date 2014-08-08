@@ -54,6 +54,14 @@ Performance tests
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka/tests_perf_6.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka/tests_scaling.png)
 
+### 4 x SGI Origin, MIPS R14000, 4+2+2+2 CPUs @ 600 MHz
+
+    IRIX64 6.5 IP35
+    MIPSpro Compilers: Version 7.4.4m
+
+![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka2/tests_perf_10.png)
+![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka2/tests_scaling.png)
+
 ### Intel Xeon E5310, 4+4 cores  @ 1.60 GHz
 
     SunOS 5.10 i86pc i386 i86pc

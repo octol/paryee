@@ -1,9 +1,9 @@
 from numpy import * 
 
-data1 = genfromtxt('tests_swiftsure/tests_perf_8.tsv', delimiter=' ')
-data2 = genfromtxt('tests_asuka/tests_perf_6.tsv', delimiter=' ')
-data3 = genfromtxt('tests_europa/tests_perf_8.tsv', delimiter=' ')
-data4 = genfromtxt('tests_europa_gcc/tests_perf_8.tsv', delimiter=' ')
+data1 = genfromtxt('perf-test-saved/swiftsure/tests_perf_8.tsv', delimiter=' ')
+data2 = genfromtxt('perf-test-saved/asuka2/tests_perf_10.tsv', delimiter=' ')
+data3 = genfromtxt('perf-test-saved/europa/tests_perf_8.tsv', delimiter=' ')
+data4 = genfromtxt('perf-test-saved/europa-gcc/tests_perf_8.tsv', delimiter=' ')
 
 assert(size(data1,0) == size(data2,0))
 assert(size(data1,0) == size(data3,0))
