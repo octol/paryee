@@ -46,14 +46,6 @@ Performance tests
 ![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_perf_8.png)
 ![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/swiftsure/tests_scaling.png)
 
-### 2 x SGI Origin, MIPS R14000, 4+2 CPUs @ 600 MHz
-
-    IRIX64 6.5 IP35
-    MIPSpro Compilers: Version 7.4.4m
-
-![Performance tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka/tests_perf_6.png)
-![Scaling tests](https://raw.github.com/octol/paryee/master/perf-test-saved/asuka/tests_scaling.png)
-
 ### 4 x SGI Origin, MIPS R14000, 4+2+2+2 CPUs @ 600 MHz
 
     IRIX64 6.5 IP35
