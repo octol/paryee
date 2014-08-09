@@ -253,12 +253,12 @@ void leapfrog(struct field *f)
         }
     }
 
-    for (i = 1; i < nx; ++i) 
-        for (j = 0; j < ny; ++j) 
+    for (i = 1; i < nx; ++i)
+        for (j = 0; j < ny; ++j)
             U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
 
-    for (i = 0; i < nx; ++i) 
-        for (j = 1; j < ny; ++j) 
+    for (i = 0; i < nx; ++i)
+        for (j = 1; j < ny; ++j)
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
@@ -320,7 +320,8 @@ void cellindex_to_nodeindex(long tid, struct cell_partition part,
     }
 }
 
-void parse_cmdline(long *nx, long *threads, char *outfile, int *write, int argc, char *argv[])
+void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
+                   int argc, char *argv[])
 {
     int opt;
     while ((opt = getopt(argc, argv, "t:n:o:wq")) != -1) {

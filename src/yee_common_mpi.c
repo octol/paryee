@@ -143,7 +143,8 @@ void leapfrog_master_p(double *restrict p, double *restrict u,
 
 void leapfrog_master_p2(double *restrict p, double *restrict u,
                         double *restrict v, long nx, double dt, double dx,
-                        double dy, long size, long right, MPI_Request *received)
+                        double dy, long size, long right,
+                        MPI_Request * received)
 {
     for (long i = 0; i < nx; ++i)
         for (long j = 0; j < size - 1; ++j)
@@ -175,10 +176,11 @@ void leapfrog_worker_p(double *restrict p, double *restrict u,
 
 void leapfrog_worker_p2(double *restrict p, double *restrict u,
                         double *restrict v, long nx, double dt, double dx,
-                        double dy, long size, long right, MPI_Request *received)
+                        double dy, long size, long right,
+                        MPI_Request * received)
 {
     for (long i = 0; i < nx; ++i)
-        for (long j = 0; j < size-1; ++j)
+        for (long j = 0; j < size - 1; ++j)
             P(i, j + 1) +=
                 dt / dx * (U(i + 1, j) - U(i, j)) +
                 dt / dy * (V(i, j + 1) - V(i, j));
@@ -222,7 +224,8 @@ void leapfrog_worker_uv(double *restrict p, double *restrict u,
 
 void leapfrog_worker_uv2(double *restrict p, double *restrict u,
                          double *restrict v, long nx, double dt, double dx,
-                         double dy, long size, long left, MPI_Request *received)
+                         double dy, long size, long left,
+                         MPI_Request * received)
 {
     for (long i = 1; i < nx; ++i)
         for (long j = 0; j < size; ++j)
@@ -240,7 +243,8 @@ void leapfrog_worker_uv2(double *restrict p, double *restrict u,
         V(i, j) += dt / dy * (P(i, j + 1) - P(i, j));
 }
 
-void communicate_v(double *v, long left, long right, long nx, long size, MPI_Status *status)
+void communicate_v(double *v, long left, long right, long nx, long size,
+                   MPI_Status * status)
 {
     if (left != NONE) {
         long begin_v = 0 + 0 * nx;
@@ -256,25 +260,25 @@ void communicate_v(double *v, long left, long right, long nx, long size, MPI_Sta
     }
 }
 
-void communicate_v2(double *v, long left, long right, long nx, long size, 
-                    MPI_Request *sent, MPI_Request *received)
+void communicate_v2(double *v, long left, long right, long nx, long size,
+                    MPI_Request * sent, MPI_Request * received)
 {
     if (left != NONE) {
         long begin_v = 0 + 0 * nx;
         long size_v = 1 * nx;
         MPI_Isend(&v[begin_v], size_v, MPI_DOUBLE, left, VTAG,
-                 MPI_COMM_WORLD, sent);
+                  MPI_COMM_WORLD, sent);
     }
     if (right != NONE) {
         long begin_v = 0 + size * nx;
         long size_v = 1 * nx;
         MPI_Irecv(&v[begin_v], size_v, MPI_DOUBLE, right, VTAG,
-                 MPI_COMM_WORLD, received);
+                  MPI_COMM_WORLD, received);
     }
 }
 
-void communicate_p(double *p, long left, long right, long nx, long size, 
-                   MPI_Status *status)
+void communicate_p(double *p, long left, long right, long nx, long size,
+                   MPI_Status * status)
 {
     if (left != NONE) {
         long begin_p = 0 + 0 * nx;
@@ -293,14 +297,14 @@ void communicate_p(double *p, long left, long right, long nx, long size,
     }
 }
 
-void communicate_p2(double *p, long left, long right, long nx, long size, 
-                    MPI_Request *sent, MPI_Request *received)
+void communicate_p2(double *p, long left, long right, long nx, long size,
+                    MPI_Request * sent, MPI_Request * received)
 {
     if (left != NONE) {
         long begin_p = 0 + 0 * nx;
         long size_p = 1 * nx;
         MPI_Irecv(&p[begin_p], size_p, MPI_DOUBLE, left, PTAG,
-                 MPI_COMM_WORLD, received);
+                  MPI_COMM_WORLD, received);
     }
     if (right != NONE) {
         /* For the master node we don't have an extra ghost point p to the 
@@ -309,7 +313,7 @@ void communicate_p2(double *p, long left, long right, long nx, long size,
             (left == NONE) ? 0 + (size - 1) * nx : 0 + size * nx;
         long size_p = 1 * nx;
         MPI_Isend(&p[begin_p], size_p, MPI_DOUBLE, right, PTAG,
-                 MPI_COMM_WORLD, sent);
+                  MPI_COMM_WORLD, sent);
     }
 }
 
@@ -330,7 +334,7 @@ void leapfrog_mpi(struct field *f, long left, long right, long size)
     /* Update the pressure (p) */
     if (left == NONE)
         leapfrog_master_p(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size);
-    else 
+    else
         leapfrog_worker_p(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size);
 
     /* Communicate: */
@@ -361,11 +365,11 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
 
     /* Update the pressure (p) */
     if (left == NONE)
-        leapfrog_master_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right, 
-                           &received);
-    else 
-        leapfrog_worker_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size, right,   
-                           &received);
+        leapfrog_master_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size,
+                           right, &received);
+    else
+        leapfrog_worker_p2(p, u, v, nx, f->dt, f->u.dx, f->v.dy, size,
+                           right, &received);
     if (left != NONE)
         MPI_Wait(&sent, MPI_STATUS_IGNORE);
 
@@ -377,8 +381,8 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
     if (left == NONE)
         leapfrog_master_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
     else
-        leapfrog_worker_uv2(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size, left, 
-                            &received);
+        leapfrog_worker_uv2(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size,
+                            left, &received);
     if (right != NONE)
         MPI_Wait(&sent, MPI_STATUS_IGNORE);
 }
@@ -388,6 +392,7 @@ void timestep_mpi(struct field *f, long left, long right, long size)
     for (long n = 0; n < f->Nt; ++n)
         leapfrog_mpi(f, left, right, size);
 }
+
 void timestep_mpi2(struct field *f, long left, long right, long size)
 {
     for (long n = 0; n < f->Nt; ++n)

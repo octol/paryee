@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
     long ny = 32;
     struct field f;
     char outfile[STR_SIZE] = "yee.tsv";
-    /*char outfile0[STR_SIZE] = "yee0.tsv";       [> initial field <]*/
-    int write = 1; 
+    /*char outfile0[STR_SIZE] = "yee0.tsv";       [> initial field <] */
+    int write = 1;
 
     /* Parse parameters from commandline */
     parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     apply_func(&f.p, gauss2d);  /* initial data */
     set_boundary(&f);
     /*if (write)                       */
-    /*    write_to_disk(f.p, outfile0);*/
+    /*    write_to_disk(f.p, outfile0); */
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
