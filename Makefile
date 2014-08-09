@@ -162,6 +162,11 @@ yee_SRC = $(SRCDIR)/yee.c \
 	  $(SRCDIR)/yee_common.c
 $(eval $(call DEF_BIN, $(BINDIR)/yee, $(yee_SRC),, $(OUTDIR)/yee.tsv)) 
 
+# Additional output for the reference version
+#DATA += $(OUTDIR)/yee0.tsv
+#$(OUTDIR)/yee0.tsv: $(BINDIR)/yee
+#	$< -n $(gridlength) -o $@
+
 #
 # POSIX threads
 #
@@ -226,6 +231,13 @@ test-integration: all
 data: all $(OUTDIR) $(DATA) 
 
 plot: data $(PNG)
+
+indent:
+	indent -kr --no-tabs $(SRCDIR)/*.c
+	indent -kr --no-tabs $(SRCDIR)/*.h
+
+tags:
+	ctags -R src
 
 #
 # Compilation
