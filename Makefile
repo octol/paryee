@@ -165,7 +165,7 @@ $(eval $(call DEF_BIN, $(BINDIR)/yee, $(yee_SRC),, $(OUTDIR)/yee.tsv))
 # Additional output for the reference version
 #DATA += $(OUTDIR)/yee0.tsv
 #$(OUTDIR)/yee0.tsv: $(BINDIR)/yee
-#	$< -n $(gridlength) -o $@
+#        $< -n $(gridlength) -o $@
 
 #
 # POSIX threads
