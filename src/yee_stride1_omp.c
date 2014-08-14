@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     if (write)
         write_to_disk(f.p, outfile);
     free(part);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     return EXIT_SUCCESS;
 }

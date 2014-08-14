@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     free(param);
     free(thr);
     free(part);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     pthread_attr_destroy(&attr);
     pthread_barrier_destroy(&barrier);

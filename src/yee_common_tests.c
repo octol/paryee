@@ -170,7 +170,7 @@ void test_init_acoustic_field_internal(double x[2], double y[2],
         for (unsigned long j = 0; j < cells + 1; ++j)
             CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * cells], 0.0, TOL);
 
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 }
 
 void test_init_acoustic_field(void)
@@ -237,7 +237,7 @@ void test_init_local_acoustic_field_internal(double x[2], double y[2],
         for (unsigned long j = 0; j < cells + 1; ++j)
             CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * cells], 0.0, TOL);
 
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 }
 
 void test_init_local_acoustic_field(void)
@@ -309,7 +309,7 @@ void test_assign_and_get(void)
         CU_ASSERT_DOUBLE_EQUAL(V(i, j), val, TOL);
     }
 
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 }
 
 void test_set_boundary(void)
@@ -450,7 +450,7 @@ void test_leapfrog(void)
         for (unsigned long j = 0; j < N; ++j)
             CU_ASSERT_DOUBLE_EQUAL(P(i, j), 0, TOL);
 
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 }
 
 void test_partition_grid(void)
@@ -520,7 +520,7 @@ void test_get_partition_coords(void)
     get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     n = 4;
     threads = 2;
@@ -529,7 +529,7 @@ void test_get_partition_coords(void)
     get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.5, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     n = 4;
     threads = 2;
@@ -538,7 +538,7 @@ void test_get_partition_coords(void)
     get_partition_coords(part[1], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.5, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     n = 4;
     threads = 4;
@@ -547,28 +547,28 @@ void test_get_partition_coords(void)
     get_partition_coords(part[0], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.25, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     f = py_init_acoustic_field(n, n, x, y);
     part = partition_grid(threads, n);
     get_partition_coords(part[1], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.25, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.5, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     f = py_init_acoustic_field(n, n, x, y);
     part = partition_grid(threads, n);
     get_partition_coords(part[2], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.5, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 0.75, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     f = py_init_acoustic_field(n, n, x, y);
     part = partition_grid(threads, n);
     get_partition_coords(part[3], &f, y_part);
     CU_ASSERT_DOUBLE_EQUAL(y_part[0], 0.75, TOL);
     CU_ASSERT_DOUBLE_EQUAL(y_part[1], 1, TOL);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 }
 
 void test_parse_cmdline(void)

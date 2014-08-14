@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
         if (write)
             write_to_disk(f.p, outfile);
         free(part);
-        free_acoustic_field(f);
+        py_free_acoustic_field(f);
         MPI_Finalize();
 
     } else {
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 
         timestep_mpi2(&f, left, right, size);
         return_data(&f, size);  /* Send back data to master */
-        free_acoustic_field(f);
+        py_free_acoustic_field(f);
         MPI_Finalize();
     }
 
