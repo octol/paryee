@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         double Nt = f.Nt;
         long tid = omp_get_thread_num();
         long p0, p1, u0, u1, v0, v1;
-        cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
+        py_cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
                                &v1);
 #ifdef DEBUG
         printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",

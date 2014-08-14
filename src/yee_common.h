@@ -162,7 +162,7 @@ void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
  * Note that the end index is such that the indices <p1, <u1, <v1 are
  * update.
  */
-void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
+void py_cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1);
 

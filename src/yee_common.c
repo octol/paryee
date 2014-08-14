@@ -305,7 +305,7 @@ void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
     y[1] = f->v.y[end];
 }
 
-void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
+void py_cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1)
 {
