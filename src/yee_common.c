@@ -135,7 +135,7 @@ struct py_field py_init_acoustic_field(long cells_x,
     return f;
 }
 
-struct py_field init_local_acoustic_field(long cells_x, long cells_y,
+struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
                                        double x[2], double y[2])
 {
     struct py_field f;

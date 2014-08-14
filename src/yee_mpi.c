@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
         receive_grid_data(&left, &right, &size, y_part, &status);
 
         /* Allocate and receive the local copy of the py_field */
-        f = init_local_acoustic_field(nx, size, x, y_part);
+        f = py_init_local_acoustic_field(nx, size, x, y_part);
         receive_field_data(&f, size, &status);
 
         /* Depends on the numerical variables initialized above */

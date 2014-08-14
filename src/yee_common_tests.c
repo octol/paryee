@@ -196,7 +196,7 @@ void test_init_acoustic_field(void)
 void test_init_local_acoustic_field_internal(double x[2], double y[2],
                                              unsigned long cells)
 {
-    struct py_field f = init_local_acoustic_field(cells, cells, x, y);
+    struct py_field f = py_init_local_acoustic_field(cells, cells, x, y);
 
     CU_ASSERT_DOUBLE_EQUAL(f.p.size_x, cells, TOL);
     CU_ASSERT_DOUBLE_EQUAL(f.p.size_y, cells + 1.0, TOL);
