@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
     /* Field variables - data structures for the simulation */
-    struct field f;             /* Contains pressure and velocity */
+    struct py_field f;             /* Contains pressure and velocity */
     struct cell_partition *part;        /* Array of domain partitions */
 
     if (taskid == MASTER) {
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
         double y_part[2];       /* coord interval on y-axis */
         receive_grid_data(&left, &right, &size, y_part, &status);
 
-        /* Allocate and receive the local copy of the field */
+        /* Allocate and receive the local copy of the py_field */
         f = init_local_acoustic_field(nx, size, x, y_part);
         receive_field_data(&f, size, &status);
 

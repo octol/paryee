@@ -87,10 +87,10 @@ void apply_func(struct py_field_variable *f, double (*func) (double, double))
     vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
 
-struct field init_acoustic_field(long cells_x,
+struct py_field init_acoustic_field(long cells_x,
                                  long cells_y, double x[2], double y[2])
 {
-    struct field f;
+    struct py_field f;
 
     alloc_field(&f.p, cells_x, cells_y);
     alloc_field(&f.u, cells_x + 1, cells_y);
@@ -135,10 +135,10 @@ struct field init_acoustic_field(long cells_x,
     return f;
 }
 
-struct field init_local_acoustic_field(long cells_x, long cells_y,
+struct py_field init_local_acoustic_field(long cells_x, long cells_y,
                                        double x[2], double y[2])
 {
-    struct field f;
+    struct py_field f;
 
     alloc_field(&f.p, cells_x, cells_y + 1);    /* differs */
     alloc_field(&f.u, cells_x + 1, cells_y);
@@ -185,7 +185,7 @@ struct field init_local_acoustic_field(long cells_x, long cells_y,
     return f;
 }
 
-void free_acoustic_field(struct field f)
+void free_acoustic_field(struct py_field f)
 {
     free_field(f.p);
     free_field(f.u);
@@ -203,7 +203,7 @@ double get_from(struct py_field_variable fv, long i, long j)
     return fv.value[i + j * fv.size_x];
 }
 
-void set_boundary(struct field *f)
+void set_boundary(struct py_field *f)
 {
     long nx, i, j;
 
@@ -224,7 +224,7 @@ void set_boundary(struct field *f)
         f->u.value[i + j * nx] = 0;
 }
 
-void leapfrog(struct field *f)
+void leapfrog(struct py_field *f)
 {
     long i, j;
     long nx = f->p.size_x;
@@ -262,7 +262,7 @@ void leapfrog(struct field *f)
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
-void timestep_leapfrog(struct field *f, double Nt)
+void timestep_leapfrog(struct py_field *f, double Nt)
 {
     for (long n = 0; n < Nt; ++n)
         leapfrog(f);
@@ -296,7 +296,7 @@ struct cell_partition *partition_grid(long total_threads, long cells)
     return partition;
 }
 
-void get_partition_coords(struct cell_partition part, struct field *f,
+void get_partition_coords(struct cell_partition part, struct py_field *f,
                           double *y)
 {
     long begin = part.begin;

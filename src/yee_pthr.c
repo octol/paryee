@@ -39,7 +39,7 @@ pthread_barrier_t barrier;
  * Data structures
  */
 struct thread_param {
-    struct field *f;
+    struct py_field *f;
     struct cell_partition part;
     long tid;
 };
@@ -47,7 +47,7 @@ struct thread_param {
 void *thread_main(void *arg)
 {
     struct thread_param *param = (struct thread_param *) arg;
-    struct field *f = param->f;
+    struct py_field *f = param->f;
     long tid = param->tid;
 
     long p0, p1, u0, u1, v0, v1;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee_pthr.tsv";
     int write = 1;
     long threads = 4;

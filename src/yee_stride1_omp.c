@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee_stride1_omp.tsv";
     int write = 1;
     long threads = 4;

@@ -48,27 +48,27 @@ void receive_grid_data(long *left, long *right, long *size, double *y,
                        MPI_Status * status);
 
 /*
- * The actual field (pressure and velocity) is sent from master to worker node. 
+ * The actual py_field (pressure and velocity) is sent from master to worker node. 
  */
-void send_field_data(long taskid, struct field *f,
+void send_field_data(long taskid, struct py_field *f,
                      struct cell_partition part);
 
 /*
- * Each worker node receives its field (pressure and velocity) from the master
+ * Each worker node receives its py_field (pressure and velocity) from the master
  * node.
  */
-void receive_field_data(struct field *f, long size, MPI_Status * status);
+void receive_field_data(struct py_field *f, long size, MPI_Status * status);
 
 /* 
  * After simulation/time stepping is done, each worker node sends its field
  * data back to the master node.
  */
-void return_data(struct field *f, long size);
+void return_data(struct py_field *f, long size);
 
 /*
  * The master collects all data into one unit.
  */
-void collect_data(long taskid, struct cell_partition part, struct field *f,
+void collect_data(long taskid, struct cell_partition part, struct py_field *f,
                   MPI_Status * status);
 
 /* 
@@ -108,7 +108,7 @@ void leapfrog_master_uv(double *restrict p, double *restrict u,
                         double dy, long size);
 
 /*
- * Compute one time step for the velocity field on the worker nodes. This
+ * Compute one time step for the velocity py_field on the worker nodes. This
  * differs since we now have extra ghost cells to take into consideration. In
  * particular, grid indices for pressure needs to be shifter up by one along
  * the y-axis.
@@ -151,15 +151,15 @@ void communicate_p2(double *p, long left, long right, long nx, long size,
  * data between the computational nodes as well as performing the leapfrog
  * update of the field.
  */
-void leapfrog_mpi(struct field *f, long left, long right, long size);
+void leapfrog_mpi(struct py_field *f, long left, long right, long size);
 /* Non-blocking version */
-void leapfrog_mpi2(struct field *f, long left, long right, long size);
+void leapfrog_mpi2(struct py_field *f, long left, long right, long size);
 
 /*
- * Update the field data from the start time to the end time.
+ * Update the py_field data from the start time to the end time.
  */
-void timestep_mpi(struct field *f, long left, long right, long size);
+void timestep_mpi(struct py_field *f, long left, long right, long size);
 /* Non-blocking version */
-void timestep_mpi2(struct field *f, long left, long right, long size);
+void timestep_mpi2(struct py_field *f, long left, long right, long size);
 
 #endif

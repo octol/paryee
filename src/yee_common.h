@@ -34,7 +34,7 @@
  **************************************************************************/
 
 /*
- * A field variable is scalar valued and defined on a 2D grid.
+ * A py_field variable is scalar valued and defined on a 2D grid.
  */
 struct py_field_variable {
     double *value;
@@ -49,7 +49,7 @@ struct py_field_variable {
 /*
  * Contains the entire field
  */
-struct field {
+struct py_field {
     struct py_field_variable p;
     struct py_field_variable u;
     struct py_field_variable v;
@@ -101,19 +101,19 @@ void vec_func2d(double *dst, double (*func) (double, double),
 void apply_func(struct py_field_variable *f, double (*func) (double, double));
 
 /* 
- * Allocates field and sets initial value to zero
+ * Allocates py_field and sets initial value to zero
  */
-struct field init_acoustic_field(long cells_x,
+struct py_field init_acoustic_field(long cells_x,
                                  long cells_y, double x[2], double y[2]);
 
 /* 
- * Allocates field and sets initial value to zero. This variant is for
+ * Allocates py_field and sets initial value to zero. This variant is for
  * distributed memory local domains. The difference is we get one more p
  * node to the left (below). This the generated grid will actually start
  * dy/2 before y[0].
  * NOTE: Function not valid for the left most (bottom) partition.
  */
-struct field init_local_acoustic_field(long cells_x, long cells_y,
+struct py_field init_local_acoustic_field(long cells_x, long cells_y,
                                        double x[2], double y[2]);
 
 /*
@@ -130,17 +130,17 @@ double get_from(struct py_field_variable fv, long i, long j);
 /*
  * Sets the outer boundary (u,v) to zero.
  */
-void set_boundary(struct field *f);
+void set_boundary(struct py_field *f);
 
 /*
- * Leapfrog update of the field 
+ * Leapfrog update of the py_field 
  */
-void leapfrog(struct field *f);
+void leapfrog(struct py_field *f);
 
 /*
- * Time step n Leapfrog updates of the field 
+ * Time step n Leapfrog updates of the py_field 
  */
-void timestep_leapfrog(struct field *f, double n);
+void timestep_leapfrog(struct py_field *f, double n);
 
 /*
  * Divide the grid for the different threads. The partition is done as
@@ -153,7 +153,7 @@ struct cell_partition *partition_grid(long total_threads, long cells);
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct cell_partition part, struct field *f,
+void get_partition_coords(struct cell_partition part, struct py_field *f,
                           double *y);
 
 /*
@@ -174,7 +174,7 @@ void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
                    int argc, char *argv[]);
 
 /*
- * Write field to dist
+ * Write py_field to dist
  */
 int write_to_disk(struct py_field_variable f, char *fstr);
 

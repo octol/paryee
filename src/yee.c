@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee.tsv";
     
-    /* initial field */
+    /* initial py_field */
     /*char outfile0[STR_SIZE] = "yee0.tsv";       */
     int write = 1;                                                 
 
