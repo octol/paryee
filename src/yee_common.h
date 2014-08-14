@@ -125,7 +125,7 @@ void py_free_acoustic_field(struct py_field);
  * Assign and retrive value from fv(i,j)
  */
 double py_assign_to(struct py_field_variable fv, long i, long j, double value);
-double get_from(struct py_field_variable fv, long i, long j);
+double py_get_from(struct py_field_variable fv, long i, long j);
 
 /*
  * Sets the outer boundary (u,v) to zero.

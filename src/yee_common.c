@@ -198,7 +198,7 @@ double py_assign_to(struct py_field_variable fv, long i, long j, double value)
     return value;
 }
 
-double get_from(struct py_field_variable fv, long i, long j)
+double py_get_from(struct py_field_variable fv, long i, long j)
 {
     return fv.value[i + j * fv.size_x];
 }
@@ -363,7 +363,7 @@ int write_to_disk(struct py_field_variable f, char *fstr)
     for (long i = 0; i < f.size_x; ++i) {
         for (long j = 0; j < f.size_y; ++j) {
             fprintf(fp, "%.16e\t%.16e\t%.16e\n", f.x[i], f.y[j],
-                    get_from(f, i, j));
+                    py_get_from(f, i, j));
         }
         fprintf(fp, "\n");
     }

@@ -282,7 +282,7 @@ void test_assign_and_get(void)
         val = (double) rand();
         py_assign_to(f.p, i, j, val);
         CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N], val, TOL);
-        CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N], get_from(f.p, i, j),
+        CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N], py_get_from(f.p, i, j),
                                TOL);
         CU_ASSERT_DOUBLE_EQUAL(P(i, j), val, TOL);
     }
@@ -294,7 +294,7 @@ void test_assign_and_get(void)
         py_assign_to(f.u, i, j, val);
         CU_ASSERT_DOUBLE_EQUAL(f.u.value[i + j * (N + 1)], val, TOL);
         CU_ASSERT_DOUBLE_EQUAL(f.u.value[i + j * (N + 1)],
-                               get_from(f.u, i, j), TOL);
+                               py_get_from(f.u, i, j), TOL);
         CU_ASSERT_DOUBLE_EQUAL(U(i, j), val, TOL);
     }
 
@@ -304,7 +304,7 @@ void test_assign_and_get(void)
         val = (double) rand();
         py_assign_to(f.v, i, j, val);
         CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N], val, TOL);
-        CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N], get_from(f.v, i, j),
+        CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N], py_get_from(f.v, i, j),
                                TOL);
         CU_ASSERT_DOUBLE_EQUAL(V(i, j), val, TOL);
     }
