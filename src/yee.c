@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     /* timestep */
     double tic, toc;
     tic = gettime();
-    timestep_leapfrog(&f, f.Nt);
+    py_timestep_leapfrog(&f, f.Nt);
     toc = gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 

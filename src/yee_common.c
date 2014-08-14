@@ -262,7 +262,7 @@ void py_leapfrog(struct py_field *f)
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
-void timestep_leapfrog(struct py_field *f, double Nt)
+void py_timestep_leapfrog(struct py_field *f, double Nt)
 {
     for (long n = 0; n < Nt; ++n)
         py_leapfrog(f);

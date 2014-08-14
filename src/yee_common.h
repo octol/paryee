@@ -140,7 +140,7 @@ void py_leapfrog(struct py_field *f);
 /*
  * Time step n Leapfrog updates of the py_field 
  */
-void timestep_leapfrog(struct py_field *f, double n);
+void py_timestep_leapfrog(struct py_field *f, double n);
 
 /*
  * Divide the grid for the different threads. The partition is done as
