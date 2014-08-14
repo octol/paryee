@@ -65,11 +65,11 @@ void test_vec_func(void)
     for (int i = 0; i < size; ++i)
         arg[i] = i;
 
-    py_vec_func(dst, zero, arg, size);
+    py_vec_func(dst, py_zero, arg, size);
     for (int i = 0; i < size; ++i)
         CU_ASSERT_DOUBLE_EQUAL(dst[i], 0, TOL);
 
-    py_vec_func(dst, identity, arg, size);
+    py_vec_func(dst, py_identity, arg, size);
     for (int i = 0; i < size; ++i)
         CU_ASSERT_DOUBLE_EQUAL(dst[i], arg[i], TOL);
 
@@ -92,12 +92,12 @@ void test_vec_func2d(void)
     double *dst = malloc(sizeof(double) * size_x * size_y);
     double *arg = malloc(sizeof(double) * size_x * size_y);
 
-    py_vec_func2d(dst, zero2d, arg_x, size_x, arg_y, size_y);
+    py_vec_func2d(dst, py_zero2d, arg_x, size_x, arg_y, size_y);
     for (unsigned long i = 0; i < size_x; ++i)
         for (unsigned long j = 0; j < size_y; ++j)
             CU_ASSERT_DOUBLE_EQUAL(dst[i + j * size_x], 0, TOL);
 
-    py_vec_func2d(dst, identity2d, arg_x, size_x, arg_y, size_y);
+    py_vec_func2d(dst, py_identity2d, arg_x, size_x, arg_y, size_y);
     for (unsigned long i = 0; i < size_x; ++i)
         for (unsigned long j = 0; j < size_y; ++j)
             CU_ASSERT_DOUBLE_EQUAL(dst[i + j * size_x], arg_x[i], TOL);
@@ -115,12 +115,12 @@ void test_apply_func(void)
     py_alloc_field(&fv, size, size);
     py_set_grid(&fv, x, y);
 
-    py_apply_func(&fv, zero2d);
+    py_apply_func(&fv, py_zero2d);
     for (unsigned long i = 0; i < size; ++i)
         for (unsigned long j = 0; j < size; ++j)
             CU_ASSERT_DOUBLE_EQUAL(fv.value[i + j * size], 0, TOL);
 
-    py_apply_func(&fv, identity2d);
+    py_apply_func(&fv, py_identity2d);
     for (unsigned long i = 0; i < size; ++i)
         for (unsigned long j = 0; j < size; ++j)
             CU_ASSERT_DOUBLE_EQUAL(fv.value[i + j * size], fv.x[i], TOL);
@@ -358,8 +358,8 @@ void test_set_boundary(void)
     CU_ASSERT_DOUBLE_EQUAL(U(2, 2), 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(U(2, 3), 0, TOL);
 
-    py_apply_func(&f.u, one2d);    /* initial data */
-    py_apply_func(&f.v, one2d);    /* initial data */
+    py_apply_func(&f.u, py_one2d);    /* initial data */
+    py_apply_func(&f.v, py_one2d);    /* initial data */
 
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 0), 0, TOL);
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 0), 0, TOL);
@@ -438,7 +438,7 @@ void test_leapfrog(void)
             CU_ASSERT_DOUBLE_EQUAL(V(i, j), 0, TOL);
 
     /* test 2 */
-    py_apply_func(&f.p, zero2d);
+    py_apply_func(&f.p, py_zero2d);
     for (unsigned long i = 0; i < N + 1; ++i)
         for (unsigned long j = 0; j < N; ++j)
             U(i, j) = 1;
@@ -586,45 +586,45 @@ void test_parse_cmdline(void)
 
 void test_zero(void)
 {
-    CU_ASSERT(zero(1) == 0.0);
-    CU_ASSERT(zero(45.5) == 0.0);
-    CU_ASSERT(zero(0) == 0.0);
-    CU_ASSERT(zero(-5.0f) == 0.0);
+    CU_ASSERT(py_zero(1) == 0.0);
+    CU_ASSERT(py_zero(45.5) == 0.0);
+    CU_ASSERT(py_zero(0) == 0.0);
+    CU_ASSERT(py_zero(-5.0f) == 0.0);
 }
 
 void test_zero2d(void)
 {
-    CU_ASSERT(zero2d(1, 2) == 0.0);
-    CU_ASSERT(zero2d(45.5, 5.3) == 0.0);
-    CU_ASSERT(zero2d(0, 0) == 0.0);
-    CU_ASSERT(zero2d(-5.0f, 5.0f) == 0.0);
+    CU_ASSERT(py_zero2d(1, 2) == 0.0);
+    CU_ASSERT(py_zero2d(45.5, 5.3) == 0.0);
+    CU_ASSERT(py_zero2d(0, 0) == 0.0);
+    CU_ASSERT(py_zero2d(-5.0f, 5.0f) == 0.0);
 }
 
 void test_identity(void)
 {
-    CU_ASSERT(identity(1) == 1.0);
-    CU_ASSERT(identity(45.5) == 45.5);
-    CU_ASSERT(identity(0) == 0.0);
-    CU_ASSERT(identity(-5.0f) == -5.0f);
+    CU_ASSERT(py_identity(1) == 1.0);
+    CU_ASSERT(py_identity(45.5) == 45.5);
+    CU_ASSERT(py_identity(0) == 0.0);
+    CU_ASSERT(py_identity(-5.0f) == -5.0f);
 }
 
 void test_identity2d(void)
 {
-    CU_ASSERT(identity2d(1, 5) == 1.0);
-    CU_ASSERT(identity2d(45.5, 4.6) == 45.5);
-    CU_ASSERT(identity2d(0, 0) == 0.0);
-    CU_ASSERT(identity2d(-5.0f, 7.0f) == -5.0f);
+    CU_ASSERT(py_identity2d(1, 5) == 1.0);
+    CU_ASSERT(py_identity2d(45.5, 4.6) == 45.5);
+    CU_ASSERT(py_identity2d(0, 0) == 0.0);
+    CU_ASSERT(py_identity2d(-5.0f, 7.0f) == -5.0f);
 }
 
 /* int round_up_divide(int x, int y);*/
 void test_round_up_divide(void)
 {
-    CU_ASSERT(round_up_divide(1, 3) == 1);
-    CU_ASSERT(round_up_divide(2, 3) == 1);
-    CU_ASSERT(round_up_divide(3, 3) == 1);
-    CU_ASSERT(round_up_divide(4, 3) == 2);
-    CU_ASSERT(round_up_divide(0, 3) == 1);
-    CU_ASSERT(round_up_divide(7, 3) == 3);
+    CU_ASSERT(py_round_up_divide(1, 3) == 1);
+    CU_ASSERT(py_round_up_divide(2, 3) == 1);
+    CU_ASSERT(py_round_up_divide(3, 3) == 1);
+    CU_ASSERT(py_round_up_divide(4, 3) == 2);
+    CU_ASSERT(py_round_up_divide(0, 3) == 1);
+    CU_ASSERT(py_round_up_divide(7, 3) == 3);
 }
 
 int main()
@@ -643,30 +643,30 @@ int main()
     }
 
     /* Add the tests to the suite */
-    if (!CU_add_test(pSuite, "alloc_field", test_alloc_field)
-        || !CU_add_test(pSuite, "set_grid", test_set_grid)
-        || !CU_add_test(pSuite, "vec_func", test_vec_func)
-        || !CU_add_test(pSuite, "vec_func2d", test_vec_func2d)
-        || !CU_add_test(pSuite, "apply_func", test_apply_func)
-        || !CU_add_test(pSuite, "init_acoustic_field",
+    if (!CU_add_test(pSuite, "py_alloc_field", test_alloc_field)
+        || !CU_add_test(pSuite, "py_set_grid", test_set_grid)
+        || !CU_add_test(pSuite, "py_vec_func", test_vec_func)
+        || !CU_add_test(pSuite, "py_vec_func2d", test_vec_func2d)
+        || !CU_add_test(pSuite, "py_apply_func", test_apply_func)
+        || !CU_add_test(pSuite, "py_init_acoustic_field",
                         test_init_acoustic_field)
-        || !CU_add_test(pSuite, "init_local_acoustic_field",
+        || !CU_add_test(pSuite, "py_init_local_acoustic_field",
                         test_init_local_acoustic_field)
-        || !CU_add_test(pSuite, "assign_to, get_from", test_assign_and_get)
-        || !CU_add_test(pSuite, "set_boundary", test_set_boundary)
-        || !CU_add_test(pSuite, "leapfrog", test_leapfrog)
-        || !CU_add_test(pSuite, "partition_grid", test_partition_grid)
-        || !CU_add_test(pSuite, "get_partition_coords",
+        || !CU_add_test(pSuite, "py_assign_to, get_from", test_assign_and_get)
+        || !CU_add_test(pSuite, "py_set_boundary", test_set_boundary)
+        || !CU_add_test(pSuite, "py_leapfrog", test_leapfrog)
+        || !CU_add_test(pSuite, "py_partition_grid", test_partition_grid)
+        || !CU_add_test(pSuite, "py_get_partition_coords",
                         test_get_partition_coords)
-        /*|| !CU_add_test(pSuite, "expand_indices", test_expand_indices) */
-        /*|| !CU_add_test(pSuite, "verify_grid_integrity", test_verify_grid) */
-        /*|| !CU_add_test(pSuite, "set_local_index", test_set_local_index) */
-        || !CU_add_test(pSuite, "parse_cmdline", test_parse_cmdline)
-        || !CU_add_test(pSuite, "zero", test_zero)
-        || !CU_add_test(pSuite, "zero2d", test_zero2d)
-        || !CU_add_test(pSuite, "identity", test_identity)
-        || !CU_add_test(pSuite, "identity2d", test_identity)
-        || !CU_add_test(pSuite, "round_up_divide", test_round_up_divide)) {
+        /*|| !CU_add_test(pSuite, "py_expand_indices", test_expand_indices) */
+        /*|| !CU_add_test(pSuite, "py_verify_grid_integrity", test_verify_grid) */
+        /*|| !CU_add_test(pSuite, "py_set_local_index", test_set_local_index) */
+        || !CU_add_test(pSuite, "py_parse_cmdline", test_parse_cmdline)
+        || !CU_add_test(pSuite, "py_zero", test_zero)
+        || !CU_add_test(pSuite, "py_zero2d", test_zero2d)
+        || !CU_add_test(pSuite, "py_identity", test_identity)
+        || !CU_add_test(pSuite, "py_identity2d", test_identity)
+        || !CU_add_test(pSuite, "py_round_up_divide", test_round_up_divide)) {
         CU_cleanup_registry();
         return CU_get_error();
     }
