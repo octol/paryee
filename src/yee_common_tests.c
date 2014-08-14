@@ -92,12 +92,12 @@ void test_vec_func2d(void)
     double *dst = malloc(sizeof(double) * size_x * size_y);
     double *arg = malloc(sizeof(double) * size_x * size_y);
 
-    vec_func2d(dst, zero2d, arg_x, size_x, arg_y, size_y);
+    py_vec_func2d(dst, zero2d, arg_x, size_x, arg_y, size_y);
     for (unsigned long i = 0; i < size_x; ++i)
         for (unsigned long j = 0; j < size_y; ++j)
             CU_ASSERT_DOUBLE_EQUAL(dst[i + j * size_x], 0, TOL);
 
-    vec_func2d(dst, identity2d, arg_x, size_x, arg_y, size_y);
+    py_vec_func2d(dst, identity2d, arg_x, size_x, arg_y, size_y);
     for (unsigned long i = 0; i < size_x; ++i)
         for (unsigned long j = 0; j < size_y; ++j)
             CU_ASSERT_DOUBLE_EQUAL(dst[i + j * size_x], arg_x[i], TOL);

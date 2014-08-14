@@ -73,7 +73,7 @@ void py_vec_func(double *dst, double (*func) (double), const double *arg,
         dst[i] = func(arg[i]);
 }
 
-void vec_func2d(double *dst, double (*func) (double, double),
+void py_vec_func2d(double *dst, double (*func) (double, double),
                 const double *arg_x, const long size_x,
                 const double *arg_y, const long size_y)
 {
@@ -84,7 +84,7 @@ void vec_func2d(double *dst, double (*func) (double, double),
 
 void apply_func(struct py_field_variable *f, double (*func) (double, double))
 {
-    vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
+    py_vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
 
 struct py_field init_acoustic_field(long cells_x,
