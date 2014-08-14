@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
     py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 
     /* timestep */
     double tic, toc;
-    tic = gettime();
+    tic = py_gettime();
 
     /* Spawn additional [threads-1] threads */
     for (i = 0; i < threads - 1; ++i)
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < threads - 1; ++i)
         pthread_join(thr[i], NULL);
 
-    toc = gettime();
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */

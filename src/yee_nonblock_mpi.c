@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
         f = py_init_acoustic_field(nx, ny, x, y);
-        py_apply_func(&f.p, gauss2d);      /* initial data */
+        py_apply_func(&f.p, py_gauss2d);      /* initial data */
         py_set_boundary(&f);
 
         /* Depends on the numerical variables initialized above */
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
         /* Timing */
         double tic, toc;
-        tic = gettime();
+        tic = py_gettime();
 
         /* Send out data to the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid) {
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         for (long taskid = 1; taskid < numtasks; ++taskid)
             collect_data(taskid, part[taskid], &f, &status);
 
-        toc = gettime();
+        toc = py_gettime();
         printf("Elapsed: %f seconds\n", toc - tic);
 
         if (write)

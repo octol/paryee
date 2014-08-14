@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
     py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     /* timestep */
     long n, i, j;
     double tic, toc;
-    tic = gettime();
+    tic = py_gettime();
 #pragma omp parallel default(shared) private(i,j,n)
     {
         /* private variables used in the time stepping */
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    toc = gettime();
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */

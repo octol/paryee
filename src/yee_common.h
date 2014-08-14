@@ -181,22 +181,22 @@ int py_write_to_disk(struct py_field_variable f, char *fstr);
 /* 
  * Some grid functions 
  */
-double gauss(double);
-double gauss2d(double x, double y);
-double zero(double x);
-double zero2d(double x, double y);
-double one2d(double x, double y);
-double identity(double);
-double identity2d(double x, double y);
+double py_gauss(double);
+double py_gauss2d(double x, double y);
+double py_zero(double x);
+double py_zero2d(double x, double y);
+double py_one2d(double x, double y);
+double py_identity(double);
+double py_identity2d(double x, double y);
 
 /*
  * Round up integer division
  */
-int round_up_divide(int x, int y);
+int py_round_up_divide(int x, int y);
 
 /*
  * Get time in a way that is compatible with threading
  */
-double gettime(void);
+double py_gettime(void);
 
 #endif

@@ -128,9 +128,9 @@ struct py_field py_init_acoustic_field(long cells_x,
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    py_apply_func(&f.p, zero2d);
-    py_apply_func(&f.u, zero2d);
-    py_apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, py_zero2d);
+    py_apply_func(&f.u, py_zero2d);
+    py_apply_func(&f.v, py_zero2d);
 
     return f;
 }
@@ -178,9 +178,9 @@ struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    py_apply_func(&f.p, zero2d);
-    py_apply_func(&f.u, zero2d);
-    py_apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, py_zero2d);
+    py_apply_func(&f.u, py_zero2d);
+    py_apply_func(&f.v, py_zero2d);
 
     return f;
 }
@@ -268,14 +268,14 @@ void py_timestep_leapfrog(struct py_field *f, double Nt)
         py_leapfrog(f);
 }
 
-struct py_cell_partition *partition_grid(long total_threads, long cells)
+struct py_cell_partition *py_partition_grid(long total_threads, long cells)
 {
     assert(total_threads <= cells);
     long i;
     long cells_per_thread;
     struct py_cell_partition *partition;
 
-    partition = malloc(sizeof(struct cell_partition) * total_threads);
+    partition = malloc(sizeof(struct py_cell_partition) * total_threads);
     cells_per_thread = ceil((double) cells / (double) total_threads);
 
     for (i = 0; i < total_threads - 1; ++i) {
@@ -371,54 +371,54 @@ int py_write_to_disk(struct py_field_variable f, char *fstr)
     return EXIT_SUCCESS;
 }
 
-double gauss(double x)
+double py_gauss(double x)
 {
     return exp(-pow(x - 0.5, 2) / pow(0.05, 2));
 }
 
-double gauss2d(double x, double y)
+double py_gauss2d(double x, double y)
 {
     double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);
     return exp(-r_squared / pow(0.1, 2));
 }
 
-double zero(double x)
+double py_zero(double x)
 {
     (void) x;
     return 0.0;
 }
 
-double zero2d(double x, double y)
+double py_zero2d(double x, double y)
 {
     (void) x;
     (void) y;
     return 0.0;
 }
 
-double one2d(double x, double y)
+double py_one2d(double x, double y)
 {
     (void) x;
     (void) y;
     return 1.0;
 }
 
-double identity(double x)
+double py_identity(double x)
 {
     return x;
 }
 
-double identity2d(double x, double y)
+double py_identity2d(double x, double y)
 {
     (void) y;
     return x;
 }
 
-int round_up_divide(int x, int y)
+int py_round_up_divide(int x, int y)
 {
     return (x - 1) / y + 1;
 }
 
-double gettime(void)
+double py_gettime(void)
 {
     struct timeval t;
     gettimeofday(&t, NULL);

@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
     py_set_boundary(&f);
     /*if (write)                        */
         /*write_to_disk(f.p, outfile0); */
@@ -66,9 +66,9 @@ int main(int argc, char *argv[])
 
     /* timestep */
     double tic, toc;
-    tic = gettime();
+    tic = py_gettime();
     py_timestep_leapfrog(&f, f.Nt);
-    toc = gettime();
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
