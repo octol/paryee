@@ -29,7 +29,7 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field(struct py_field_variable *f, const long size_x,
+void py_alloc_field(struct py_field_variable *f, const long size_x,
                  const long size_y)
 {
     long block = sizeof(double) * size_x * size_y;
@@ -92,9 +92,9 @@ struct py_field init_acoustic_field(long cells_x,
 {
     struct py_field f;
 
-    alloc_field(&f.p, cells_x, cells_y);
-    alloc_field(&f.u, cells_x + 1, cells_y);
-    alloc_field(&f.v, cells_x, cells_y + 1);
+    py_alloc_field(&f.p, cells_x, cells_y);
+    py_alloc_field(&f.u, cells_x + 1, cells_y);
+    py_alloc_field(&f.v, cells_x, cells_y + 1);
 
     double dx = (x[1] - x[0]) / (double) cells_x;
     double dy = (y[1] - y[0]) / (double) cells_y;
@@ -140,9 +140,9 @@ struct py_field init_local_acoustic_field(long cells_x, long cells_y,
 {
     struct py_field f;
 
-    alloc_field(&f.p, cells_x, cells_y + 1);    /* differs */
-    alloc_field(&f.u, cells_x + 1, cells_y);
-    alloc_field(&f.v, cells_x, cells_y + 1);
+    py_alloc_field(&f.p, cells_x, cells_y + 1);    /* differs */
+    py_alloc_field(&f.u, cells_x + 1, cells_y);
+    py_alloc_field(&f.v, cells_x, cells_y + 1);
 
     double dx = (x[1] - x[0]) / (double) cells_x;
     double dy = (y[1] - y[0]) / (double) cells_y;

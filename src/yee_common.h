@@ -74,7 +74,7 @@ struct py_cell_partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field(struct py_field_variable *, const long size_x,
+void py_alloc_field(struct py_field_variable *, const long size_x,
                  const long size_y);
 void free_field(struct py_field_variable);
 
