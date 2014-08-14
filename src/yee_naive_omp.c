@@ -83,10 +83,6 @@ int main(int argc, char *argv[])
         /* private variables used in the time stepping */
         double dt = f.dt;
         double Nt = f.Nt;
-#ifdef DEBUG
-        printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
-               tid, p0, p1, u0, u1, v0, v1);
-#endif
 
         for (n = 0; n < Nt; ++n) {
 

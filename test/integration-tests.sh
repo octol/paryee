@@ -14,7 +14,14 @@ threads=4
 limit=1e-14
 
 # Binaries to test
-yee_bin="yee_omp yee_stride1_omp yee_naive_omp yee_pthr yee_mpi yee_nonblock_mpi"
+yee_bin="
+yee_block_omp 
+yee_stride1_omp 
+yee_naive_omp
+yee_block_pthr 
+yee_stride1_pthr
+yee_mpi 
+yee_nonblock_mpi"
 args="-n $N" 
 
 printf "\n  Integration tests:\n"

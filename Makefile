@@ -168,12 +168,20 @@ $(eval $(call DEF_BIN, $(BINDIR)/yee, $(yee_SRC),, $(OUTDIR)/yee.tsv))
 #        $< -n $(gridlength) -o $@
 
 #
-# POSIX threads
+# POSIX threads (blocked)
 #
-yee_pthr_SRC = $(SRCDIR)/yee_pthr.c \
+yee_block_pthr_SRC = $(SRCDIR)/yee_block_pthr.c \
 	       $(SRCDIR)/yee_common.c 
 EXTRA_LDFLAGS = -pthread
-$(eval $(call DEF_BIN, $(BINDIR)/yee_pthr, $(yee_pthr_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_pthr.tsv)) 
+$(eval $(call DEF_BIN, $(BINDIR)/yee_block_pthr, $(yee_block_pthr_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_block_pthr.tsv)) 
+
+#
+# POSIX threads (stride: 1)
+#
+yee_stride1_pthr_SRC = $(SRCDIR)/yee_stride1_pthr.c \
+	       $(SRCDIR)/yee_common.c 
+EXTRA_LDFLAGS = -pthread
+$(eval $(call DEF_BIN, $(BINDIR)/yee_stride1_pthr, $(yee_stride1_pthr_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_stride1_pthr.tsv)) 
 
 #
 # OpenMP (naive implementation, slow)
