@@ -119,12 +119,12 @@ struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
 /*
  * Deallocate field
  */
-void py_free_acoustic_field(struct field);
+void py_free_acoustic_field(struct py_field);
 
 /*
  * Assign and retrive value from fv(i,j)
  */
-double assign_to(struct py_field_variable fv, long i, long j, double value);
+double py_assign_to(struct py_field_variable fv, long i, long j, double value);
 double get_from(struct py_field_variable fv, long i, long j);
 
 /*

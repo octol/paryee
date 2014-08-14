@@ -192,7 +192,7 @@ void py_free_acoustic_field(struct py_field f)
     py_free_field(f.v);
 }
 
-double assign_to(struct py_field_variable fv, long i, long j, double value)
+double py_assign_to(struct py_field_variable fv, long i, long j, double value)
 {
     fv.value[i + j * fv.size_x] = value;
     return value;

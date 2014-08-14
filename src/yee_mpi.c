@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
         if (right == NONE) {
             long j = size;
             for (long i = 0; i < nx; ++i)
-                assign_to(f.v, i, j, 0);
+                py_assign_to(f.v, i, j, 0);
         }
 
         timestep_mpi(&f, left, right, size);
