@@ -296,7 +296,7 @@ struct py_cell_partition *partition_grid(long total_threads, long cells)
     return partition;
 }
 
-void get_partition_coords(struct py_cell_partition part, struct py_field *f,
+void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y)
 {
     long begin = part.begin;

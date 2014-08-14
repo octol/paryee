@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
             /* Compute (start/end) coordinates of the partition */
             double y_part[2];
-            get_partition_coords(part[taskid], &f, y_part);
+            py_get_partition_coords(part[taskid], &f, y_part);
 
             /* Send out data to the other workers / computational nodes */
             /* We send the number of inner cells (size) */

@@ -153,7 +153,7 @@ struct py_cell_partition *py_partition_grid(long total_threads, long cells);
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct py_cell_partition part, struct py_field *f,
+void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y);
 
 /*
