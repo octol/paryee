@@ -88,7 +88,7 @@ void py_set_grid(struct py_field_variable *, const double x[2],
  * Vectorization of function.
  * Apply the function func on the array dst with argument arg.
  */
-void vec_func(double *dst, double (*func) (double), const double *arg,
+void py_vec_func(double *dst, double (*func) (double), const double *arg,
               const long size);
 
 void vec_func2d(double *dst, double (*func) (double, double),

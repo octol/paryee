@@ -66,7 +66,7 @@ void py_set_grid(struct py_field_variable *f, const double x[2],
         f->y[i] = y[0] + (double) i *f->dy;
 }
 
-void vec_func(double *dst, double (*func) (double), const double *arg,
+void py_vec_func(double *dst, double (*func) (double), const double *arg,
               const long size)
 {
     for (long i = 0; i < size; ++i)

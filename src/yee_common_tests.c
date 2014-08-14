@@ -65,11 +65,11 @@ void test_vec_func(void)
     for (int i = 0; i < size; ++i)
         arg[i] = i;
 
-    vec_func(dst, zero, arg, size);
+    py_vec_func(dst, zero, arg, size);
     for (int i = 0; i < size; ++i)
         CU_ASSERT_DOUBLE_EQUAL(dst[i], 0, TOL);
 
-    vec_func(dst, identity, arg, size);
+    py_vec_func(dst, identity, arg, size);
     for (int i = 0; i < size; ++i)
         CU_ASSERT_DOUBLE_EQUAL(dst[i], arg[i], TOL);
 
