@@ -36,7 +36,7 @@
 /*
  * A field variable is scalar valued and defined on a 2D grid.
  */
-struct field_variable {
+struct py_field_variable {
     double *value;
     double *x;
     double *y;
@@ -50,9 +50,9 @@ struct field_variable {
  * Contains the entire field
  */
 struct field {
-    struct field_variable p;
-    struct field_variable u;
-    struct field_variable v;
+    struct py_field_variable p;
+    struct py_field_variable u;
+    struct py_field_variable v;
     double dt;
     double Nt;
 };
@@ -74,14 +74,14 @@ struct cell_partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field(struct field_variable *, const long size_x,
+void alloc_field(struct py_field_variable *, const long size_x,
                  const long size_y);
-void free_field(struct field_variable);
+void free_field(struct py_field_variable);
 
 /* 
  * Generate grid from start to end
  */
-void set_grid(struct field_variable *, const double x[2],
+void set_grid(struct py_field_variable *, const double x[2],
               const double y[2]);
 
 /*
@@ -96,9 +96,9 @@ void vec_func2d(double *dst, double (*func) (double, double),
                 const double *arg_y, const long size_y);
 
 /*
- * Vectorization of function applied to field_variable.
+ * Vectorization of function applied to py_field_variable.
  */
-void apply_func(struct field_variable *f, double (*func) (double, double));
+void apply_func(struct py_field_variable *f, double (*func) (double, double));
 
 /* 
  * Allocates field and sets initial value to zero
@@ -124,8 +124,8 @@ void free_acoustic_field(struct field);
 /*
  * Assign and retrive value from fv(i,j)
  */
-double assign_to(struct field_variable fv, long i, long j, double value);
-double get_from(struct field_variable fv, long i, long j);
+double assign_to(struct py_field_variable fv, long i, long j, double value);
+double get_from(struct py_field_variable fv, long i, long j);
 
 /*
  * Sets the outer boundary (u,v) to zero.
@@ -176,7 +176,7 @@ void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
 /*
  * Write field to dist
  */
-int write_to_disk(struct field_variable f, char *fstr);
+int write_to_disk(struct py_field_variable f, char *fstr);
 
 /* 
  * Some grid functions 

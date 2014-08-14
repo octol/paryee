@@ -29,7 +29,7 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field(struct field_variable *f, const long size_x,
+void alloc_field(struct py_field_variable *f, const long size_x,
                  const long size_y)
 {
     long block = sizeof(double) * size_x * size_y;
@@ -45,14 +45,14 @@ void alloc_field(struct field_variable *f, const long size_x,
     }
 }
 
-void free_field(struct field_variable f)
+void free_field(struct py_field_variable f)
 {
     free(f.value);
     free(f.x);
     free(f.y);
 }
 
-void set_grid(struct field_variable *f, const double x[2],
+void set_grid(struct py_field_variable *f, const double x[2],
               const double y[2])
 {
     long i;
@@ -82,7 +82,7 @@ void vec_func2d(double *dst, double (*func) (double, double),
             dst[ii + jj * size_x] = func(arg_x[ii], arg_y[jj]);
 }
 
-void apply_func(struct field_variable *f, double (*func) (double, double))
+void apply_func(struct py_field_variable *f, double (*func) (double, double))
 {
     vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
@@ -192,13 +192,13 @@ void free_acoustic_field(struct field f)
     free_field(f.v);
 }
 
-double assign_to(struct field_variable fv, long i, long j, double value)
+double assign_to(struct py_field_variable fv, long i, long j, double value)
 {
     fv.value[i + j * fv.size_x] = value;
     return value;
 }
 
-double get_from(struct field_variable fv, long i, long j)
+double get_from(struct py_field_variable fv, long i, long j)
 {
     return fv.value[i + j * fv.size_x];
 }
@@ -351,7 +351,7 @@ void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
     }
 }
 
-int write_to_disk(struct field_variable f, char *fstr)
+int write_to_disk(struct py_field_variable f, char *fstr)
 {
     FILE *fp;
     printf("Writing to: %s\n", fstr);

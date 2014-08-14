@@ -22,7 +22,7 @@ int clean_testsuite1(void)
 
 void test_alloc_field(void)
 {
-    struct field_variable fv;
+    struct py_field_variable fv;
 
     alloc_field(&fv, 8, 9);
     CU_ASSERT(fv.size_x == 8);
@@ -32,7 +32,7 @@ void test_alloc_field(void)
 
 void test_set_grid(void)
 {
-    struct field_variable fv;
+    struct py_field_variable fv;
     const double x[] = { 5.0, 8.0 };
     const double y[] = { 3.0, 6.0 };
     const unsigned long cells_x = 8;
@@ -108,7 +108,7 @@ void test_vec_func2d(void)
 
 void test_apply_func(void)
 {
-    struct field_variable fv;
+    struct py_field_variable fv;
     unsigned long size = 8;
     double x[] = { 0, 3 };
     double y[] = { 3, 4 };
