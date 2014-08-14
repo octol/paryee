@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     printf("Domain: %li x %li\n", nx, ny);
 
     /* Initialize */
-    f = init_acoustic_field(nx, ny, x, y);
+    f = py_init_acoustic_field(nx, ny, x, y);
     py_apply_func(&f.p, gauss2d);  /* initial data */
     set_boundary(&f);
     /*if (write)                        */

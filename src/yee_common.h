@@ -103,7 +103,7 @@ void py_apply_func(struct py_field_variable *f, double (*func) (double, double))
 /* 
  * Allocates py_field and sets initial value to zero
  */
-struct py_field init_acoustic_field(long cells_x,
+struct py_field py_init_acoustic_field(long cells_x,
                                  long cells_y, double x[2], double y[2]);
 
 /* 
