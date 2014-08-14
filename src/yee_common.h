@@ -81,7 +81,7 @@ void py_free_field(struct py_field_variable);
 /* 
  * Generate grid from start to end
  */
-void set_grid(struct py_field_variable *, const double x[2],
+void py_set_grid(struct py_field_variable *, const double x[2],
               const double y[2]);
 
 /*

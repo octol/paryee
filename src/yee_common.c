@@ -52,7 +52,7 @@ void py_free_field(struct py_field_variable f)
     free(f.y);
 }
 
-void set_grid(struct py_field_variable *f, const double x[2],
+void py_set_grid(struct py_field_variable *f, const double x[2],
               const double y[2])
 {
     long i;
@@ -119,9 +119,9 @@ struct py_field init_acoustic_field(long cells_x,
     assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
     assert(fabs(v_y[1] - y[1]) < 1e-14);
 
-    set_grid(&f.p, p_x, p_y);
-    set_grid(&f.u, u_x, u_y);
-    set_grid(&f.v, v_x, v_y);
+    py_set_grid(&f.p, p_x, p_y);
+    py_set_grid(&f.u, u_x, u_y);
+    py_set_grid(&f.v, v_x, v_y);
 
     assert(fabs(f.p.dx - f.u.dx) < 1e-14);
     assert(fabs(f.p.dx - f.v.dx) < 1e-14);
@@ -167,9 +167,9 @@ struct py_field init_local_acoustic_field(long cells_x, long cells_y,
     assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
     assert(fabs(v_y[1] - y[1]) < 1e-14);
 
-    set_grid(&f.p, p_x, p_y);
-    set_grid(&f.u, u_x, u_y);
-    set_grid(&f.v, v_x, v_y);
+    py_set_grid(&f.p, p_x, p_y);
+    py_set_grid(&f.u, u_x, u_y);
+    py_set_grid(&f.v, v_x, v_y);
 
     assert(fabs(f.p.dx - dx) < 1e-14);
     assert(fabs(f.p.dy - dy) < 1e-14);

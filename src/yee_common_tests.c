@@ -43,7 +43,7 @@ void test_set_grid(void)
     double dy = (y[1] - y[0]) / (double) cells_y;
 
     py_alloc_field(&fv, nodes_x, nodes_y);
-    set_grid(&fv, x, y);
+    py_set_grid(&fv, x, y);
 
     CU_ASSERT_DOUBLE_EQUAL(fv.dx, dx, TOL);
     CU_ASSERT_DOUBLE_EQUAL(fv.dy, dy, TOL);
@@ -113,7 +113,7 @@ void test_apply_func(void)
     double x[] = { 0, 3 };
     double y[] = { 3, 4 };
     py_alloc_field(&fv, size, size);
-    set_grid(&fv, x, y);
+    py_set_grid(&fv, x, y);
 
     apply_func(&fv, zero2d);
     for (unsigned long i = 0; i < size; ++i)
