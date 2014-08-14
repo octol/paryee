@@ -351,7 +351,7 @@ void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
     }
 }
 
-int write_to_disk(struct py_field_variable f, char *fstr)
+int py_write_to_disk(struct py_field_variable f, char *fstr)
 {
     FILE *fp;
     printf("Writing to: %s\n", fstr);

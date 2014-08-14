@@ -176,7 +176,7 @@ void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
 /*
  * Write py_field to dist
  */
-int write_to_disk(struct py_field_variable f, char *fstr);
+int py_write_to_disk(struct py_field_variable f, char *fstr);
 
 /* 
  * Some grid functions 

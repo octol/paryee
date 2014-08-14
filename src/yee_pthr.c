@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 
     /* write to disk and free data */
     if (write)
-        write_to_disk(f.p, outfile);
+        py_write_to_disk(f.p, outfile);
     free(param);
     free(thr);
     free(part);
