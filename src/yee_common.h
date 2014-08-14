@@ -98,7 +98,7 @@ void py_vec_func2d(double *dst, double (*func) (double, double),
 /*
  * Vectorization of function applied to py_field_variable.
  */
-void apply_func(struct py_field_variable *f, double (*func) (double, double));
+void py_apply_func(struct py_field_variable *f, double (*func) (double, double));
 
 /* 
  * Allocates py_field and sets initial value to zero

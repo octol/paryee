@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
         f = init_acoustic_field(nx, ny, x, y);
-        apply_func(&f.p, gauss2d);      /* initial data */
+        py_apply_func(&f.p, gauss2d);      /* initial data */
         set_boundary(&f);
 
         /* Depends on the numerical variables initialized above */

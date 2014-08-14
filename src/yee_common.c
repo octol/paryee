@@ -82,7 +82,7 @@ void py_vec_func2d(double *dst, double (*func) (double, double),
             dst[ii + jj * size_x] = func(arg_x[ii], arg_y[jj]);
 }
 
-void apply_func(struct py_field_variable *f, double (*func) (double, double))
+void py_apply_func(struct py_field_variable *f, double (*func) (double, double))
 {
     py_vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
@@ -128,9 +128,9 @@ struct py_field init_acoustic_field(long cells_x,
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    apply_func(&f.p, zero2d);
-    apply_func(&f.u, zero2d);
-    apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, zero2d);
+    py_apply_func(&f.u, zero2d);
+    py_apply_func(&f.v, zero2d);
 
     return f;
 }
@@ -178,9 +178,9 @@ struct py_field init_local_acoustic_field(long cells_x, long cells_y,
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    apply_func(&f.p, zero2d);
-    apply_func(&f.u, zero2d);
-    apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, zero2d);
+    py_apply_func(&f.u, zero2d);
+    py_apply_func(&f.v, zero2d);
 
     return f;
 }

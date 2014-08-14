@@ -115,12 +115,12 @@ void test_apply_func(void)
     py_alloc_field(&fv, size, size);
     py_set_grid(&fv, x, y);
 
-    apply_func(&fv, zero2d);
+    py_apply_func(&fv, zero2d);
     for (unsigned long i = 0; i < size; ++i)
         for (unsigned long j = 0; j < size; ++j)
             CU_ASSERT_DOUBLE_EQUAL(fv.value[i + j * size], 0, TOL);
 
-    apply_func(&fv, identity2d);
+    py_apply_func(&fv, identity2d);
     for (unsigned long i = 0; i < size; ++i)
         for (unsigned long j = 0; j < size; ++j)
             CU_ASSERT_DOUBLE_EQUAL(fv.value[i + j * size], fv.x[i], TOL);
@@ -358,8 +358,8 @@ void test_set_boundary(void)
     CU_ASSERT_DOUBLE_EQUAL(U(2, 2), 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(U(2, 3), 0, TOL);
 
-    apply_func(&f.u, one2d);    /* initial data */
-    apply_func(&f.v, one2d);    /* initial data */
+    py_apply_func(&f.u, one2d);    /* initial data */
+    py_apply_func(&f.v, one2d);    /* initial data */
 
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 0), 0, TOL);
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 0), 0, TOL);
@@ -438,7 +438,7 @@ void test_leapfrog(void)
             CU_ASSERT_DOUBLE_EQUAL(V(i, j), 0, TOL);
 
     /* test 2 */
-    apply_func(&f.p, zero2d);
+    py_apply_func(&f.p, zero2d);
     for (unsigned long i = 0; i < N + 1; ++i)
         for (unsigned long j = 0; j < N; ++j)
             U(i, j) = 1;
