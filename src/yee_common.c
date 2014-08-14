@@ -45,7 +45,7 @@ void py_alloc_field(struct py_field_variable *f, const long size_x,
     }
 }
 
-void free_field(struct py_field_variable f)
+void py_free_field(struct py_field_variable f)
 {
     free(f.value);
     free(f.x);
@@ -187,9 +187,9 @@ struct py_field init_local_acoustic_field(long cells_x, long cells_y,
 
 void free_acoustic_field(struct py_field f)
 {
-    free_field(f.p);
-    free_field(f.u);
-    free_field(f.v);
+    py_free_field(f.p);
+    py_free_field(f.u);
+    py_free_field(f.v);
 }
 
 double assign_to(struct py_field_variable fv, long i, long j, double value)

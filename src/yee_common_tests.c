@@ -27,7 +27,7 @@ void test_alloc_field(void)
     py_alloc_field(&fv, 8, 9);
     CU_ASSERT(fv.size_x == 8);
     CU_ASSERT(fv.size_y == 9);
-    free_field(fv);
+    py_free_field(fv);
 }
 
 void test_set_grid(void)
@@ -54,7 +54,7 @@ void test_set_grid(void)
     CU_ASSERT_DOUBLE_EQUAL(fv.x[nodes_x - 1], x[1], TOL);
     CU_ASSERT_DOUBLE_EQUAL(fv.y[nodes_y - 1], y[1], TOL);
 
-    free_field(fv);
+    py_free_field(fv);
 }
 
 void test_vec_func(void)
@@ -125,7 +125,7 @@ void test_apply_func(void)
         for (unsigned long j = 0; j < size; ++j)
             CU_ASSERT_DOUBLE_EQUAL(fv.value[i + j * size], fv.x[i], TOL);
 
-    free_field(fv);
+    py_free_field(fv);
 }
 
 void test_init_acoustic_field_internal(double x[2], double y[2],

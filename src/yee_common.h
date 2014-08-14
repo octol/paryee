@@ -76,7 +76,7 @@ struct py_cell_partition {
  */
 void py_alloc_field(struct py_field_variable *, const long size_x,
                  const long size_y);
-void free_field(struct py_field_variable);
+void py_free_field(struct py_field_variable);
 
 /* 
  * Generate grid from start to end
