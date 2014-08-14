@@ -320,7 +320,7 @@ void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
     }
 }
 
-void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
+void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
                    int argc, char *argv[])
 {
     int opt;

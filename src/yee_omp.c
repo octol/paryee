@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     struct py_cell_partition *part;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     omp_set_num_threads(threads);
     printf("Domain: %li x %li\n", nx, ny);

@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     struct thread_param *param;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
     printf("Pthreads: %li\n", threads);

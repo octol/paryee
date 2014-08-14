@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     int write = 1;                                                 
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
 

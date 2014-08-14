@@ -170,7 +170,7 @@ void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
  * Parse commandline argument and set the number of grid points, * the
  * number of threads as well as the output filenames.
  */
-void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
+void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
                    int argc, char *argv[]);
 
 /*
