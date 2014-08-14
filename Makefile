@@ -184,6 +184,22 @@ EXTRA_LDFLAGS = $(OPENMP_FLAG)
 $(eval $(call DEF_BIN, $(BINDIR)/yee_omp, $(yee_omp_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_omp.tsv)) 
 
 #
+# OpenMP (stride: 1)
+#
+yee_stride1_omp_SRC = $(SRCDIR)/yee_stride1_omp.c \
+	      $(SRCDIR)/yee_common.c 
+EXTRA_LDFLAGS = $(OPENMP_FLAG)
+$(eval $(call DEF_BIN, $(BINDIR)/yee_stride1_omp, $(yee_stride1_omp_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_stride1_omp.tsv)) 
+
+#
+# OpenMP (naive implementation, slow)
+#
+yee_naive_omp_SRC = $(SRCDIR)/yee_naive_omp.c \
+	      $(SRCDIR)/yee_common.c 
+EXTRA_LDFLAGS = $(OPENMP_FLAG)
+$(eval $(call DEF_BIN, $(BINDIR)/yee_naive_omp, $(yee_naive_omp_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_naive_omp.tsv)) 
+
+#
 # MPI
 #
 yee_mpi_SRC = $(SRCDIR)/yee_mpi.c \
