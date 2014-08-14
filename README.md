@@ -18,16 +18,20 @@ This is a very simple example of how high performance data-parallelism can done
 in C for typical numerical codes.  A number of different implementations (of
 varying complexity) are included.
 
-- yee_mpi           - Distributed memory parallelization using MPI.
-- yee_nonblock_mpi  - Distributed memory parallelization using MPI (Non-blocking).
-- yee_omp           - Shared memory parallelization using OpenMP.
-- yee_pthr          - Shared memory parallelization using POSIX threads.
+- yee_blocking_mpi  - Distributed memory parallelization using MPI (blocking send/receive).
+- yee_nonblock_mpi  - Distributed memory parallelization using MPI (non-blocking).
+- yee_naive_omp     - Shared memory parallelization using OpenMP. 
+- yee_block_omp     - Shared memory parallelization using OpenMP (divide data into blocks).
+- yee_stride1_omp   - Shared memory parallelization using OpenMP (thread stride 1).
+- yee_block_pthr    - Shared memory parallelization using POSIX threads.
+- yee_stride1_pthr  - Shared memory parallelization using POSIX threads.
 - yee               - Single thread reference implementation to compare against.
 
 Installation
 ------------
 
-Requires GNU Make to build. CUnit is required to build the unittests. numdiff is required for the integration tests.
+Requires GNU Make to build. CUnit is required to build the unittests. numdiff
+is required for the integration tests.
 
 Visualizations
 --------------

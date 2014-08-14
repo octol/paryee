@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);    /* initial data */
     py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         long tid = omp_get_thread_num();
         long p0, p1, u0, u1, v0, v1;
         py_cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
-                               &v1);
+                                  &v1);
 #ifdef DEBUG
         printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
                tid, p0, p1, u0, u1, v0, v1);

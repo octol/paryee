@@ -282,8 +282,8 @@ void test_assign_and_get(void)
         val = (double) rand();
         py_assign_to(f.p, i, j, val);
         CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N], val, TOL);
-        CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N], py_get_from(f.p, i, j),
-                               TOL);
+        CU_ASSERT_DOUBLE_EQUAL(f.p.value[i + j * N],
+                               py_get_from(f.p, i, j), TOL);
         CU_ASSERT_DOUBLE_EQUAL(P(i, j), val, TOL);
     }
 
@@ -304,8 +304,8 @@ void test_assign_and_get(void)
         val = (double) rand();
         py_assign_to(f.v, i, j, val);
         CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N], val, TOL);
-        CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N], py_get_from(f.v, i, j),
-                               TOL);
+        CU_ASSERT_DOUBLE_EQUAL(f.v.value[i + j * N],
+                               py_get_from(f.v, i, j), TOL);
         CU_ASSERT_DOUBLE_EQUAL(V(i, j), val, TOL);
     }
 
@@ -358,8 +358,8 @@ void test_set_boundary(void)
     CU_ASSERT_DOUBLE_EQUAL(U(2, 2), 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(U(2, 3), 0, TOL);
 
-    py_apply_func(&f.u, py_one2d);    /* initial data */
-    py_apply_func(&f.v, py_one2d);    /* initial data */
+    py_apply_func(&f.u, py_one2d);      /* initial data */
+    py_apply_func(&f.v, py_one2d);      /* initial data */
 
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(0, 0), 0, TOL);
     CU_ASSERT_DOUBLE_NOT_EQUAL(V(1, 0), 0, TOL);
@@ -652,7 +652,8 @@ int main()
                         test_init_acoustic_field)
         || !CU_add_test(pSuite, "py_init_local_acoustic_field",
                         test_init_local_acoustic_field)
-        || !CU_add_test(pSuite, "py_assign_to, get_from", test_assign_and_get)
+        || !CU_add_test(pSuite, "py_assign_to, get_from",
+                        test_assign_and_get)
         || !CU_add_test(pSuite, "py_set_boundary", test_set_boundary)
         || !CU_add_test(pSuite, "py_leapfrog", test_leapfrog)
         || !CU_add_test(pSuite, "py_partition_grid", test_partition_grid)
@@ -666,7 +667,8 @@ int main()
         || !CU_add_test(pSuite, "py_zero2d", test_zero2d)
         || !CU_add_test(pSuite, "py_identity", test_identity)
         || !CU_add_test(pSuite, "py_identity2d", test_identity)
-        || !CU_add_test(pSuite, "py_round_up_divide", test_round_up_divide)) {
+        || !CU_add_test(pSuite, "py_round_up_divide",
+                        test_round_up_divide)) {
         CU_cleanup_registry();
         return CU_get_error();
     }

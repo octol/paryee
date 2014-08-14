@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
     long ny = 32;
     struct py_field f;
     char outfile[STR_SIZE] = "yee.tsv";
-    
+
     /* initial py_field */
     /*char outfile0[STR_SIZE] = "yee0.tsv";       */
-    int write = 1;                                                 
+    int write = 1;
 
     /* Parse parameters from commandline */
     py_parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
@@ -55,10 +55,10 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);    /* initial data */
     py_set_boundary(&f);
     /*if (write)                        */
-        /*write_to_disk(f.p, outfile0); */
+    /*write_to_disk(f.p, outfile0); */
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;

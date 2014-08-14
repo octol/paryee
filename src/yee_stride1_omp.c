@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);    /* initial data */
     py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
@@ -91,8 +91,7 @@ int main(int argc, char *argv[])
         long v0 = tid;
 
 #ifdef DEBUG
-        printf("tid=%lu  p0=%lu  u0=%lu v0=%lu\n",
-               tid, p0, u0, v0);
+        printf("tid=%lu  p0=%lu  u0=%lu v0=%lu\n", tid, p0, u0, v0);
 #endif
 
         for (n = 0; n < Nt; ++n) {

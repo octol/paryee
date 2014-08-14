@@ -108,8 +108,8 @@ void return_data(struct py_field *f, long size)
              MPI_COMM_WORLD);
 }
 
-void collect_data(long taskid, struct py_cell_partition part, struct py_field *f,
-                  MPI_Status * status)
+void collect_data(long taskid, struct py_cell_partition part,
+                  struct py_field *f, MPI_Status * status)
 {
     long begin = part.begin;    /* for convenience */
     long size = part.size;

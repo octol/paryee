@@ -208,12 +208,12 @@ EXTRA_LDFLAGS = $(OPENMP_FLAG)
 $(eval $(call DEF_BIN, $(BINDIR)/yee_stride1_omp, $(yee_stride1_omp_SRC), $(EXTRA_LDFLAGS), $(OUTDIR)/yee_stride1_omp.tsv)) 
 
 #
-# MPI
+# MPI (blocking send/recieve)
 #
-yee_mpi_SRC = $(SRCDIR)/yee_mpi.c \
+yee_blocking_mpi_SRC = $(SRCDIR)/yee_blocking_mpi.c \
 	      $(SRCDIR)/yee_common.c \
 	      $(SRCDIR)/yee_common_mpi.c
-$(eval $(call DEF_BIN_MPI, $(BINDIR)/yee_mpi, $(yee_mpi_SRC),, $(OUTDIR)/yee_mpi.tsv)) 
+$(eval $(call DEF_BIN_MPI, $(BINDIR)/yee_blocking_mpi, $(yee_blocking_mpi_SRC),, $(OUTDIR)/yee_blocking_mpi.tsv)) 
 
 #
 # MPI (Non-blocking)

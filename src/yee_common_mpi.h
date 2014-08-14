@@ -57,7 +57,8 @@ void send_field_data(long taskid, struct py_field *f,
  * Each worker node receives its py_field (pressure and velocity) from the master
  * node.
  */
-void receive_field_data(struct py_field *f, long size, MPI_Status * status);
+void receive_field_data(struct py_field *f, long size,
+                        MPI_Status * status);
 
 /* 
  * After simulation/time stepping is done, each worker node sends its field
@@ -68,8 +69,8 @@ void return_data(struct py_field *f, long size);
 /*
  * The master collects all data into one unit.
  */
-void collect_data(long taskid, struct py_cell_partition part, struct py_field *f,
-                  MPI_Status * status);
+void collect_data(long taskid, struct py_cell_partition part,
+                  struct py_field *f, MPI_Status * status);
 
 /* 
  * Compute one time step for the pressure. This is the same expression as in

@@ -59,7 +59,7 @@ void *thread_main(void *arg)
     long ny = f->p.size_y;
 
     long p0, p1, u0, u1, v0, v1;
-    /*py_cellindex_to_nodeindex(tid, param->part, &p0, &p1, &u0, &u1, &v0, &v1);*/
+    /*py_cellindex_to_nodeindex(tid, param->part, &p0, &p1, &u0, &u1, &v0, &v1); */
     p0 = tid;
     u0 = tid + 1;
     v0 = tid;
@@ -77,7 +77,7 @@ void *thread_main(void *arg)
     for (n = 0; n < f->Nt; ++n) {
 
         /* update the pressure (p) */
-        /*for (i = p0; i < p1; ++i) {*/
+        /*for (i = p0; i < p1; ++i) { */
         for (i = p0; i < p1; i += threads) {
             for (j = 0; j < ny; ++j) {
                 P(i, j) +=
@@ -88,13 +88,13 @@ void *thread_main(void *arg)
         pthread_barrier_wait(&barrier);
 
         /* update the velocity (u,v) */
-        /*for (i = u0; i < u1; ++i) {*/
+        /*for (i = u0; i < u1; ++i) { */
         for (i = u0; i < u1; i += threads) {
             for (j = 0; j < ny; ++j) {
                 U(i, j) += dt / f->p.dx * (P(i, j) - P(i - 1, j));
             }
         }
-        /*for (i = v0; i < v1; ++i) {*/
+        /*for (i = v0; i < v1; ++i) { */
         for (i = v0; i < v1; i += threads) {
             /*for (j = 1; j < ny - 1; ++j) { */
             for (j = 1; j < ny; ++j) {
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
-    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_apply_func(&f.p, py_gauss2d);    /* initial data */
     py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */

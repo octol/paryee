@@ -75,36 +75,38 @@ struct py_cell_partition {
  * Allocate and deallocate the memory used by the grid (field) 
  */
 void py_alloc_field(struct py_field_variable *, const long size_x,
-                 const long size_y);
+                    const long size_y);
 void py_free_field(struct py_field_variable);
 
 /* 
  * Generate grid from start to end
  */
 void py_set_grid(struct py_field_variable *, const double x[2],
-              const double y[2]);
+                 const double y[2]);
 
 /*
  * Vectorization of function.
  * Apply the function func on the array dst with argument arg.
  */
 void py_vec_func(double *dst, double (*func) (double), const double *arg,
-              const long size);
+                 const long size);
 
 void py_vec_func2d(double *dst, double (*func) (double, double),
-                const double *arg_x, const long size_x,
-                const double *arg_y, const long size_y);
+                   const double *arg_x, const long size_x,
+                   const double *arg_y, const long size_y);
 
 /*
  * Vectorization of function applied to py_field_variable.
  */
-void py_apply_func(struct py_field_variable *f, double (*func) (double, double));
+void py_apply_func(struct py_field_variable *f,
+                   double (*func) (double, double));
 
 /* 
  * Allocates py_field and sets initial value to zero
  */
 struct py_field py_init_acoustic_field(long cells_x,
-                                 long cells_y, double x[2], double y[2]);
+                                       long cells_y, double x[2],
+                                       double y[2]);
 
 /* 
  * Allocates py_field and sets initial value to zero. This variant is for
@@ -114,7 +116,7 @@ struct py_field py_init_acoustic_field(long cells_x,
  * NOTE: Function not valid for the left most (bottom) partition.
  */
 struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
-                                       double x[2], double y[2]);
+                                             double x[2], double y[2]);
 
 /*
  * Deallocate field
@@ -124,7 +126,8 @@ void py_free_acoustic_field(struct py_field);
 /*
  * Assign and retrive value from fv(i,j)
  */
-double py_assign_to(struct py_field_variable fv, long i, long j, double value);
+double py_assign_to(struct py_field_variable fv, long i, long j,
+                    double value);
 double py_get_from(struct py_field_variable fv, long i, long j);
 
 /*
@@ -147,14 +150,15 @@ void py_timestep_leapfrog(struct py_field *f, double n);
  * strips. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct py_cell_partition *py_partition_grid(long total_threads, long cells);
+struct py_cell_partition *py_partition_grid(long total_threads,
+                                            long cells);
 
 /*
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
-                          double *y);
+void py_get_partition_coords(struct py_cell_partition part,
+                             struct py_field *f, double *y);
 
 /*
  * Convert the cell indices that specifies the partition, to node indices
@@ -163,15 +167,15 @@ void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
  * update.
  */
 void py_cellindex_to_nodeindex(long tid, struct py_cell_partition part,
-                            long *p0, long *p1,
-                            long *u0, long *u1, long *v0, long *v1);
+                               long *p0, long *p1,
+                               long *u0, long *u1, long *v0, long *v1);
 
 /*
  * Parse commandline argument and set the number of grid points, * the
  * number of threads as well as the output filenames.
  */
 void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
-                   int argc, char *argv[]);
+                      int argc, char *argv[]);
 
 /*
  * Write py_field to dist

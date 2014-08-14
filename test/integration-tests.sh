@@ -15,12 +15,12 @@ limit=1e-14
 
 # Binaries to test
 yee_bin="
+yee_block_pthr 
+yee_stride1_pthr
 yee_block_omp 
 yee_stride1_omp 
 yee_naive_omp
-yee_block_pthr 
-yee_stride1_pthr
-yee_mpi 
+yee_blocking_mpi 
 yee_nonblock_mpi"
 args="-n $N" 
 
@@ -43,7 +43,7 @@ for yb in $yee_bin; do
 
     printf "\nTest: ${yb}\n"
     outfile=/tmp/${yb}.tsv
-    if [ $yb == "yee_mpi" ] || [ $yb == "yee_nonblock_mpi" ]; then
+    if [ $yb == "yee_nonblock_mpi" ] || [ $yb == "yee_blocking_mpi" ]; then
         mpirun -n $threads ./$bindir/$yb -o $outfile $args 1> /dev/null
     else
         ./$bindir/$yb -t $threads -o $outfile $args 1> /dev/null

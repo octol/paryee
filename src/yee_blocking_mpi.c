@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
     /* Field variables - data structures for the simulation */
-    struct py_field f;             /* Contains pressure and velocity */
-    struct py_cell_partition *part;        /* Array of domain partitions */
+    struct py_field f;          /* Contains pressure and velocity */
+    struct py_cell_partition *part;     /* Array of domain partitions */
 
     if (taskid == MASTER) {
         /********************* Master code *********************/
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
         f = py_init_acoustic_field(nx, ny, x, y);
-        py_apply_func(&f.p, py_gauss2d);      /* initial data */
+        py_apply_func(&f.p, py_gauss2d);        /* initial data */
         py_set_boundary(&f);
 
         /* Depends on the numerical variables initialized above */
