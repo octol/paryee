@@ -385,7 +385,7 @@ void test_set_boundary(void)
     CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 2), 0, TOL);
     CU_ASSERT_DOUBLE_NOT_EQUAL(U(2, 3), 0, TOL);
 
-    set_boundary(&f);
+    py_set_boundary(&f);
 
     CU_ASSERT_DOUBLE_EQUAL(V(0, 0), 0, TOL);
     CU_ASSERT_DOUBLE_EQUAL(V(1, 0), 0, TOL);

@@ -203,7 +203,7 @@ double py_get_from(struct py_field_variable fv, long i, long j)
     return fv.value[i + j * fv.size_x];
 }
 
-void set_boundary(struct py_field *f)
+void py_set_boundary(struct py_field *f)
 {
     long nx, i, j;
 

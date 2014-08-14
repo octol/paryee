@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     /* Initialize */
     f = py_init_acoustic_field(nx, ny, x, y);
     py_apply_func(&f.p, gauss2d);  /* initial data */
-    set_boundary(&f);
+    py_set_boundary(&f);
     /*if (write)                        */
         /*write_to_disk(f.p, outfile0); */
 

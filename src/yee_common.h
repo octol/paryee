@@ -130,7 +130,7 @@ double py_get_from(struct py_field_variable fv, long i, long j);
 /*
  * Sets the outer boundary (u,v) to zero.
  */
-void set_boundary(struct py_field *f);
+void py_set_boundary(struct py_field *f);
 
 /*
  * Leapfrog update of the py_field 
