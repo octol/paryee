@@ -41,22 +41,22 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee.tsv";
     
-    /* initial field */
+    /* initial py_field */
     /*char outfile0[STR_SIZE] = "yee0.tsv";       */
     int write = 1;                                                 
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
 
     /* Initialize */
-    f = init_acoustic_field(nx, ny, x, y);
-    apply_func(&f.p, gauss2d);  /* initial data */
-    set_boundary(&f);
+    f = py_init_acoustic_field(nx, ny, x, y);
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_set_boundary(&f);
     /*if (write)                        */
         /*write_to_disk(f.p, outfile0); */
 
@@ -66,15 +66,15 @@ int main(int argc, char *argv[])
 
     /* timestep */
     double tic, toc;
-    tic = gettime();
-    timestep_leapfrog(&f, f.Nt);
-    toc = gettime();
+    tic = py_gettime();
+    py_timestep_leapfrog(&f, f.Nt);
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
     if (write)
-        write_to_disk(f.p, outfile);
+        py_write_to_disk(f.p, outfile);
 
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
     return EXIT_SUCCESS;
 }

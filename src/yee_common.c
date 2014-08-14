@@ -29,7 +29,7 @@
 #include <getopt.h>
 #include <assert.h>
 
-void alloc_field(struct field_variable *f, const long size_x,
+void py_alloc_field(struct py_field_variable *f, const long size_x,
                  const long size_y)
 {
     long block = sizeof(double) * size_x * size_y;
@@ -45,14 +45,14 @@ void alloc_field(struct field_variable *f, const long size_x,
     }
 }
 
-void free_field(struct field_variable f)
+void py_free_field(struct py_field_variable f)
 {
     free(f.value);
     free(f.x);
     free(f.y);
 }
 
-void set_grid(struct field_variable *f, const double x[2],
+void py_set_grid(struct py_field_variable *f, const double x[2],
               const double y[2])
 {
     long i;
@@ -66,14 +66,14 @@ void set_grid(struct field_variable *f, const double x[2],
         f->y[i] = y[0] + (double) i *f->dy;
 }
 
-void vec_func(double *dst, double (*func) (double), const double *arg,
+void py_vec_func(double *dst, double (*func) (double), const double *arg,
               const long size)
 {
     for (long i = 0; i < size; ++i)
         dst[i] = func(arg[i]);
 }
 
-void vec_func2d(double *dst, double (*func) (double, double),
+void py_vec_func2d(double *dst, double (*func) (double, double),
                 const double *arg_x, const long size_x,
                 const double *arg_y, const long size_y)
 {
@@ -82,19 +82,19 @@ void vec_func2d(double *dst, double (*func) (double, double),
             dst[ii + jj * size_x] = func(arg_x[ii], arg_y[jj]);
 }
 
-void apply_func(struct field_variable *f, double (*func) (double, double))
+void py_apply_func(struct py_field_variable *f, double (*func) (double, double))
 {
-    vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
+    py_vec_func2d(f->value, func, f->x, f->size_x, f->y, f->size_y);
 }
 
-struct field init_acoustic_field(long cells_x,
+struct py_field py_init_acoustic_field(long cells_x,
                                  long cells_y, double x[2], double y[2])
 {
-    struct field f;
+    struct py_field f;
 
-    alloc_field(&f.p, cells_x, cells_y);
-    alloc_field(&f.u, cells_x + 1, cells_y);
-    alloc_field(&f.v, cells_x, cells_y + 1);
+    py_alloc_field(&f.p, cells_x, cells_y);
+    py_alloc_field(&f.u, cells_x + 1, cells_y);
+    py_alloc_field(&f.v, cells_x, cells_y + 1);
 
     double dx = (x[1] - x[0]) / (double) cells_x;
     double dy = (y[1] - y[0]) / (double) cells_y;
@@ -119,30 +119,30 @@ struct field init_acoustic_field(long cells_x,
     assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
     assert(fabs(v_y[1] - y[1]) < 1e-14);
 
-    set_grid(&f.p, p_x, p_y);
-    set_grid(&f.u, u_x, u_y);
-    set_grid(&f.v, v_x, v_y);
+    py_set_grid(&f.p, p_x, p_y);
+    py_set_grid(&f.u, u_x, u_y);
+    py_set_grid(&f.v, v_x, v_y);
 
     assert(fabs(f.p.dx - f.u.dx) < 1e-14);
     assert(fabs(f.p.dx - f.v.dx) < 1e-14);
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    apply_func(&f.p, zero2d);
-    apply_func(&f.u, zero2d);
-    apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, py_zero2d);
+    py_apply_func(&f.u, py_zero2d);
+    py_apply_func(&f.v, py_zero2d);
 
     return f;
 }
 
-struct field init_local_acoustic_field(long cells_x, long cells_y,
+struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
                                        double x[2], double y[2])
 {
-    struct field f;
+    struct py_field f;
 
-    alloc_field(&f.p, cells_x, cells_y + 1);    /* differs */
-    alloc_field(&f.u, cells_x + 1, cells_y);
-    alloc_field(&f.v, cells_x, cells_y + 1);
+    py_alloc_field(&f.p, cells_x, cells_y + 1);    /* differs */
+    py_alloc_field(&f.u, cells_x + 1, cells_y);
+    py_alloc_field(&f.v, cells_x, cells_y + 1);
 
     double dx = (x[1] - x[0]) / (double) cells_x;
     double dy = (y[1] - y[0]) / (double) cells_y;
@@ -167,9 +167,9 @@ struct field init_local_acoustic_field(long cells_x, long cells_y,
     assert(fabs(v_x[1] - (x[1] - dx / 2.0)) < 1e-14);
     assert(fabs(v_y[1] - y[1]) < 1e-14);
 
-    set_grid(&f.p, p_x, p_y);
-    set_grid(&f.u, u_x, u_y);
-    set_grid(&f.v, v_x, v_y);
+    py_set_grid(&f.p, p_x, p_y);
+    py_set_grid(&f.u, u_x, u_y);
+    py_set_grid(&f.v, v_x, v_y);
 
     assert(fabs(f.p.dx - dx) < 1e-14);
     assert(fabs(f.p.dy - dy) < 1e-14);
@@ -178,32 +178,32 @@ struct field init_local_acoustic_field(long cells_x, long cells_y,
     assert(fabs(f.p.dy - f.u.dy) < 1e-14);
     assert(fabs(f.p.dy - f.v.dy) < 1e-14);
 
-    apply_func(&f.p, zero2d);
-    apply_func(&f.u, zero2d);
-    apply_func(&f.v, zero2d);
+    py_apply_func(&f.p, py_zero2d);
+    py_apply_func(&f.u, py_zero2d);
+    py_apply_func(&f.v, py_zero2d);
 
     return f;
 }
 
-void free_acoustic_field(struct field f)
+void py_free_acoustic_field(struct py_field f)
 {
-    free_field(f.p);
-    free_field(f.u);
-    free_field(f.v);
+    py_free_field(f.p);
+    py_free_field(f.u);
+    py_free_field(f.v);
 }
 
-double assign_to(struct field_variable fv, long i, long j, double value)
+double py_assign_to(struct py_field_variable fv, long i, long j, double value)
 {
     fv.value[i + j * fv.size_x] = value;
     return value;
 }
 
-double get_from(struct field_variable fv, long i, long j)
+double py_get_from(struct py_field_variable fv, long i, long j)
 {
     return fv.value[i + j * fv.size_x];
 }
 
-void set_boundary(struct field *f)
+void py_set_boundary(struct py_field *f)
 {
     long nx, i, j;
 
@@ -224,7 +224,7 @@ void set_boundary(struct field *f)
         f->u.value[i + j * nx] = 0;
 }
 
-void leapfrog(struct field *f)
+void py_leapfrog(struct py_field *f)
 {
     long i, j;
     long nx = f->p.size_x;
@@ -262,20 +262,20 @@ void leapfrog(struct field *f)
             V(i, j) += dt / f->p.dy * (P(i, j) - P(i, j - 1));
 }
 
-void timestep_leapfrog(struct field *f, double Nt)
+void py_timestep_leapfrog(struct py_field *f, double Nt)
 {
     for (long n = 0; n < Nt; ++n)
-        leapfrog(f);
+        py_leapfrog(f);
 }
 
-struct cell_partition *partition_grid(long total_threads, long cells)
+struct py_cell_partition *py_partition_grid(long total_threads, long cells)
 {
     assert(total_threads <= cells);
     long i;
     long cells_per_thread;
-    struct cell_partition *partition;
+    struct py_cell_partition *partition;
 
-    partition = malloc(sizeof(struct cell_partition) * total_threads);
+    partition = malloc(sizeof(struct py_cell_partition) * total_threads);
     cells_per_thread = ceil((double) cells / (double) total_threads);
 
     for (i = 0; i < total_threads - 1; ++i) {
@@ -296,7 +296,7 @@ struct cell_partition *partition_grid(long total_threads, long cells)
     return partition;
 }
 
-void get_partition_coords(struct cell_partition part, struct field *f,
+void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y)
 {
     long begin = part.begin;
@@ -305,7 +305,7 @@ void get_partition_coords(struct cell_partition part, struct field *f,
     y[1] = f->v.y[end];
 }
 
-void cellindex_to_nodeindex(long tid, struct cell_partition part,
+void py_cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1)
 {
@@ -320,7 +320,7 @@ void cellindex_to_nodeindex(long tid, struct cell_partition part,
     }
 }
 
-void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
+void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
                    int argc, char *argv[])
 {
     int opt;
@@ -351,7 +351,7 @@ void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
     }
 }
 
-int write_to_disk(struct field_variable f, char *fstr)
+int py_write_to_disk(struct py_field_variable f, char *fstr)
 {
     FILE *fp;
     printf("Writing to: %s\n", fstr);
@@ -363,7 +363,7 @@ int write_to_disk(struct field_variable f, char *fstr)
     for (long i = 0; i < f.size_x; ++i) {
         for (long j = 0; j < f.size_y; ++j) {
             fprintf(fp, "%.16e\t%.16e\t%.16e\n", f.x[i], f.y[j],
-                    get_from(f, i, j));
+                    py_get_from(f, i, j));
         }
         fprintf(fp, "\n");
     }
@@ -371,54 +371,54 @@ int write_to_disk(struct field_variable f, char *fstr)
     return EXIT_SUCCESS;
 }
 
-double gauss(double x)
+double py_gauss(double x)
 {
     return exp(-pow(x - 0.5, 2) / pow(0.05, 2));
 }
 
-double gauss2d(double x, double y)
+double py_gauss2d(double x, double y)
 {
     double r_squared = pow(x - 0.2, 2) + pow(y - 0.5, 2);
     return exp(-r_squared / pow(0.1, 2));
 }
 
-double zero(double x)
+double py_zero(double x)
 {
     (void) x;
     return 0.0;
 }
 
-double zero2d(double x, double y)
+double py_zero2d(double x, double y)
 {
     (void) x;
     (void) y;
     return 0.0;
 }
 
-double one2d(double x, double y)
+double py_one2d(double x, double y)
 {
     (void) x;
     (void) y;
     return 1.0;
 }
 
-double identity(double x)
+double py_identity(double x)
 {
     return x;
 }
 
-double identity2d(double x, double y)
+double py_identity2d(double x, double y)
 {
     (void) y;
     return x;
 }
 
-int round_up_divide(int x, int y)
+int py_round_up_divide(int x, int y)
 {
     return (x - 1) / y + 1;
 }
 
-double gettime(void)
+double py_gettime(void)
 {
     struct timeval t;
     gettimeofday(&t, NULL);

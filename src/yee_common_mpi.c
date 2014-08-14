@@ -47,10 +47,10 @@ void receive_grid_data(long *left, long *right, long *size, double *y,
     MPI_Recv(y, 2, MPI_DOUBLE, MASTER, BEGIN, MPI_COMM_WORLD, status);
 }
 
-void send_field_data(long taskid, struct field *f,
-                     struct cell_partition part)
+void send_field_data(long taskid, struct py_field *f,
+                     struct py_cell_partition part)
 {
-    /* Send out field data.
+    /* Send out py_field data.
      * Note that MASTER deals with the taskid=0 special case, i.e., we do
      * not have to worry about it here. */
     long begin = part.begin;    /* for convenience */
@@ -72,7 +72,7 @@ void send_field_data(long taskid, struct field *f,
              MPI_COMM_WORLD);
 }
 
-void receive_field_data(struct field *f, long size, MPI_Status * status)
+void receive_field_data(struct py_field *f, long size, MPI_Status * status)
 {
     long nx = f->p.size_x;
     long begin_p = 0 + 1 * nx;
@@ -90,7 +90,7 @@ void receive_field_data(struct field *f, long size, MPI_Status * status)
              MPI_COMM_WORLD, status);
 }
 
-void return_data(struct field *f, long size)
+void return_data(struct py_field *f, long size)
 {
     long nx = f->p.size_x;
     long begin_p = 0 + 1 * nx;
@@ -108,7 +108,7 @@ void return_data(struct field *f, long size)
              MPI_COMM_WORLD);
 }
 
-void collect_data(long taskid, struct cell_partition part, struct field *f,
+void collect_data(long taskid, struct py_cell_partition part, struct py_field *f,
                   MPI_Status * status)
 {
     long begin = part.begin;    /* for convenience */
@@ -152,7 +152,7 @@ void leapfrog_master_p2(double *restrict p, double *restrict u,
                 dt / dx * (U(i + 1, j) - U(i, j)) +
                 dt / dy * (V(i, j + 1) - V(i, j));
 
-    /* Bordering field points */
+    /* Bordering py_field points */
     if (right != NONE)
         MPI_Wait(received, MPI_STATUS_IGNORE);
 
@@ -185,7 +185,7 @@ void leapfrog_worker_p2(double *restrict p, double *restrict u,
                 dt / dx * (U(i + 1, j) - U(i, j)) +
                 dt / dy * (V(i, j + 1) - V(i, j));
 
-    /* Bordering field points */
+    /* Bordering py_field points */
     if (right != NONE)
         MPI_Wait(received, MPI_STATUS_IGNORE);
 
@@ -234,7 +234,7 @@ void leapfrog_worker_uv2(double *restrict p, double *restrict u,
         for (long j = 1; j < size; ++j)
             V(i, j) += dt / dy * (P(i, j + 1) - P(i, j));
 
-    /* Bordering field points */
+    /* Bordering py_field points */
     if (left != NONE)
         MPI_Wait(received, MPI_STATUS_IGNORE);
 
@@ -317,7 +317,7 @@ void communicate_p2(double *p, long left, long right, long nx, long size,
     }
 }
 
-void leapfrog_mpi(struct field *f, long left, long right, long size)
+void leapfrog_mpi(struct py_field *f, long left, long right, long size)
 {
     MPI_Status status;
 
@@ -348,7 +348,7 @@ void leapfrog_mpi(struct field *f, long left, long right, long size)
         leapfrog_worker_uv(p, u, v, nx, f->dt, f->p.dx, f->p.dy, size);
 }
 
-void leapfrog_mpi2(struct field *f, long left, long right, long size)
+void leapfrog_mpi2(struct py_field *f, long left, long right, long size)
 {
     MPI_Request sent;
     MPI_Request received;
@@ -387,13 +387,13 @@ void leapfrog_mpi2(struct field *f, long left, long right, long size)
         MPI_Wait(&sent, MPI_STATUS_IGNORE);
 }
 
-void timestep_mpi(struct field *f, long left, long right, long size)
+void timestep_mpi(struct py_field *f, long left, long right, long size)
 {
     for (long n = 0; n < f->Nt; ++n)
         leapfrog_mpi(f, left, right, size);
 }
 
-void timestep_mpi2(struct field *f, long left, long right, long size)
+void timestep_mpi2(struct py_field *f, long left, long right, long size)
 {
     for (long n = 0; n < f->Nt; ++n)
         leapfrog_mpi2(f, left, right, size);

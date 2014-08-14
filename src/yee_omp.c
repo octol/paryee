@@ -42,30 +42,30 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee_omp.tsv";
     int write = 1;
     long threads = 4;
-    struct cell_partition *part;
+    struct py_cell_partition *part;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     omp_set_num_threads(threads);
     printf("Domain: %li x %li\n", nx, ny);
     printf("OpenMP threads: %li\n", threads);
 
     /* Initialize */
-    f = init_acoustic_field(nx, ny, x, y);
-    apply_func(&f.p, gauss2d);  /* initial data */
-    set_boundary(&f);
+    f = py_init_acoustic_field(nx, ny, x, y);
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
     f.Nt = T / f.dt;
 
     /* Partition the grid */
-    part = partition_grid(threads, nx);
+    part = py_partition_grid(threads, nx);
 
     /* Maybe we can make optimization of the inner loop a bit easier for the
      * compiler? 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     /* timestep */
     long n, i, j;
     double tic, toc;
-    tic = gettime();
+    tic = py_gettime();
 #pragma omp parallel default(shared) private(i,j,n)
     {
         /* private variables used in the time stepping */
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         double Nt = f.Nt;
         long tid = omp_get_thread_num();
         long p0, p1, u0, u1, v0, v1;
-        cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
+        py_cellindex_to_nodeindex(tid, part[tid], &p0, &p1, &u0, &u1, &v0,
                                &v1);
 #ifdef DEBUG
         printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
@@ -119,14 +119,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    toc = gettime();
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
     if (write)
-        write_to_disk(f.p, outfile);
+        py_write_to_disk(f.p, outfile);
     free(part);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     return EXIT_SUCCESS;
 }

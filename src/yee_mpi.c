@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int write = 1;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, NULL, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
 
     /* Setup MPI and initialize variables */
@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
     /* Field variables - data structures for the simulation */
-    struct field f;             /* Contains pressure and velocity */
-    struct cell_partition *part;        /* Array of domain partitions */
+    struct py_field f;             /* Contains pressure and velocity */
+    struct py_cell_partition *part;        /* Array of domain partitions */
 
     if (taskid == MASTER) {
         /********************* Master code *********************/
@@ -75,9 +75,9 @@ int main(int argc, char *argv[])
         /* Initialize */
         printf("Domain: %li x %li\n", nx, ny);
         printf("MPI processes: %d\n", numtasks);
-        f = init_acoustic_field(nx, ny, x, y);
-        apply_func(&f.p, gauss2d);      /* initial data */
-        set_boundary(&f);
+        f = py_init_acoustic_field(nx, ny, x, y);
+        py_apply_func(&f.p, py_gauss2d);      /* initial data */
+        py_set_boundary(&f);
 
         /* Depends on the numerical variables initialized above */
         /* CFL condition is: c*dt/dx = cfl <= 1 */
@@ -85,11 +85,11 @@ int main(int argc, char *argv[])
         f.Nt = T / f.dt;
 
         /* Compute partition. NOTE: partitioning across ny! (not nx) */
-        part = partition_grid(numtasks, ny);
+        part = py_partition_grid(numtasks, ny);
 
         /* Timing */
         double tic, toc;
-        tic = gettime();
+        tic = py_gettime();
 
         /* Send out data to the workers */
         for (long taskid = 1; taskid < numtasks; ++taskid) {
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
             /* Compute (start/end) coordinates of the partition */
             double y_part[2];
-            get_partition_coords(part[taskid], &f, y_part);
+            py_get_partition_coords(part[taskid], &f, y_part);
 
             /* Send out data to the other workers / computational nodes */
             /* We send the number of inner cells (size) */
@@ -118,13 +118,13 @@ int main(int argc, char *argv[])
         for (long taskid = 1; taskid < numtasks; ++taskid)
             collect_data(taskid, part[taskid], &f, &status);
 
-        toc = gettime();
+        toc = py_gettime();
         printf("Elapsed: %f seconds\n", toc - tic);
 
         if (write)
-            write_to_disk(f.p, outfile);
+            py_write_to_disk(f.p, outfile);
         free(part);
-        free_acoustic_field(f);
+        py_free_acoustic_field(f);
         MPI_Finalize();
 
     } else {
@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
         double y_part[2];       /* coord interval on y-axis */
         receive_grid_data(&left, &right, &size, y_part, &status);
 
-        /* Allocate and receive the local copy of the field */
-        f = init_local_acoustic_field(nx, size, x, y_part);
+        /* Allocate and receive the local copy of the py_field */
+        f = py_init_local_acoustic_field(nx, size, x, y_part);
         receive_field_data(&f, size, &status);
 
         /* Depends on the numerical variables initialized above */
@@ -149,12 +149,12 @@ int main(int argc, char *argv[])
         if (right == NONE) {
             long j = size;
             for (long i = 0; i < nx; ++i)
-                assign_to(f.v, i, j, 0);
+                py_assign_to(f.v, i, j, 0);
         }
 
         timestep_mpi(&f, left, right, size);
         return_data(&f, size);  /* Send back data to master */
-        free_acoustic_field(f);
+        py_free_acoustic_field(f);
         MPI_Finalize();
     }
 

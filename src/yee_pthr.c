@@ -39,19 +39,19 @@ pthread_barrier_t barrier;
  * Data structures
  */
 struct thread_param {
-    struct field *f;
-    struct cell_partition part;
+    struct py_field *f;
+    struct py_cell_partition part;
     long tid;
 };
 
 void *thread_main(void *arg)
 {
     struct thread_param *param = (struct thread_param *) arg;
-    struct field *f = param->f;
+    struct py_field *f = param->f;
     long tid = param->tid;
 
     long p0, p1, u0, u1, v0, v1;
-    cellindex_to_nodeindex(tid, param->part, &p0, &p1, &u0, &u1, &v0, &v1);
+    py_cellindex_to_nodeindex(tid, param->part, &p0, &p1, &u0, &u1, &v0, &v1);
 #ifdef DEBUG
     printf("tid=%lu  p0=%lu  p1=%lu  u0=%lu  u1=%lu  v0=%lu  v1=%lu\n",
            tid, p0, p1, u0, u1, v0, v1);
@@ -109,25 +109,25 @@ int main(int argc, char *argv[])
     double c = 1;
     long nx = 32;
     long ny = 32;
-    struct field f;
+    struct py_field f;
     char outfile[STR_SIZE] = "yee_pthr.tsv";
     int write = 1;
     long threads = 4;
-    struct cell_partition *part;
+    struct py_cell_partition *part;
     pthread_t *thr;
     pthread_attr_t attr;
     struct thread_param *param;
 
     /* Parse parameters from commandline */
-    parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
+    py_parse_cmdline(&nx, &threads, outfile, &write, argc, argv);
     ny = nx;                    /* square domain */
     printf("Domain: %li x %li\n", nx, ny);
     printf("Pthreads: %li\n", threads);
 
     /* Initialize */
-    f = init_acoustic_field(nx, ny, x, y);
-    apply_func(&f.p, gauss2d);  /* initial data */
-    set_boundary(&f);
+    f = py_init_acoustic_field(nx, ny, x, y);
+    py_apply_func(&f.p, py_gauss2d);  /* initial data */
+    py_set_boundary(&f);
 
     /* Depends on the numerical variables initialized above */
     f.dt = cfl * f.p.dx / c;
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     }
 
     /* Partition the grid */
-    part = partition_grid(threads, nx);
+    part = py_partition_grid(threads, nx);
 
     /* Assemble structs to be used as arguments to the threads */
     param = malloc(sizeof(struct thread_param) * threads);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 
     /* timestep */
     double tic, toc;
-    tic = gettime();
+    tic = py_gettime();
 
     /* Spawn additional [threads-1] threads */
     for (i = 0; i < threads - 1; ++i)
@@ -176,16 +176,16 @@ int main(int argc, char *argv[])
     for (i = 0; i < threads - 1; ++i)
         pthread_join(thr[i], NULL);
 
-    toc = gettime();
+    toc = py_gettime();
     printf("Elapsed: %f seconds\n", toc - tic);
 
     /* write to disk and free data */
     if (write)
-        write_to_disk(f.p, outfile);
+        py_write_to_disk(f.p, outfile);
     free(param);
     free(thr);
     free(part);
-    free_acoustic_field(f);
+    py_free_acoustic_field(f);
 
     pthread_attr_destroy(&attr);
     pthread_barrier_destroy(&barrier);

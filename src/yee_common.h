@@ -34,9 +34,9 @@
  **************************************************************************/
 
 /*
- * A field variable is scalar valued and defined on a 2D grid.
+ * A py_field variable is scalar valued and defined on a 2D grid.
  */
-struct field_variable {
+struct py_field_variable {
     double *value;
     double *x;
     double *y;
@@ -49,10 +49,10 @@ struct field_variable {
 /*
  * Contains the entire field
  */
-struct field {
-    struct field_variable p;
-    struct field_variable u;
-    struct field_variable v;
+struct py_field {
+    struct py_field_variable p;
+    struct py_field_variable u;
+    struct py_field_variable v;
     double dt;
     double Nt;
 };
@@ -61,7 +61,7 @@ struct field {
  * Specifies the start and end cell index of the internal domain (along the
  * x-axis).
  */
-struct cell_partition {
+struct py_cell_partition {
     long begin;
     long end;
     long size;
@@ -74,86 +74,86 @@ struct cell_partition {
 /* 
  * Allocate and deallocate the memory used by the grid (field) 
  */
-void alloc_field(struct field_variable *, const long size_x,
+void py_alloc_field(struct py_field_variable *, const long size_x,
                  const long size_y);
-void free_field(struct field_variable);
+void py_free_field(struct py_field_variable);
 
 /* 
  * Generate grid from start to end
  */
-void set_grid(struct field_variable *, const double x[2],
+void py_set_grid(struct py_field_variable *, const double x[2],
               const double y[2]);
 
 /*
  * Vectorization of function.
  * Apply the function func on the array dst with argument arg.
  */
-void vec_func(double *dst, double (*func) (double), const double *arg,
+void py_vec_func(double *dst, double (*func) (double), const double *arg,
               const long size);
 
-void vec_func2d(double *dst, double (*func) (double, double),
+void py_vec_func2d(double *dst, double (*func) (double, double),
                 const double *arg_x, const long size_x,
                 const double *arg_y, const long size_y);
 
 /*
- * Vectorization of function applied to field_variable.
+ * Vectorization of function applied to py_field_variable.
  */
-void apply_func(struct field_variable *f, double (*func) (double, double));
+void py_apply_func(struct py_field_variable *f, double (*func) (double, double));
 
 /* 
- * Allocates field and sets initial value to zero
+ * Allocates py_field and sets initial value to zero
  */
-struct field init_acoustic_field(long cells_x,
+struct py_field py_init_acoustic_field(long cells_x,
                                  long cells_y, double x[2], double y[2]);
 
 /* 
- * Allocates field and sets initial value to zero. This variant is for
+ * Allocates py_field and sets initial value to zero. This variant is for
  * distributed memory local domains. The difference is we get one more p
  * node to the left (below). This the generated grid will actually start
  * dy/2 before y[0].
  * NOTE: Function not valid for the left most (bottom) partition.
  */
-struct field init_local_acoustic_field(long cells_x, long cells_y,
+struct py_field py_init_local_acoustic_field(long cells_x, long cells_y,
                                        double x[2], double y[2]);
 
 /*
  * Deallocate field
  */
-void free_acoustic_field(struct field);
+void py_free_acoustic_field(struct py_field);
 
 /*
  * Assign and retrive value from fv(i,j)
  */
-double assign_to(struct field_variable fv, long i, long j, double value);
-double get_from(struct field_variable fv, long i, long j);
+double py_assign_to(struct py_field_variable fv, long i, long j, double value);
+double py_get_from(struct py_field_variable fv, long i, long j);
 
 /*
  * Sets the outer boundary (u,v) to zero.
  */
-void set_boundary(struct field *f);
+void py_set_boundary(struct py_field *f);
 
 /*
- * Leapfrog update of the field 
+ * Leapfrog update of the py_field 
  */
-void leapfrog(struct field *f);
+void py_leapfrog(struct py_field *f);
 
 /*
- * Time step n Leapfrog updates of the field 
+ * Time step n Leapfrog updates of the py_field 
  */
-void timestep_leapfrog(struct field *f, double n);
+void py_timestep_leapfrog(struct py_field *f, double n);
 
 /*
  * Divide the grid for the different threads. The partition is done as
  * strips. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct cell_partition *partition_grid(long total_threads, long cells);
+struct py_cell_partition *py_partition_grid(long total_threads, long cells);
 
 /*
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct cell_partition part, struct field *f,
+void py_get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y);
 
 /*
@@ -162,7 +162,7 @@ void get_partition_coords(struct cell_partition part, struct field *f,
  * Note that the end index is such that the indices <p1, <u1, <v1 are
  * update.
  */
-void cellindex_to_nodeindex(long tid, struct cell_partition part,
+void py_cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1);
 
@@ -170,33 +170,33 @@ void cellindex_to_nodeindex(long tid, struct cell_partition part,
  * Parse commandline argument and set the number of grid points, * the
  * number of threads as well as the output filenames.
  */
-void parse_cmdline(long *nx, long *threads, char *outfile, int *write,
+void py_parse_cmdline(long *nx, long *threads, char *outfile, int *write,
                    int argc, char *argv[]);
 
 /*
- * Write field to dist
+ * Write py_field to dist
  */
-int write_to_disk(struct field_variable f, char *fstr);
+int py_write_to_disk(struct py_field_variable f, char *fstr);
 
 /* 
  * Some grid functions 
  */
-double gauss(double);
-double gauss2d(double x, double y);
-double zero(double x);
-double zero2d(double x, double y);
-double one2d(double x, double y);
-double identity(double);
-double identity2d(double x, double y);
+double py_gauss(double);
+double py_gauss2d(double x, double y);
+double py_zero(double x);
+double py_zero2d(double x, double y);
+double py_one2d(double x, double y);
+double py_identity(double);
+double py_identity2d(double x, double y);
 
 /*
  * Round up integer division
  */
-int round_up_divide(int x, int y);
+int py_round_up_divide(int x, int y);
 
 /*
  * Get time in a way that is compatible with threading
  */
-double gettime(void);
+double py_gettime(void);
 
 #endif
