@@ -224,7 +224,7 @@ void py_set_boundary(struct py_field *f)
         f->u.value[i + j * nx] = 0;
 }
 
-void leapfrog(struct py_field *f)
+void py_leapfrom(struct py_field *f)
 {
     long i, j;
     long nx = f->p.size_x;
@@ -265,7 +265,7 @@ void leapfrog(struct py_field *f)
 void timestep_leapfrog(struct py_field *f, double Nt)
 {
     for (long n = 0; n < Nt; ++n)
-        leapfrog(f);
+        py_leapfrom(f);
 }
 
 struct py_cell_partition *partition_grid(long total_threads, long cells)
