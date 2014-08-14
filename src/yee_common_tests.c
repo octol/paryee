@@ -429,7 +429,7 @@ void test_leapfrog(void)
     for (unsigned long i = 0; i < N; ++i)
         for (unsigned long j = 0; j < N; ++j)
             P(i, j) = 1;
-    py_leapfrom(&f);
+    py_leapfrog(&f);
     for (unsigned long i = 0; i < N + 1; ++i)
         for (unsigned long j = 0; j < N; ++j)
             CU_ASSERT_DOUBLE_EQUAL(U(i, j), 0, TOL);
@@ -445,7 +445,7 @@ void test_leapfrog(void)
     for (unsigned long i = 0; i < N; ++i)
         for (unsigned long j = 0; j < N + 1; ++j)
             V(i, j) = 1;
-    py_leapfrom(&f);
+    py_leapfrog(&f);
     for (unsigned long i = 0; i < N; ++i)
         for (unsigned long j = 0; j < N; ++j)
             CU_ASSERT_DOUBLE_EQUAL(P(i, j), 0, TOL);

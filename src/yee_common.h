@@ -135,7 +135,7 @@ void py_set_boundary(struct py_field *f);
 /*
  * Leapfrog update of the py_field 
  */
-void py_leapfrom(struct py_field *f);
+void py_leapfrog(struct py_field *f);
 
 /*
  * Time step n Leapfrog updates of the py_field 
