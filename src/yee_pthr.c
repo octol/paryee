@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     }
 
     /* Partition the grid */
-    part = partition_grid(threads, nx);
+    part = py_partition_grid(threads, nx);
 
     /* Assemble structs to be used as arguments to the threads */
     param = malloc(sizeof(struct thread_param) * threads);

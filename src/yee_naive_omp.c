@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     f.Nt = T / f.dt;
 
     /* Partition the grid */
-    part = partition_grid(threads, nx);
+    part = py_partition_grid(threads, nx);
 
     /* Maybe we can make optimization of the inner loop a bit easier for the
      * compiler? 

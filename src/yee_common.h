@@ -147,7 +147,7 @@ void py_timestep_leapfrog(struct py_field *f, double n);
  * strips. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct py_cell_partition *partition_grid(long total_threads, long cells);
+struct py_cell_partition *py_partition_grid(long total_threads, long cells);
 
 /*
  * Given partition information, get the corresponding domain coordinates.

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         f.Nt = T / f.dt;
 
         /* Compute partition. NOTE: partitioning across ny! (not nx) */
-        part = partition_grid(numtasks, ny);
+        part = py_partition_grid(numtasks, ny);
 
         /* Timing */
         double tic, toc;
