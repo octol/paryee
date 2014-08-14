@@ -48,7 +48,7 @@ void receive_grid_data(long *left, long *right, long *size, double *y,
 }
 
 void send_field_data(long taskid, struct py_field *f,
-                     struct cell_partition part)
+                     struct py_cell_partition part)
 {
     /* Send out py_field data.
      * Note that MASTER deals with the taskid=0 special case, i.e., we do
@@ -108,7 +108,7 @@ void return_data(struct py_field *f, long size)
              MPI_COMM_WORLD);
 }
 
-void collect_data(long taskid, struct cell_partition part, struct py_field *f,
+void collect_data(long taskid, struct py_cell_partition part, struct py_field *f,
                   MPI_Status * status)
 {
     long begin = part.begin;    /* for convenience */

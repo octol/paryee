@@ -51,7 +51,7 @@ void receive_grid_data(long *left, long *right, long *size, double *y,
  * The actual py_field (pressure and velocity) is sent from master to worker node. 
  */
 void send_field_data(long taskid, struct py_field *f,
-                     struct cell_partition part);
+                     struct py_cell_partition part);
 
 /*
  * Each worker node receives its py_field (pressure and velocity) from the master
@@ -68,7 +68,7 @@ void return_data(struct py_field *f, long size);
 /*
  * The master collects all data into one unit.
  */
-void collect_data(long taskid, struct cell_partition part, struct py_field *f,
+void collect_data(long taskid, struct py_cell_partition part, struct py_field *f,
                   MPI_Status * status);
 
 /* 

@@ -268,12 +268,12 @@ void timestep_leapfrog(struct py_field *f, double Nt)
         leapfrog(f);
 }
 
-struct cell_partition *partition_grid(long total_threads, long cells)
+struct py_cell_partition *partition_grid(long total_threads, long cells)
 {
     assert(total_threads <= cells);
     long i;
     long cells_per_thread;
-    struct cell_partition *partition;
+    struct py_cell_partition *partition;
 
     partition = malloc(sizeof(struct cell_partition) * total_threads);
     cells_per_thread = ceil((double) cells / (double) total_threads);
@@ -296,7 +296,7 @@ struct cell_partition *partition_grid(long total_threads, long cells)
     return partition;
 }
 
-void get_partition_coords(struct cell_partition part, struct py_field *f,
+void get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y)
 {
     long begin = part.begin;
@@ -305,7 +305,7 @@ void get_partition_coords(struct cell_partition part, struct py_field *f,
     y[1] = f->v.y[end];
 }
 
-void cellindex_to_nodeindex(long tid, struct cell_partition part,
+void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1)
 {

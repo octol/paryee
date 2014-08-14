@@ -61,7 +61,7 @@ struct py_field {
  * Specifies the start and end cell index of the internal domain (along the
  * x-axis).
  */
-struct cell_partition {
+struct py_cell_partition {
     long begin;
     long end;
     long size;
@@ -147,13 +147,13 @@ void timestep_leapfrog(struct py_field *f, double n);
  * strips. We divide the grid according to cells.
  * Note: only the inner nodes are returned.
  */
-struct cell_partition *partition_grid(long total_threads, long cells);
+struct py_cell_partition *partition_grid(long total_threads, long cells);
 
 /*
  * Given partition information, get the corresponding domain coordinates.
  * NOTE: this is for when we divide on the y-axis for the MPI version.
  */
-void get_partition_coords(struct cell_partition part, struct py_field *f,
+void get_partition_coords(struct py_cell_partition part, struct py_field *f,
                           double *y);
 
 /*
@@ -162,7 +162,7 @@ void get_partition_coords(struct cell_partition part, struct py_field *f,
  * Note that the end index is such that the indices <p1, <u1, <v1 are
  * update.
  */
-void cellindex_to_nodeindex(long tid, struct cell_partition part,
+void cellindex_to_nodeindex(long tid, struct py_cell_partition part,
                             long *p0, long *p1,
                             long *u0, long *u1, long *v0, long *v1);
 

@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     /* Field variables - data structures for the simulation */
     struct py_field f;             /* Contains pressure and velocity */
-    struct cell_partition *part;        /* Array of domain partitions */
+    struct py_cell_partition *part;        /* Array of domain partitions */
 
     if (taskid == MASTER) {
         /********************* Master code *********************/

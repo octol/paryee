@@ -40,7 +40,7 @@ pthread_barrier_t barrier;
  */
 struct thread_param {
     struct py_field *f;
-    struct cell_partition part;
+    struct py_cell_partition part;
     long tid;
 };
 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     char outfile[STR_SIZE] = "yee_pthr.tsv";
     int write = 1;
     long threads = 4;
-    struct cell_partition *part;
+    struct py_cell_partition *part;
     pthread_t *thr;
     pthread_attr_t attr;
     struct thread_param *param;

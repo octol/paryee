@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     char outfile[STR_SIZE] = "yee_naive_omp.tsv";
     int write = 1;
     long threads = 4;
-    struct cell_partition *part;
+    struct py_cell_partition *part;
 
     /* Parse parameters from commandline */
     parse_cmdline(&nx, &threads, outfile, &write, argc, argv);

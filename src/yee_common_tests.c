@@ -455,7 +455,7 @@ void test_leapfrog(void)
 
 void test_partition_grid(void)
 {
-    struct cell_partition *part;
+    struct py_cell_partition *part;
     unsigned long cells_x;
     unsigned long threads;
 
@@ -511,7 +511,7 @@ void test_get_partition_coords(void)
     double y_part[2];
     long threads, n;
     struct py_field f;
-    struct cell_partition *part;
+    struct py_cell_partition *part;
 
     n = 4;
     threads = 1;
