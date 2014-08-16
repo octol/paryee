@@ -302,8 +302,8 @@ test-scaling:
 	    gnuplot test_scaling.plt 
 
 test-perf-compute: all
-	#./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 128 -s 4
-	./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 110 -s 2
+	#./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 1000 -s 2 -t 50
+	./$(TESTDIR_PERF)/test_perf.sh -n 4 -N 1000 -s 4 -t 1
 
 #test-perf: test-perf-compute
 test-perf: 

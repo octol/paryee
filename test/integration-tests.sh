@@ -3,10 +3,8 @@
 
 # Environment
 : bindir = bin
-if [[ ! -f $bindir/yee ]]; then
-    printf "$bindir/yee: not found!\n"
-    exit 1;
-fi
+hash numdiff 2>/dev/null \
+    || { echo >&2 "ERROR: numdiff not installed."; exit 1; }
 
 # Numerical parameters
 N=64
@@ -28,16 +26,17 @@ printf "\n  Integration tests:\n"
 printf "  Testing that all implementations produce the same output.\n"
 
 # Generate reference solution to compare against
+[[ -f $bindir/yee ]] \
+    || { echo >&2 "ERROR: $bindir/yee not found."; exit 1; }
+
 ./$bindir/yee -o /tmp/yee.tsv $args 1> /dev/null
 
 for yb in $yee_bin; do
 
     # Assert environment
 
-    if [[ ! -f $bindir/$yb ]]; then 
-        printf "$bindir/$yb: not found!\n" 
-        exit 1 
-    fi
+    [[ -f $bindir/$yb ]] \
+        || { echo >&2 "ERROR: $bindir/$yb not found."; exit 1; } 
 
     # Compute solution
 
